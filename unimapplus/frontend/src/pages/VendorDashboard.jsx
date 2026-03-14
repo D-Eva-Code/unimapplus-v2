@@ -141,7 +141,7 @@ export default function VendorDashboard() {
         <div style={{padding:'20px 20px 16px',borderBottom:'1px solid #e0eeee'}}>
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:16}}>
             <div style={{width:32,height:32,background:TEAL,borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontWeight:900,fontSize:14}}>U</div>
-            <span style={{fontWeight:900,fontSize:17,color:DARK}}>Unimap<span style={{color:TEAL}}>+</span></span>
+            <span style={{fontWeight:900,fontSize:17,color:DARK}}>Unimap+<span style={{color:TEAL}}>+</span></span>
           </div>
           <p style={{fontSize:10,fontWeight:700,color:'#8aa8a8',letterSpacing:1,margin:0,textTransform:'uppercase'}}>Vendor</p>
         </div>
@@ -235,7 +235,7 @@ export default function VendorDashboard() {
 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:24}}>
   <div>
     <h1 style={{margin:0,fontSize:isMobile ? 18 : 22,fontWeight:900,color:DARK}}>{vendor?.vendor_name}</h1>
-    <p style={{margin:'4px 0 0',fontSize:12,color:'#7a90a4'}}>{new Date().toLocaleDateString()}</p>
+    <p style={{margin:'4px 0 0',fontSize:12,color:'#7a90a4'}}>Food Vendor</p>
   </div>
   
   {isMobile && (
