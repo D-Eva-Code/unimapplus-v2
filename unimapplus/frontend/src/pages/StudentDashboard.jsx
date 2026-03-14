@@ -354,7 +354,7 @@ export default function StudentDashboard() {
         </div>
       )}
 
-      {/* MOBILE DRAWER
+      MOBILE DRAWER
       {isMobile && sideOpen && (
         <>
           <div onClick={()=>setSideOpen(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.4)',zIndex:300}}/>
@@ -373,33 +373,7 @@ export default function StudentDashboard() {
             </div>
           </div>
         </>
-      )} */}
-
-      {/* MOBILE BOTTOM DRAWER */}
-{isMobile && (
-  <div style={{
-    position: 'fixed',
-    bottom: 0,
-    left: 0,
-    width: '100%',
-    maxHeight: '60%',
-    background: '#fff',
-    zIndex: 400,
-    padding: '20px 12px',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    display: 'flex',
-    flexDirection: 'column',
-    overflowY: 'auto'
-  }}>
-    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: 16}}>
-      <span style={{fontWeight:900,fontSize:16,color:DARK}}>Unimap<span style={{color:TEAL}}>+</span></span>
-      <button onClick={logout} style={{background:'none',border:'none',cursor:'pointer',color:'#e74c3c',fontWeight:700,fontSize:13}}>🚪 Logout</button>
-    </div>
-
-    {NAV.map(n => <SideItem key={n.id} {...n} />)}
-  </div>
-)}
+      )}
 
       {/* MAIN */}
       <div style={{flex:1,marginLeft:isMobile?0:200,display:'flex',flexDirection:'column',minHeight:'100vh'}}>
