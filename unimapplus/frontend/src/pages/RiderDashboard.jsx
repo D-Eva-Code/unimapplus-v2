@@ -49,22 +49,22 @@ export default function RiderDashboard() {
 
   async function toggleAvailability() {
     try {
-      // 1. Send request to backend
+      //Send request to backend
       const { data } = await api.post('/rider/toggle-availability');
       
-      // 2. Update the local state immediately using the backend's confirmed value
+      //Update the local state immediately using the backend's confirmed value
       setDashboard(prev => {
         if (!prev) return prev;
         return {
           ...prev,
           rider: {
             ...prev.rider,
-            is_available: data.is_available // Ensure your backend returns { is_available: true/false }
+            is_available: data.is_available // Ensure backend returns { is_available: true/false }
           }
         };
       });
 
-      // 3. Handle location broadcasting based on the NEW status
+      //Handle location broadcasting based on the NEW status
       if (data.is_available) {
         startBroadcast();
       } else {
