@@ -135,6 +135,8 @@ export default function VendorDashboard() {
   flexDirection: 'column',
   zIndex: 100
 }}>
+
+  
         {/* Logo */}
         <div style={{padding:'20px 20px 16px',borderBottom:'1px solid #e0eeee'}}>
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:16}}>
@@ -179,13 +181,73 @@ export default function VendorDashboard() {
   padding: isMobile ? '16px' : '28px 28px 40px', // Thinner padding for mobile
 }}>
 
-        {/* Header */}
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:24}}>
-          <div>
-            <h1 style={{margin:0,fontSize:22,fontWeight:900,color:DARK}}>{vendor?.vendor_name} — Dashboard</h1>
-            <p style={{margin:'4px 0 0',fontSize:13,color:'#7a90a4'}}>{new Date().toLocaleDateString('en-NG',{weekday:'long',day:'numeric',month:'long'})}</p>
-          </div>
-        </div>
+  {/* MOBILE BOTTOM TABS */}
+{isMobile && (
+  <div style={{
+    position: 'fixed',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 65,
+    background: '#fff',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    borderTop: '1px solid #e0eeee',
+    zIndex: 1000,
+    paddingBottom: 'env(safe-area-inset-bottom)' // Respects iPhone notches
+  }}>
+    {[
+      ['orders', '📋', 'Orders'],
+      ['menu', '🍽️', 'Menu'],
+      ['history', '📊', 'History']
+    ].map(([id, icon, label]) => {
+      const active = activeSection === id;
+      return (
+        <button 
+          key={id} 
+          onClick={() => setActiveSection(id)}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 4,
+            background: 'none',
+            border: 'none',
+            color: active ? TEAL : '#7a90a4',
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            transition: 'all .2s'
+          }}
+        >
+          <span style={{ fontSize: 20 }}>{icon}</span>
+          <span style={{ fontSize: 10, fontWeight: active ? 800 : 500 }}>{label}</span>
+          {active && (
+            <div style={{ width: 4, height: 4, borderRadius: '50%', background: TEAL, marginTop: 2 }} />
+          )}
+        </button>
+      );
+    })}
+  </div>
+)}
+
+       {/* Header - Modify to include status/logout on mobile */}
+<div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:24}}>
+  <div>
+    <h1 style={{margin:0,fontSize:isMobile ? 18 : 22,fontWeight:900,color:DARK}}>{vendor?.vendor_name}</h1>
+    <p style={{margin:'4px 0 0',fontSize:12,color:'#7a90a4'}}>{new Date().toLocaleDateString()}</p>
+  </div>
+  
+  {isMobile && (
+    <div style={{display:'flex', alignItems:'center', gap: 12}}>
+       {/* Small version of your toggle */}
+       <div onClick={toggleOpen} style={{width:36,height:20,background:vendor?.is_open?TEAL:'#dde8e8',borderRadius:20,position:'relative'}}>
+          <div style={{width:14,height:14,background:'#fff',borderRadius:'50%',position:'absolute',top:3,left:vendor?.is_open?19:3,transition:'left .25s'}}/>
+       </div>
+       <button onClick={logout} style={{background:'none', border:'none', fontSize:18}}>🚪</button>
+    </div>
+  )}
+</div>
 
         {/* Stats */}
        <div style={{
