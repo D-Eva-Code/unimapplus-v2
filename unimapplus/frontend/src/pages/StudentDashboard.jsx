@@ -256,86 +256,52 @@ export default function StudentDashboard() {
     s.onload=()=>setTimeout(initMap,100); document.head.appendChild(s);
   },[tab]);
 
-  // async function drawRoute(map, from, to, name) {
-  //   const L = window.L; if (!L || !map) return;
-  //   if (routeLayer.current) { map.removeLayer(routeLayer.current); routeLayer.current = null; }
+  async function drawRoute(map, from, to, name) {
+    const L = window.L; if (!L || !map) return;
+    if (routeLayer.current) { map.removeLayer(routeLayer.current); routeLayer.current = null; }
 
-  //   const bar  = document.getElementById('map-walking-bar');
-  //   const hint = document.getElementById('map-tap-hint');
-  //   if (bar)  { bar.style.display='flex';  bar.querySelector('#route-text').textContent = 'Getting route...'; }
-  //   if (hint) hint.style.display='none';
+    const bar  = document.getElementById('map-walking-bar');
+    const hint = document.getElementById('map-tap-hint');
+    if (bar)  { bar.style.display='flex';  bar.querySelector('#route-text').textContent = 'Getting route...'; }
+    if (hint) hint.style.display='none';
 
-  //   try {
-  //     // Try OSRM for real path geometry
-  //     const url = `https://router.project-osrm.org/route/v1/foot/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
-  //     const res = await fetch(url);
-  //     const data = await res.json();
+    try {
+      // Try OSRM for real path geometry
+      // const url = `https://router.project-osrm.org/route/v1/foot/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
+      const url = `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
+      const res = await fetch(url);
+      const data = await res.json();
 
-  //     if (data.routes && data.routes[0]) {
-  //       const route = data.routes[0];
-  //       const coords = route.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
-  //       routeLayer.current = L.polyline(coords, {
-  //         color: TEAL, weight: 4, opacity: 0.85
-  //       }).addTo(map);
-  //       // Use actual OSRM route distance for time (83m/min = 5km/h walking)
-  //       const routeDistM = route.distance; // metres along actual path
-  //       const mins = Math.ceil(routeDistM / 83);
-  //       const km = (routeDistM / 1000).toFixed(2);
-  //       if (bar) bar.querySelector('#route-text').textContent = `🚶 ${mins} min · ${km} km — to ${name}`;
-  //       map.fitBounds(routeLayer.current.getBounds(), {padding:[30,30]});
-  //     } else {
-  //       throw new Error('No route');
-  //     }
-  //   } catch {
-  //     // Fallback straight line
-  //     const fromLL = L.latLng(from[0], from[1]);
-  //     const toLL   = L.latLng(to[0], to[1]);
-  //     routeLayer.current = L.polyline([fromLL, toLL], {
-  //       color: TEAL, weight: 4, dashArray: '8,6', opacity: 0.85
-  //     }).addTo(map);
-  //     const dist = fromLL.distanceTo(toLL);
-  //     const mins = Math.ceil(dist * 1.25 / 80);
-  //     const km   = (dist * 1.25 / 1000).toFixed(2);
-  //     if (bar) bar.querySelector('#route-text').textContent = `🚶 ~${mins} min · ${km} km — to ${name}`;
-  //     map.fitBounds(routeLayer.current.getBounds(), {padding:[30,30]});
-  //   }
-  // }
-
-async function drawRoute(map, from, to, name) {
-  const L = window.L; 
-  if (!L || !map) return;
-
-  if (routeLayer.current) {
-    map.removeLayer(routeLayer.current);
-    routeLayer.current = null;
+      if (data.routes && data.routes[0]) {
+        const route = data.routes[0];
+        const coords = route.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+        routeLayer.current = L.polyline(coords, {
+          color: TEAL, weight: 4, opacity: 0.85
+        }).addTo(map);
+        // Use actual OSRM route distance for time (83m/min = 5km/h walking)
+        const routeDistM = route.distance; // metres along actual path
+        const mins = Math.ceil(routeDistM / 83);
+        const km = (routeDistM / 1000).toFixed(2);
+        if (bar) bar.querySelector('#route-text').textContent = `🚶 ${mins} min · ${km} km — to ${name}`;
+        map.fitBounds(routeLayer.current.getBounds(), {padding:[30,30]});
+      } else {
+        throw new Error('No route');
+      }
+    } catch {
+      // Fallback straight line
+      const fromLL = L.latLng(from[0], from[1]);
+      const toLL   = L.latLng(to[0], to[1]);
+      routeLayer.current = L.polyline([fromLL, toLL], {
+        color: TEAL, weight: 4, dashArray: '8,6', opacity: 0.85
+      }).addTo(map);
+      const dist = fromLL.distanceTo(toLL);
+      const mins = Math.ceil(dist * 1.25 / 80);
+      const km   = (dist * 1.25 / 1000).toFixed(2);
+      if (bar) bar.querySelector('#route-text').textContent = `🚶 ~${mins} min · ${km} km — to ${name}`;
+      map.fitBounds(routeLayer.current.getBounds(), {padding:[30,30]});
+    }
   }
 
-  const bar = document.getElementById('map-walking-bar');
-
-  const fromLL = L.latLng(from[0], from[1]);
-  const toLL = L.latLng(to[0], to[1]);
-
-  routeLayer.current = L.polyline([fromLL, toLL], {
-    color: '#0BBFBF',
-    weight: 5,
-    opacity: 0.85
-  }).addTo(map);
-
-  const dist = fromLL.distanceTo(toLL); // meters
-  const mins = Math.ceil(dist / 80); // walking speed
-  const km = (dist / 1000).toFixed(2);
-
-  if (bar) {
-    bar.style.display = 'flex';
-    bar.querySelector('#route-text').textContent =
-      `🚶 ${mins} min · ${km} km — to ${name}`;
-  }
-
-  map.fitBounds(routeLayer.current.getBounds(), {
-    padding: [40,40],
-    maxZoom: 17
-  });
-}
 
   function flyToNearby(loc) {
     if (!leafletMap.current) return;
