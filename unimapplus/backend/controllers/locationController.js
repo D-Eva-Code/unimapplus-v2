@@ -83,9 +83,10 @@ async function getSchools(req, res) {
     const [schools] = await pool.query('SELECT * FROM schools ORDER BY name');
     return res.json({ success: true, schools });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ success: false, message: 'Error' });
-  }
+  console.error(err);
+  
+  return res.status(500).json({ success: false, message: err.message }); 
+}
 }
 
 async function addLocation(req, res) {
