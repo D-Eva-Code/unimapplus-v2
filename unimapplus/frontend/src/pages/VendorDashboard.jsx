@@ -18,13 +18,10 @@ export default function VendorDashboard() {
   const [saving, setSaving]       = useState(false);
   const [orders, setOrders]       = useState([]);
   const [activeSection, setActiveSection] = useState('orders'); // orders | menu | history
-const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-useEffect(() => {
-  const handleResize = () => setIsMobile(window.innerWidth < 768);
-  window.addEventListener('resize', handleResize);
-  return () => window.removeEventListener('resize', handleResize);
-}, []);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
     loadDashboard();
     const socket = getSocket();
     // join after dashboard loads so we have the vendor id
@@ -124,8 +121,20 @@ useEffect(() => {
   return (
     <div style={{display:'flex',minHeight:'100vh',fontFamily:"'Plus Jakarta Sans',sans-serif",background:BG}}>
 
-      {/* SIDEBAR */}
-      <div style={{width:220,background:'#fff',borderRight:'1px solid #e0eeee',position:'fixed',top:0,left:0,height:'100vh',display:'flex',flexDirection:'column',zIndex:100}}>
+     {/* SIDEBAR */}
+<div style={{
+  width: isMobile ? 0 : 220, // Collapse width on mobile
+  overflow: 'hidden',        
+  display: isMobile ? 'none' : 'flex', // Or use a hamburger menu to toggle this
+  background: '#fff',
+  borderRight: '1px solid #e0eeee',
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  height: '100vh',
+  flexDirection: 'column',
+  zIndex: 100
+}}>
         {/* Logo */}
         <div style={{padding:'20px 20px 16px',borderBottom:'1px solid #e0eeee'}}>
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:16}}>
@@ -164,7 +173,11 @@ useEffect(() => {
       </div>
 
       {/* MAIN */}
-      <div style={{marginLeft:220,flex:1,padding:'28px 28px 40px'}}>
+      <div style={{
+  marginLeft: isMobile ? 0 : 220, // No margin if sidebar is hidden
+  flex: 1,
+  padding: isMobile ? '16px' : '28px 28px 40px', // Thinner padding for mobile
+}}>
 
         {/* Header */}
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:24}}>
@@ -175,7 +188,12 @@ useEffect(() => {
         </div>
 
         {/* Stats */}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:14,marginBottom:28}}>
+       <div style={{
+  display: 'grid',
+  gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', // 2x2 on mobile, 1x4 on desktop
+  gap: 14,
+  marginBottom: 28
+}}>
           {[
             { label:'Orders Today',   value: stats?.today_orders ?? 0,                                      icon:'📦' },
             { label:'Revenue Today',  value:`₦${Number(stats?.today_earnings||0).toLocaleString()}`,          icon:'💰' },
@@ -373,57 +391,7 @@ useEffect(() => {
           </div>
         </div>
       )}
-{isMobile && (
-  <div style={{position:'relative',minHeight:'100vh',background:BG}}>
-    
-    {/* MAIN CONTENT */}
-    <div style={{padding:20, paddingBottom:80}}>
-      {activeSection==='orders' && <OrdersSection activeOrders={activeOrders} />}
-      {activeSection==='menu' && <MenuSection menuItems={menuItems} />}
-      {activeSection==='history' && <OrderHistory />}
-    </div>
 
-    {/* BOTTOM TABS */}
-    <div style={{
-      position:'fixed',
-      bottom:0,
-      left:0,
-      width:'100%',
-      background:'#fff',
-      borderTop:'1px solid #e0eeee',
-      display:'flex',
-      justifyContent:'space-around',
-      alignItems:'center',
-      height:60,
-      zIndex:100,
-      boxShadow:'0 -1px 4px rgba(0,0,0,0.08)'
-    }}>
-      {[
-        ['orders','📋','Orders'],
-        ['menu','🍽️','Menu'],
-        ['history','📊','History']
-      ].map(([id,icon,label]) => (
-        <button key={id} onClick={()=>setActiveSection(id)}
-          style={{
-            display:'flex',
-            flexDirection:'column',
-            alignItems:'center',
-            justifyContent:'center',
-            border:'none',
-            background:'none',
-            fontFamily:'inherit',
-            fontSize:12,
-            color:activeSection===id ? TEAL : DARK,
-            fontWeight:activeSection===id ? 700 : 500,
-            cursor:'pointer'
-          }}>
-          <span style={{fontSize:20}}>{icon}</span>
-          {label}
-        </button>
-      ))}
-    </div>
-  </div>
-)}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
         @keyframes spin{to{transform:rotate(360deg)}}
