@@ -78,10 +78,20 @@ async function globalSearch(req, res) {
   }
 }
 
+// async function getSchools(req, res) {
+//   try {
+//     const [schools] = await pool.query('SELECT * FROM schools ORDER BY name');
+//     return res.json({ success: true, schools });
+//   } catch (err) {
+//     console.error(err);
+//     return res.status(500).json({ success: false, message: 'Error' });
+//   }
+// }
 async function getSchools(req, res) {
   try {
     const [schools] = await pool.query('SELECT * FROM schools ORDER BY name');
-    return res.json({ success: true, schools });
+    // Send ONLY the array so the frontend .map() works immediately
+    return res.json(schools); 
   } catch (err) {
     console.error(err);
     return res.status(500).json({ success: false, message: 'Error' });
