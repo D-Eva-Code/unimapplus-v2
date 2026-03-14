@@ -18,7 +18,12 @@ export default function VendorDashboard() {
   const [saving, setSaving]       = useState(false);
   const [orders, setOrders]       = useState([]);
   const [activeSection, setActiveSection] = useState('orders'); // orders | menu | history
-
+const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+useEffect(() => {
+  const handleResize = () => setIsMobile(window.innerWidth < 768);
+  window.addEventListener('resize', handleResize);
+  return () => window.removeEventListener('resize', handleResize);
+}, []);
   useEffect(() => {
     loadDashboard();
     const socket = getSocket();
@@ -368,7 +373,57 @@ export default function VendorDashboard() {
           </div>
         </div>
       )}
+{isMobile && (
+  <div style={{position:'relative',minHeight:'100vh',background:BG}}>
+    
+    {/* MAIN CONTENT */}
+    <div style={{padding:20, paddingBottom:80}}>
+      {activeSection==='orders' && <OrdersSection activeOrders={activeOrders} />}
+      {activeSection==='menu' && <MenuSection menuItems={menuItems} />}
+      {activeSection==='history' && <OrderHistory />}
+    </div>
 
+    {/* BOTTOM TABS */}
+    <div style={{
+      position:'fixed',
+      bottom:0,
+      left:0,
+      width:'100%',
+      background:'#fff',
+      borderTop:'1px solid #e0eeee',
+      display:'flex',
+      justifyContent:'space-around',
+      alignItems:'center',
+      height:60,
+      zIndex:100,
+      boxShadow:'0 -1px 4px rgba(0,0,0,0.08)'
+    }}>
+      {[
+        ['orders','📋','Orders'],
+        ['menu','🍽️','Menu'],
+        ['history','📊','History']
+      ].map(([id,icon,label]) => (
+        <button key={id} onClick={()=>setActiveSection(id)}
+          style={{
+            display:'flex',
+            flexDirection:'column',
+            alignItems:'center',
+            justifyContent:'center',
+            border:'none',
+            background:'none',
+            fontFamily:'inherit',
+            fontSize:12,
+            color:activeSection===id ? TEAL : DARK,
+            fontWeight:activeSection===id ? 700 : 500,
+            cursor:'pointer'
+          }}>
+          <span style={{fontSize:20}}>{icon}</span>
+          {label}
+        </button>
+      ))}
+    </div>
+  </div>
+)}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
         @keyframes spin{to{transform:rotate(360deg)}}
