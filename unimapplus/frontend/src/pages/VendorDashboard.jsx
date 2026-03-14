@@ -141,7 +141,7 @@ export default function VendorDashboard() {
         <div style={{padding:'20px 20px 16px',borderBottom:'1px solid #e0eeee'}}>
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:16}}>
             <div style={{width:32,height:32,background:TEAL,borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontWeight:900,fontSize:14}}>U</div>
-            <span style={{fontWeight:900,fontSize:17,color:DARK}}>Unimap+<span style={{color:TEAL}}>+</span></span>
+            <span style={{fontWeight:900,fontSize:17,color:DARK}}>Unimap<span style={{color:TEAL}}>+</span></span>
           </div>
           <p style={{fontSize:10,fontWeight:700,color:'#8aa8a8',letterSpacing:1,margin:0,textTransform:'uppercase'}}>Vendor</p>
         </div>
