@@ -354,7 +354,7 @@ export default function StudentDashboard() {
         </div>
       )}
 
-      MOBILE DRAWER
+      {/* MOBILE DRAWER */}
       {isMobile && sideOpen && (
         <>
           <div onClick={()=>setSideOpen(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.4)',zIndex:300}}/>
