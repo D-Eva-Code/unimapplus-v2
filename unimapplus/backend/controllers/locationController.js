@@ -16,7 +16,7 @@ async function getAllLocations(req, res) {
     return res.json({ success: true, locations });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ success: false, message: 'Error' });
+    return res.status(500).json({ success: false, message: err.message });
   }
 }
 
@@ -73,9 +73,10 @@ async function globalSearch(req, res) {
 
     return res.json({ success: true, ...results });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ success: false, message: 'Search error' });
-  }
+  console.error(err);
+  
+  return res.status(500).json({ success: false, message: err.message }); 
+}
 }
 
 async function getSchools(req, res) {
@@ -98,9 +99,10 @@ async function addLocation(req, res) {
     );
     return res.status(201).json({ success: true, id: result.insertId });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ success: false, message: 'Error' });
-  }
+  console.error(err);
+  
+  return res.status(500).json({ success: false, message: err.message }); 
+}
 }
 
 module.exports = { getAllLocations, globalSearch, getSchools, addLocation };
