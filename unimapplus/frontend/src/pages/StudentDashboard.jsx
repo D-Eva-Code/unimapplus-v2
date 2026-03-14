@@ -501,7 +501,7 @@ export default function StudentDashboard() {
                   })()}
                 </p>
                 <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-                  {['+Zobo Drink — ₦200','+Chicken Shawarma — ₦900','+Club Sandwich — ₦600'].map(r=>(
+                  {['+Zobo Drink — ₦300','+Chicken Shawarma — ₦3000','+Club Sandwich — ₦600'].map(r=>(
                     <button key={r} onClick={async()=>{
                       const q=r.replace(/^[+]/,'').split('—')[0].trim();
                       try {
