@@ -79,9 +79,9 @@ export default function Login() {
               <p style={{ margin: '4px 0 0', color: 'rgba(255,255,255,0.8)', fontSize: 12 }}>{role.desc}</p>
             </div>
             <div style={{ background: '#fff8e1', borderBottom: '1px solid #ffe082', padding: '10px 20px' }}>
-              <p style={{ margin: 0, fontSize: 11, color: '#92400e', lineHeight: 1.5 }}>
-                📋<strong>MVP Note:</strong> For today's demo, sign in goes straight to your dashboard. In the full product, vendors & riders will verify documents during signup.
-              </p>
+              {/* <p style={{ margin: 0, fontSize: 11, color: '#92400e', lineHeight: 1.5 }}>
+                {/* 📋<strong>MVP Note:</strong> For today's demo, sign in goes straight to your dashboard. In the full product, vendors & riders will verify documents during signup. */}
+              {/* </p>} */}
             </div>
             <form onSubmit={handleSubmit} style={{ padding: '24px 28px 28px' }}>
               {error && <div style={{ background: '#fef2f2', color: '#dc2626', padding: '10px 14px', borderRadius: 10, fontSize: 13, marginBottom: 16 }}>{error}</div>}

@@ -6,6 +6,12 @@ CREATE DATABASE IF NOT EXISTS unimapplus;
 USE unimapplus;
 
 
+-- ALTER TABLE vendors_tb ADD COLUMN IF NOT EXISTS category VARCHAR(100) DEFAULT NULL AFTER description;
+
+-- ALTER TABLE menu_items ADD COLUMN prep_time INT DEFAULT 15 AFTER tags;
+
+-- ALTER TABLE orders MODIFY COLUMN status ENUM('pending','paid','accepted','preparing','ready','rider_assigned','picked_up','on_the_way','delivered','cancelled','refunded') DEFAULT 'pending';
+-- Schools
 CREATE TABLE IF NOT EXISTS schools (
   school_id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(200) NOT NULL,
