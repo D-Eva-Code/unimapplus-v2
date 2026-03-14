@@ -302,63 +302,40 @@ export default function StudentDashboard() {
   // }
 
 async function drawRoute(map, from, to, name) {
-    const L = window.L; if (!L || !map) return;
-    
-    // 1. Clear any existing route from the map
-    if (routeLayer.current) { 
-        map.removeLayer(routeLayer.current); 
-        routeLayer.current = null; 
-    }
+  const L = window.L; 
+  if (!L || !map) return;
 
-    const bar = document.getElementById('map-walking-bar');
-    if (bar) { 
-        bar.style.display = 'flex'; 
-        bar.querySelector('#route-text').textContent = 'Calculating campus path...'; 
-    }
-
-    try {
-      // 2. The OSRM URL (Foot-specific)
-      // Note: We swap from[0],from[1] to from[1],from[0] because the API wants [Lng, Lat]
-      const url = `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
-      
-      const res = await fetch(url);
-      const data = await res.json();
-
-      if (data.code === 'Ok' && data.routes && data.routes[0]) {
-        const route = data.routes[0];
-        
-        // 3. Convert [Lng, Lat] from API back to [Lat, Lng] for Leaflet
-        const coords = route.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
-        
-        // 4. Draw the actual walking path (following roads/walkways)
-        routeLayer.current = L.polyline(coords, {
-          color: '#0BBFBF', // Your Teal color
-          weight: 5, 
-          opacity: 0.8,
-          lineJoin: 'round'
-        }).addTo(map);
-
-        // 5. Calculate stats
-        const routeDistM = route.distance; 
-        const mins = Math.ceil(routeDistM / 80); // Average walking speed
-        const km = (routeDistM / 1000).toFixed(2);
-
-        if (bar) bar.querySelector('#route-text').textContent = `🚶 ${mins} min · ${km} km — to ${name}`;
-        
-        // Zoom the map to fit the whole path
-        map.fitBounds(routeLayer.current.getBounds(), {
-        padding: [40, 40],
-        maxZoom: 17
-      });
-      } else {
-        throw new Error('No path found');
-      }
-    } catch (err) {
-      console.error("Routing error:", err);
-      // If the API fails, we inform the user instead of drawing a fake straight line
-      if (bar) bar.querySelector('#route-text').textContent = `⚠️ Path currently unavailable for ${name}`;
-    }
+  if (routeLayer.current) {
+    map.removeLayer(routeLayer.current);
+    routeLayer.current = null;
   }
+
+  const bar = document.getElementById('map-walking-bar');
+
+  const fromLL = L.latLng(from[0], from[1]);
+  const toLL = L.latLng(to[0], to[1]);
+
+  routeLayer.current = L.polyline([fromLL, toLL], {
+    color: '#0BBFBF',
+    weight: 5,
+    opacity: 0.85
+  }).addTo(map);
+
+  const dist = fromLL.distanceTo(toLL); // meters
+  const mins = Math.ceil(dist / 80); // walking speed
+  const km = (dist / 1000).toFixed(2);
+
+  if (bar) {
+    bar.style.display = 'flex';
+    bar.querySelector('#route-text').textContent =
+      `🚶 ${mins} min · ${km} km — to ${name}`;
+  }
+
+  map.fitBounds(routeLayer.current.getBounds(), {
+    padding: [40,40],
+    maxZoom: 17
+  });
+}
 
   function flyToNearby(loc) {
     if (!leafletMap.current) return;
