@@ -319,7 +319,7 @@ async function drawRoute(map, from, to, name) {
     try {
       // 2. The OSRM URL (Foot-specific)
       // Note: We swap from[0],from[1] to from[1],from[0] because the API wants [Lng, Lat]
-      const url = `https://routing.openstreetmap.de/routed-foot/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
+      const url = `https://routing.openstreetmap.de/routed-foot/route/v1/foot/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
       
       const res = await fetch(url);
       const data = await res.json();
@@ -346,8 +346,10 @@ async function drawRoute(map, from, to, name) {
         if (bar) bar.querySelector('#route-text').textContent = `🚶 ${mins} min · ${km} km — to ${name}`;
         
         // Zoom the map to fit the whole path
-        map.fitBounds(routeLayer.current.getBounds(), {padding: [40, 40]});
-
+        map.fitBounds(routeLayer.current.getBounds(), {
+        padding: [40, 40],
+        maxZoom: 17
+      });
       } else {
         throw new Error('No path found');
       }
