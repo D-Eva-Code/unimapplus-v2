@@ -2,11 +2,11 @@
 -- UnimapPlus Database Schema v2.0
 
 
-CREATE DATABASE IF NOT EXISTS unimapplus;
-USE unimapplus;
+CREATE DATABASE IF NOT EXISTS unimapplusdb;
+USE unimapplusdb;
 
 
--- ALTER TABLE vendors_tb ADD COLUMN IF NOT EXISTS category VARCHAR(100) DEFAULT NULL AFTER description;
+-- ALTER TABLE vendors_tb ADD COLUMN category VARCHAR(100) DEFAULT NULL AFTER description;
 
 -- ALTER TABLE menu_items ADD COLUMN prep_time INT DEFAULT 15 AFTER tags;
 
