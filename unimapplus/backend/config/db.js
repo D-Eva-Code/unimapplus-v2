@@ -10,9 +10,12 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  // For cloud DBs (Railway, PlanetScale) that require SSL:
-  // ssl: { rejectUnauthorized: false }
+  
+  ssl: { 
+    rejectUnauthorized: false 
+  }
 });
+
 
 pool.getConnection()
   .then(conn => {
