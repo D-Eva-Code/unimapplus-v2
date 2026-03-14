@@ -355,7 +355,7 @@ export default function StudentDashboard() {
       )}
 
       {/* MOBILE DRAWER */}
-      {isMobile && (
+      {isMobile && sideOpen && (
         <>
           <div onClick={()=>setSideOpen(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.4)',zIndex:300}}/>
           <div style={{position:'fixed',top:0,left:0,width:220,height:'100vh',background:'#fff',zIndex:400,padding:'20px 12px',display:'flex',flexDirection:'column'}}>
