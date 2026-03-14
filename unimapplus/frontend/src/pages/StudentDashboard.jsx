@@ -354,7 +354,7 @@ export default function StudentDashboard() {
         </div>
       )}
 
-      {/* MOBILE DRAWER */}
+      {/* MOBILE DRAWER
       {isMobile && sideOpen && (
         <>
           <div onClick={()=>setSideOpen(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.4)',zIndex:300}}/>
@@ -373,7 +373,48 @@ export default function StudentDashboard() {
             </div>
           </div>
         </>
-      )}
+      )} */}
+
+      {/* BOTTOM NAVIGATION (Mobile only) */}
+{isMobile && (
+  <div style={{
+    position: 'fixed',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '65px',
+    background: '#fff',
+    borderTop: '1px solid #e8ecf0',
+    display: 'flex',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    zIndex: 500,
+    paddingBottom: 'env(safe-area-inset-bottom)' // Handles notch on iPhones
+  }}>
+    {NAV.map((n) => (
+      <button
+        key={n.id}
+        onClick={() => {
+          setActiveTab(n.id); // Or your specific navigation logic
+          window.scrollTo(0, 0);
+        }}
+        style={{
+          background: 'none',
+          border: 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 4,
+          color: activeTab === n.id ? TEAL : '#7a90a4',
+          cursor: 'pointer'
+        }}
+      >
+        <div style={{ fontSize: '20px' }}>{n.icon}</div>
+        <span style={{ fontSize: '10px', fontWeight: 700 }}>{n.label}</span>
+      </button>
+    ))}
+  </div>
+)}
 
       {/* MAIN */}
       <div style={{flex:1,marginLeft:isMobile?0:200,display:'flex',flexDirection:'column',minHeight:'100vh'}}>
