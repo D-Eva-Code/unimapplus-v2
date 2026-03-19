@@ -85,7 +85,7 @@ async function register(req, res) {
       success: true,
       message: `${role} registered successfully`,
       token,
-      user: { id: userId, name: fullName, email, role, school_id }
+      user: { id: userId, fullname: fullName, name: fullName, email, role, school_id }
     });
 
   } catch (err) {
@@ -126,7 +126,9 @@ async function login(req, res) {
     const token = jwt.sign({ id: userId, role, name, school_id: user.school_id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     const { passwd: _, ...safeUser } = user;
-    return res.json({ success: true, token, user: { ...safeUser, role } });
+    // Normalize name field — DB uses 'fullname' for students/drivers, 'vendor_name' for vendors
+    const fullname = safeUser.fullname || safeUser.vendor_name || name;
+    return res.json({ success: true, token, user: { ...safeUser, fullname, role } });
 
   } catch (err) {
     console.error('Login error:', err);
