@@ -1,17 +1,11 @@
+-- ============================================================
+-- UnimapPlus Database Schema v3.0 — CLEAN FRESH INSTALL
+-- Run this on a brand new Aiven MySQL database
+-- ============================================================
 
--- UnimapPlus Database Schema v2.0
-
-
-CREATE DATABASE IF NOT EXISTS unimapplusdb;
+CREATE DATABASE IF NOT EXISTS unimapplusdb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE unimapplusdb;
 
-
--- ALTER TABLE vendors_tb ADD COLUMN category VARCHAR(100) DEFAULT NULL AFTER description;
-
--- ALTER TABLE menu_items ADD COLUMN prep_time INT DEFAULT 15 AFTER tags;
-
--- ALTER TABLE orders MODIFY COLUMN status ENUM('pending','paid','accepted','preparing','ready','rider_assigned','picked_up','on_the_way','delivered','cancelled','refunded') DEFAULT 'pending';
--- Schools
 CREATE TABLE IF NOT EXISTS schools (
   school_id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(200) NOT NULL,
@@ -20,7 +14,7 @@ CREATE TABLE IF NOT EXISTS schools (
 );
 
 INSERT INTO schools (name, location) VALUES
-  ('University of Benin (UNIBEN)', 'Benin City, Edo State'),
+  ('University of Benin (UNIBEN)', 'Ugbowo, Benin City, Edo State'),
   ('University of Lagos (UNILAG)', 'Lagos'),
   ('Obafemi Awolowo University (OAU)', 'Ile-Ife, Osun State'),
   ('University of Ibadan (UI)', 'Ibadan, Oyo State'),
@@ -28,7 +22,6 @@ INSERT INTO schools (name, location) VALUES
   ('Igbinedion University Okada (IUO)', 'Okada, Edo State'),
   ('Wellspring University', 'Benin City, Edo State');
 
--- Students
 CREATE TABLE IF NOT EXISTS students_tb (
   st_id INT AUTO_INCREMENT PRIMARY KEY,
   fullname VARCHAR(200) NOT NULL,
@@ -42,7 +35,6 @@ CREATE TABLE IF NOT EXISTS students_tb (
   FOREIGN KEY (school_id) REFERENCES schools(school_id)
 );
 
--- Vendors
 CREATE TABLE IF NOT EXISTS vendors_tb (
   vendor_id INT AUTO_INCREMENT PRIMARY KEY,
   vendor_name VARCHAR(200) NOT NULL,
@@ -58,6 +50,7 @@ CREATE TABLE IF NOT EXISTS vendors_tb (
   latitude DECIMAL(10,8),
   longitude DECIMAL(11,8),
   description TEXT,
+  category VARCHAR(100),
   logo_url VARCHAR(500),
   is_open BOOLEAN DEFAULT TRUE,
   rating DECIMAL(3,2) DEFAULT 0.00,
@@ -66,7 +59,6 @@ CREATE TABLE IF NOT EXISTS vendors_tb (
   FOREIGN KEY (school_id) REFERENCES schools(school_id)
 );
 
--- Riders/Drivers
 CREATE TABLE IF NOT EXISTS drivers_tb (
   driver_id INT AUTO_INCREMENT PRIMARY KEY,
   fullname VARCHAR(200) NOT NULL,
@@ -91,7 +83,6 @@ CREATE TABLE IF NOT EXISTS drivers_tb (
   FOREIGN KEY (school_id) REFERENCES schools(school_id)
 );
 
--- Menu Items
 CREATE TABLE IF NOT EXISTS menu_items (
   menu_id INT AUTO_INCREMENT PRIMARY KEY,
   vendor_id INT NOT NULL,
@@ -100,23 +91,22 @@ CREATE TABLE IF NOT EXISTS menu_items (
   price DECIMAL(10,2) NOT NULL,
   image_url VARCHAR(500),
   tags JSON,
-  -- tags example: ["spicy", "vegetarian", "popular", "new"]
+  prep_time INT DEFAULT 15,
   is_available BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (vendor_id) REFERENCES vendors_tb(vendor_id) ON DELETE CASCADE
 );
 
--- Orders
 CREATE TABLE IF NOT EXISTS orders (
   order_id VARCHAR(36) PRIMARY KEY,
   student_id INT NOT NULL,
   vendor_id INT NOT NULL,
   driver_id INT,
   total_amount DECIMAL(10,2) NOT NULL,
-  delivery_fee DECIMAL(10,2) DEFAULT 200.00,
+  delivery_fee DECIMAL(10,2) DEFAULT 300.00,
   vendor_amount DECIMAL(10,2),
   rider_amount DECIMAL(10,2),
-  status ENUM('pending','paid','accepted','preparing','rider_assigned','picked_up','on_the_way','delivered','cancelled','refunded') DEFAULT 'pending',
+  status ENUM('pending','paid','accepted','preparing','ready','rider_assigned','picked_up','on_the_way','delivered','cancelled','refunded') DEFAULT 'pending',
   payment_reference VARCHAR(100),
   payment_status ENUM('pending','paid','failed','refunded') DEFAULT 'pending',
   delivery_address TEXT,
@@ -133,7 +123,6 @@ CREATE TABLE IF NOT EXISTS orders (
   FOREIGN KEY (driver_id) REFERENCES drivers_tb(driver_id)
 );
 
--- Order Items
 CREATE TABLE IF NOT EXISTS order_items (
   id INT AUTO_INCREMENT PRIMARY KEY,
   order_id VARCHAR(36) NOT NULL,
@@ -144,7 +133,6 @@ CREATE TABLE IF NOT EXISTS order_items (
   FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE
 );
 
--- Campus Locations (for the map)
 CREATE TABLE IF NOT EXISTS campus_locations (
   id INT AUTO_INCREMENT PRIMARY KEY,
   school_id INT,
@@ -157,20 +145,26 @@ CREATE TABLE IF NOT EXISTS campus_locations (
   FOREIGN KEY (school_id) REFERENCES schools(school_id)
 );
 
--- UNIBEN Locations
+-- REAL UNIBEN GPS COORDINATES (verified)
 INSERT INTO campus_locations (school_id, name, category, latitude, longitude, description) VALUES
-(1, 'UNIBEN Main Gate', 'landmark', 6.3719, 5.6230, 'Main entrance to University of Benin'),
-(1, 'Faculty of Engineering Canteen', 'eatery', 6.3745, 5.6218, 'Popular canteen near Engineering faculty'),
-(1, 'Ekiosa Market Eateries', 'eatery', 6.3698, 5.6245, 'Multiple food vendors near Ekiosa'),
-(1, 'UNIBEN Medical Centre', 'landmark', 6.3752, 5.6190, 'University Medical Centre'),
-(1, 'Sports Complex', 'sports', 6.3760, 5.6205, 'UNIBEN Sports Complex'),
-(1, 'Law Faculty', 'faculty', 6.3730, 5.6235, 'Faculty of Law'),
-(1, 'Arts Theatre', 'department', 6.3715, 5.6250, 'Arts & Science Theatre'),
-(1, 'Student Union Building (SUB)', 'landmark', 6.3725, 5.6225, 'Student Union Building - food stalls nearby'),
-(1, 'Hall 1 Cafeteria', 'eatery', 6.3740, 5.6210, 'Cafeteria near Hall 1'),
-(1, 'UNIBEN Library', 'landmark', 6.3735, 5.6220, 'Main University Library');
+(1, 'Main Gate Shopping Complex',        'eatery',   6.39845037, 5.61008487, 'Shopping and food vendors at main gate'),
+(1, 'John Harris Library (JHL)',         'landmark', 6.39653577, 5.61658694, 'Main University Library'),
+(1, 'Home and Away',                     'eatery',   6.39613061, 5.61481668, 'Popular eatery on campus'),
+(1, '1000LT Faculty of Physical Sci.',  'faculty',  6.40035277, 5.61849667, 'Large lecture theatre'),
+(1, 'Akindeko Main Auditorium',          'landmark', 6.39983033, 5.61384036, 'Main convocation auditorium'),
+(1, 'Festus Iyayi Hall',                 'hostel',   6.39854023, 5.61818553, 'Festus Iyayi student hall'),
+(1, 'Faculty of Engineering',            'faculty',  6.40185567, 5.61529214, 'Faculty of Engineering & Technology'),
+(1, 'Faculty of Social Sciences',        'faculty',  6.40357545, 5.62108157, 'Faculty of Social Sciences'),
+(1, 'Faculty of Law',                    'faculty',  6.40079540, 5.62170038, 'Faculty of Law'),
+(1, 'Medical Complex',                   'landmark', 6.39549612, 5.62360262, 'UNIBEN Medical & Health Complex'),
+(1, 'Saint Albert Catholic Church',      'landmark', 6.40162082, 5.61112952, 'Catholic Church on campus'),
+(1, 'Hall 2 Carpark',                    'landmark', 6.39753569, 5.61930107, 'Hall 2 area & carpark'),
+(1, 'KeyStone Hostel',                   'hostel',   6.39894878, 5.62501478, 'KeyStone private hostel'),
+(1, 'Hall 7',                            'hostel',   6.39800816, 5.62538215, 'Hall 7 student hostel'),
+(1, 'Hall 6',                            'hostel',   6.39822721, 5.62608232, 'Hall 6 student hostel'),
+(1, 'Food Court (Buka)',                 'eatery',   6.39534948, 5.61937022, 'Main campus food court'),
+(1, 'UNIBEN MicroFinance Bank',          'landmark', 6.39668956, 5.61765005, 'University MicroFinance Bank');
 
--- Ratings
 CREATE TABLE IF NOT EXISTS ratings (
   id INT AUTO_INCREMENT PRIMARY KEY,
   order_id VARCHAR(36) NOT NULL,
@@ -186,7 +180,6 @@ CREATE TABLE IF NOT EXISTS ratings (
   UNIQUE KEY unique_order_rating (order_id, student_id)
 );
 
--- Notifications
 CREATE TABLE IF NOT EXISTS notifications (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
@@ -199,19 +192,6 @@ CREATE TABLE IF NOT EXISTS notifications (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Paystack subaccounts cache
-CREATE TABLE IF NOT EXISTS paystack_subaccounts (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  user_type ENUM('vendor','driver') NOT NULL,
-  subaccount_code VARCHAR(100) NOT NULL,
-  business_name VARCHAR(200),
-  account_number VARCHAR(20),
-  bank_code VARCHAR(10),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Indexes for performance
 CREATE INDEX idx_orders_student ON orders(student_id);
 CREATE INDEX idx_orders_vendor ON orders(vendor_id);
 CREATE INDEX idx_orders_driver ON orders(driver_id);
@@ -221,3 +201,4 @@ CREATE INDEX idx_menu_tags ON menu_items((CAST(tags AS CHAR(500))));
 CREATE INDEX idx_drivers_available ON drivers_tb(is_available, school_id);
 CREATE INDEX idx_vendors_school ON vendors_tb(school_id);
 CREATE INDEX idx_students_school ON students_tb(school_id);
+CREATE INDEX idx_locations_school ON campus_locations(school_id);

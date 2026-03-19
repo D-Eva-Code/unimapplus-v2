@@ -5,6 +5,7 @@ const { upload } = require('../config/s3');
 
 const { register, login } = require('../controllers/authController');
 const { getVendors, getVendorMenu, getFeaturedMenu, addMenuItem, updateMenuItem, deleteMenuItem, getVendorDashboard, toggleOpen, getOrderHistory, updateOrderStatus } = require('../controllers/vendorController');
+const { getRecommendations, getUserPreferenceStats } = require('../controllers/recommendationController');
 const { checkout, verifyPayment, paystackWebhook, confirmDelivery, getStudentOrders, getOrder, deleteOrder } = require('../controllers/orderController');
 const { getRiderDashboard, toggleAvailability, acceptOrder, updateDeliveryStatus, updateLocation, getEarningsHistory } = require('../controllers/riderController');
 const { getAllLocations, globalSearch, getSchools, addLocation } = require('../controllers/locationController');
@@ -57,5 +58,9 @@ router.get('/featured-menu', getFeaturedMenu);
 router.get('/locations', getAllLocations);
 router.post('/locations', addLocation);
 router.get('/search', globalSearch);
+
+// ML Recommendations
+router.get('/recommendations', auth, requireRole('student'), getRecommendations);
+router.get('/recommendations/stats', auth, requireRole('student'), getUserPreferenceStats);
 
 module.exports = router;

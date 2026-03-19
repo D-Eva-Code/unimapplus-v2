@@ -54,7 +54,6 @@ export default function StudentDashboard() {
   const vendorList = getVendorList(); // recomputes on every render when carts changes
 
   const [tab, setTab]                     = useState('home');
-  const [sideOpen, setSideOpen]           = useState(false);
   const [vendors, setVendors]             = useState([]);
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [menu, setMenu]                   = useState([]);
@@ -76,6 +75,7 @@ export default function StudentDashboard() {
   const [packingFee, setPackingFee]         = useState(0);
   const [deliveryModal, setDeliveryModal]   = useState(null); // { vendorId, vendorName }
   const [deliveryAddr, setDeliveryAddr]     = useState('');
+  const [recommendations, setRecommendations] = useState(null);
 
   const mapRef     = useRef(null);
   const leafletMap = useRef(null);
@@ -114,8 +114,25 @@ export default function StudentDashboard() {
         const desc = code === 0 ? 'Clear' : code <= 3 ? 'Partly cloudy' : code <= 48 ? 'Foggy' : code <= 67 ? 'Rainy' : 'Stormy';
         const icon = code === 0 ? '☀️' : code <= 3 ? '⛅' : code <= 48 ? '🌫️' : code <= 67 ? '🌧️' : '⛈️';
         setWeather({ temp, desc, icon });
+        // Fetch ML recommendations with weather context
+        loadRecommendations(temp, desc);
       } catch {}
-    }, () => {});
+    }, () => {
+      // No GPS - load recommendations with default context
+      loadRecommendations(null, null);
+    });
+  }
+
+  async function loadRecommendations(temp, weatherDesc) {
+    try {
+      const params = { school_id: user?.school_id };
+      if (temp !== null) params.temp = temp;
+      if (weatherDesc) params.weather_desc = weatherDesc;
+      const { data } = await api.get('/recommendations', { params });
+      if (data.success && data.recommendations?.length > 0) {
+        setRecommendations(data);
+      }
+    } catch {} // Falls back to static pills
   }
 
   async function loadVendors() {
@@ -201,22 +218,28 @@ export default function StudentDashboard() {
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
       leafletMap.current = map;
 
-      // Load campus locations from backend and add markers
+      // Load ONLY campus locations from DB — no hardcoded fallbacks
       api.get('/locations',{params:{school_id:user?.school_id}}).then(({data})=>{
-        const locs = data.locations || [];
+        const locs = (data.locations || []).filter(loc =>
+          loc.latitude && loc.longitude &&
+          // Sanity check: must be within UNIBEN bounds (approx)
+          loc.latitude > 6.39 && loc.latitude < 6.41 &&
+          loc.longitude > 5.60 && loc.longitude < 5.64
+        );
         setNearbyLocations(locs);
         locs.forEach(loc=>{
           const isEatery = loc.category === 'eatery';
+          const catEmoji = loc.category==='eatery'?'🍽️':loc.category==='hostel'?'🏠':loc.category==='sports'?'⚽':loc.category==='faculty'?'🎓':'📍';
           const icon = L.divIcon({
-            html:`<div style="background:${isEatery?TEAL:'#0d2137'};width:28px;height:28px;border-radius:50%;border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.3)">${isEatery?'🍽️':'📍'}</div>`,
-            iconSize:[28,28], iconAnchor:[14,14], className:''
+            html:`<div style="background:${isEatery?TEAL:'#0d2137'};width:30px;height:30px;border-radius:50%;border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.3)">${catEmoji}</div>`,
+            iconSize:[30,30], iconAnchor:[15,15], className:''
           });
-          const marker = L.marker([loc.latitude,loc.longitude],{icon})
+          const marker = L.marker([Number(loc.latitude), Number(loc.longitude)],{icon})
             .addTo(map)
             .bindPopup(`<b>${loc.name}</b><br><small>${loc.description||loc.category}</small>`);
-          nearbyMarkers.current[loc.name] = { marker, lat:loc.latitude, lng:loc.longitude };
+          nearbyMarkers.current[loc.name] = { marker, lat:Number(loc.latitude), lng:Number(loc.longitude) };
           marker.on('click', () => {
-            if (userLatLng.current) drawRoute(map, userLatLng.current, [loc.latitude, loc.longitude], loc.name);
+            if (userLatLng.current) drawRoute(map, userLatLng.current, [Number(loc.latitude), Number(loc.longitude)], loc.name);
           });
         });
       });
@@ -305,12 +328,11 @@ export default function StudentDashboard() {
 
   function flyToNearby(loc) {
     if (!leafletMap.current) return;
-    // Try named marker first, then use coords directly from loc object
     const entry = nearbyMarkers.current[loc.name];
-    const lat = entry?.lat ?? loc.latitude;
-    const lng = entry?.lng ?? loc.longitude;
-    if (!lat || !lng) return;
-    leafletMap.current.flyTo([lat, lng], 17, {duration:1.2});
+    const lat = Number(entry?.lat ?? loc.latitude);
+    const lng = Number(entry?.lng ?? loc.longitude);
+    if (!lat || !lng || isNaN(lat) || isNaN(lng)) return;
+    leafletMap.current.flyTo([lat, lng], 18, {duration:1.2});
     if (entry?.marker) entry.marker.openPopup();
     if (userLatLng.current) drawRoute(leafletMap.current, userLatLng.current, [lat, lng], loc.name);
   }
@@ -329,7 +351,7 @@ export default function StudentDashboard() {
   function SideItem({id,label,icon}) {
     const active = tab===id;
     return (
-      <button onClick={()=>{setTab(id);setSelectedVendor(null);setSideOpen(false);}}
+      <button onClick={()=>{setTab(id);setSelectedVendor(null);}}
         style={{display:'flex',alignItems:'center',gap:12,width:'100%',padding:'11px 14px',border:'none',borderRadius:10,cursor:'pointer',fontFamily:'inherit',background:active?TEAL:'transparent',color:active?'#fff':'#7a90a4',fontWeight:active?700:500,fontSize:14,marginBottom:2,transition:'all .15s'}}>
         <span style={{opacity:active?1:0.7}}>{icon}</span>{label}
       </button>
@@ -380,7 +402,6 @@ export default function StudentDashboard() {
 
         {/* TOP BAR */}
         <div style={{position:'sticky',top:0,zIndex:200,background:'#fff',borderBottom:'1px solid #e8ecf0',display:'flex',alignItems:'center',gap:12,padding:'0 16px',height:58,boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
-          {isMobile && <button onClick={()=>setSideOpen(true)} style={{background:'none',border:'none',cursor:'pointer',color:DARK,display:'flex',padding:4}}><IcMenu/></button>}
           <div style={{flex:1,display:'flex',alignItems:'center',gap:8,background:BG,border:'1.5px solid #e8ecf0',borderRadius:30,padding:'7px 14px',maxWidth:420}}>
             <span style={{color:'#7a90a4'}}><IcSearch/></span>
             <input value={searchQ} onChange={e=>{setSearchQ(e.target.value);doSearch(e.target.value);}} placeholder="Search restaurants, food..."
@@ -501,23 +522,33 @@ export default function StudentDashboard() {
                   })()}
                 </p>
                 <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-                  {['+Zobo Drink — ₦300','+Chicken Shawarma — ₦3000','+Club Sandwich — ₦600'].map(r=>(
-                    <button key={r} onClick={async()=>{
-                      const q=r.replace(/^[+]/,'').split('—')[0].trim();
-                      try {
-                        const {data}=await api.get('/search',{params:{q,school_id:user?.school_id}});
-                        if (data.foods?.length>0) {
-                          const f=data.foods[0];
-                          await openVendor({vendor_id:f.vendor_id,vendor_name:f.vendor_name});
-                        } else if (data.vendors?.length>0) {
-                          await openVendor(data.vendors[0]);
-                        } else {
-                          setSearchQ(q); doSearch(q);
-                        }
-                      } catch { setSearchQ(q); doSearch(q); }
-                    }}
-                      style={{background:'rgba(11,191,191,.15)',border:'1px solid rgba(11,191,191,.3)',borderRadius:20,padding:'5px 12px',fontSize:11,fontWeight:600,color:'#7ee8e8',cursor:'pointer',fontFamily:'inherit'}}>{r}</button>
-                  ))}
+                  {recommendations?.recommendations?.length > 0
+                    ? recommendations.recommendations.map(rec=>(
+                        <button key={rec.menu_id}
+                          onClick={()=>openVendor({vendor_id:rec.vendor_id,vendor_name:rec.vendor_name})}
+                          style={{background:'rgba(11,191,191,.15)',border:'1px solid rgba(11,191,191,.3)',borderRadius:20,padding:'5px 12px',fontSize:11,fontWeight:600,color:'#7ee8e8',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:4}}>
+                          {rec.is_personal && <span style={{fontSize:9}}>❤</span>}
+                          +{rec.item_name} — ₦{Number(rec.price).toLocaleString()}
+                        </button>
+                      ))
+                    : ['+Zobo Drink — ₦300','+Chicken Shawarma — ₦3000','+Club Sandwich — ₦600'].map(r=>(
+                        <button key={r} onClick={async()=>{
+                          const q=r.replace(/^[+]/,'').split('—')[0].trim();
+                          try {
+                            const {data}=await api.get('/search',{params:{q,school_id:user?.school_id}});
+                            if (data.foods?.length>0) {
+                              const f=data.foods[0];
+                              await openVendor({vendor_id:f.vendor_id,vendor_name:f.vendor_name});
+                            } else if (data.vendors?.length>0) {
+                              await openVendor(data.vendors[0]);
+                            } else {
+                              setSearchQ(q); doSearch(q);
+                            }
+                          } catch { setSearchQ(q); doSearch(q); }
+                        }}
+                          style={{background:'rgba(11,191,191,.15)',border:'1px solid rgba(11,191,191,.3)',borderRadius:20,padding:'5px 12px',fontSize:11,fontWeight:600,color:'#7ee8e8',cursor:'pointer',fontFamily:'inherit'}}>{r}</button>
+                      ))
+                  }
                 </div>
               </div>
 
@@ -571,7 +602,7 @@ export default function StudentDashboard() {
   )}
 </div>
 
-              {/* FEATURED MENU - real data */}
+              {/* FEATURED MENU*/}
               <h3 style={{margin:'0 0 12px',fontSize:15,fontWeight:800,color:DARK}}>Featured Menu</h3>
               {featuredMenu.length === 0 ? (
                 <div style={{background:'#fff',borderRadius:14,padding:'32px 20px',textAlign:'center',color:'#7a90a4',boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
