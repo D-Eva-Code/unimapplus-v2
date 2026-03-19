@@ -3,8 +3,7 @@
 -- Run this on a brand new Aiven MySQL database
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS unimapplusdb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE unimapplusdb;
+-- Using Aiven's defaultdb
 
 CREATE TABLE IF NOT EXISTS schools (
   school_id INT AUTO_INCREMENT PRIMARY KEY,
