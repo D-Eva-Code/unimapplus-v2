@@ -371,7 +371,7 @@ export default function StudentDashboard() {
           <p style={{fontSize:10,fontWeight:700,color:'#b0bec5',letterSpacing:1,margin:'0 4px 8px',textTransform:'uppercase'}}>Student</p>
           {NAV.map(n=><SideItem key={n.id} {...n}/>)}
           <div style={{marginTop:'auto'}}>
-            <button onClick={logout} style={{width:'100%',padding:'10px 14px',border:'none',borderRadius:10,cursor:'pointer',fontFamily:'inherit',background:'#fff0f0',color:'#e74c3c',fontWeight:600,fontSize:13,textAlign:'left'}}>🚪 Logout</button>
+            
           </div>
         </div>
       )}
