@@ -150,8 +150,8 @@ export default function Signup() {
 
           {/* Phone */}
           <div style={{ marginBottom: 14 }}>
-            <label style={lbl}>Phone <span style={{ fontSize: 11, color: '#7a7a9a', fontWeight: 400 }}>(optional)</span></label>
-            <input type="tel" placeholder="+234..."
+            <label style={lbl}>Phone Number {cfg.role==='student'&&<span style={{color:'#e74c3c',fontSize:12}}>*</span>}{cfg.role!=='student'&&<span style={{ fontSize: 11, color: '#7a7a9a', fontWeight: 400 }}>(optional)</span>}</label>
+            <input type="tel" placeholder="e.g. 08012345678" required={cfg.role==='student'}
               value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} style={inp}/>
           </div>
 

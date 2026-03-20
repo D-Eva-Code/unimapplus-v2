@@ -261,6 +261,17 @@ export default function RiderDashboard() {
                   {order.items?.map(i=>`${i.item_name} ×${i.quantity}`).join(' · ')}
                 </div>
 
+                {/* Student phone - visible only during active delivery */}
+                {order.student_phone && !['delivered','cancelled'].includes(order.status) && (
+                  <div style={{background:'#f0fafa',borderRadius:10,padding:'8px 12px',marginBottom:12,display:'flex',alignItems:'center',gap:8}}>
+                    <span style={{fontSize:13}}>📱</span>
+                    <div>
+                      <div style={{fontSize:10,color:'#7a90a4',fontWeight:600}}>CUSTOMER</div>
+                      <div style={{fontWeight:700,fontSize:14,color:DARK,letterSpacing:0.5}}>{order.student_phone}</div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Actions */}
                 <div style={{display:'flex',gap:8}}>
                   {nextStatus[order.status] && (
@@ -275,11 +286,17 @@ export default function RiderDashboard() {
                       ✅ Confirm Delivered
                     </button>
                   )}
-                  {order.student_phone && (
-                    <a href={`tel:${order.student_phone}`}
-                      style={{padding:'11px 16px',background:BG,color:DARK,textDecoration:'none',borderRadius:12,fontWeight:700,fontSize:14,display:'flex',alignItems:'center',border:'1px solid #e0eeee'}}>
-                      📞
-                    </a>
+                  {order.student_phone && !['delivered','cancelled'].includes(order.status) && (
+                    <div style={{display:'flex',gap:6}}>
+                      <a href={`tel:${order.student_phone}`}
+                        style={{padding:'11px 14px',background:'#e6fafa',color:TEAL,textDecoration:'none',borderRadius:12,fontWeight:700,fontSize:13,display:'flex',alignItems:'center',gap:6,border:`1px solid ${TEAL}44`}}>
+                        📞 Call
+                      </a>
+                      <button onClick={()=>{navigator.clipboard.writeText(order.student_phone);showToast('📋 Number copied!');}}
+                        style={{padding:'11px 12px',background:BG,color:DARK,border:'1px solid #e0eeee',borderRadius:12,fontWeight:600,fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>
+                        Copy
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
