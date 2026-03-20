@@ -97,7 +97,14 @@ export default function StudentDashboard() {
     return () => clearInterval(t);
   }, []);
 
-  useEffect(() => { loadVendors(); loadOrders(); loadFeaturedMenu(); fetchWeather(); }, []);
+  useEffect(() => { loadVendors(); loadOrders(); loadFeaturedMenu(); fetchWeather(); loadLocations(); }, []);
+
+  async function loadLocations() {
+    try {
+      const {data} = await api.get('/locations', {params:{school_id:user?.school_id}});
+      setNearbyLocations(data.locations || []);
+    } catch {}
+  }
 
   useOrderTracking(
     trackedOrder?.order_id,
@@ -215,8 +222,6 @@ export default function StudentDashboard() {
         vendor_id: vendorId,
         cart: cartArr.map(i=>({menu_id:i.menu_id,quantity:i.quantity,portions:i.portions||1})),
         delivery_address: deliveryAddr.trim(),
-        delivery_latitude: deliveryCoords?.lat || null,
-        delivery_longitude: deliveryCoords?.lng || null,
       });
       clearVendorCart(vendorId);
       window.location.href = data.payment_url;
@@ -1058,68 +1063,48 @@ export default function StudentDashboard() {
       {/* DELIVERY ADDRESS MODAL */}
       {deliveryModal && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)',zIndex:600,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={()=>setDeliveryModal(null)}>
-          <div style={{background:'#fff',borderRadius:20,width:'100%',maxWidth:400,padding:24}} onClick={e=>e.stopPropagation()}>
-            <h3 style={{margin:'0 0 4px',fontWeight:800,color:DARK}}>📍 Where should we deliver?</h3>
-            <p style={{margin:'0 0 14px',fontSize:13,color:'#7a90a4'}}>Pick a campus location or type your own</p>
-
-            <div style={{position:'relative',marginBottom:10}}>
-              <input
-                autoFocus
-                type="text"
-                value={deliverySearch}
-                onChange={e=>{
-                  setDeliverySearch(e.target.value);
-                  setDeliveryAddr(e.target.value);
-                  setDeliveryCoords(null);
-                }}
-                placeholder="Search campus locations..."
-                style={{width:'100%',padding:'11px 14px',border:'1.5px solid #e8ecf0',borderRadius:12,fontSize:14,outline:'none',fontFamily:'inherit',boxSizing:'border-box'}}
-              />
+          <div style={{background:'#fff',borderRadius:20,width:'100%',maxWidth:400,padding:28}} onClick={e=>e.stopPropagation()}>
+            <h3 style={{margin:'0 0 6px',fontWeight:800,color:DARK}}>Where should we deliver?</h3>
+            <p style={{margin:'0 0 18px',fontSize:13,color:'#7a90a4'}}>Enter your hostel, hall, or location on campus</p>
+            <input
+              autoFocus
+              type="text"
+              value={deliveryAddr}
+              onChange={e=>setDeliveryAddr(e.target.value)}
+              placeholder="e.g. Hall 6, Room 204 or SUB Gate"
+              style={{width:'100%',padding:'12px 14px',border:'1.5px solid #e8ecf0',borderRadius:12,fontSize:14,outline:'none',fontFamily:'inherit',boxSizing:'border-box',marginBottom:14}}
+            />
+            <div style={{background:'#e6fafa',borderRadius:12,padding:'10px 14px',marginBottom:18,fontSize:12,color:'#089898'}}>
+              💡 Your location helps the rider find you. Be specific — include room number if possible.
             </div>
-
-            {deliverySearch.length > 1 && (
-              <div style={{maxHeight:180,overflowY:'auto',border:'1px solid #e8ecf0',borderRadius:12,marginBottom:10}}>
-                {nearbyLocations
-                  .filter(loc => loc.name.toLowerCase().includes(deliverySearch.toLowerCase()))
-                  .slice(0,5)
-                  .map(loc=>(
-                    <div key={loc.id} onClick={()=>{
-                      setDeliveryAddr(loc.name);
-                      setDeliverySearch(loc.name);
-                      setDeliveryCoords({lat: Number(loc.latitude), lng: Number(loc.longitude)});
-                    }}
-                      style={{padding:'10px 14px',borderBottom:'1px solid #f0f0f0',cursor:'pointer',display:'flex',alignItems:'center',gap:10,background:deliveryAddr===loc.name?'#e6fafa':'#fff'}}>
-                      <span style={{fontSize:16}}>{loc.category==='hostel'?'🏠':loc.category==='eatery'?'🍽️':'📍'}</span>
-                      <div>
-                        <div style={{fontWeight:600,fontSize:13,color:DARK}}>{loc.name}</div>
-                        <div style={{fontSize:11,color:'#7a90a4'}}>{loc.description}</div>
-                      </div>
-                      {deliveryAddr===loc.name&&<span style={{marginLeft:'auto',color:TEAL,fontSize:12}}>✓</span>}
-                    </div>
-                  ))}
-                {nearbyLocations.filter(loc=>loc.name.toLowerCase().includes(deliverySearch.toLowerCase())).length===0&&(
-                  <div style={{padding:'12px 14px',fontSize:13,color:'#7a90a4',textAlign:'center'}}>No match — your text will be used as-is</div>
-                )}
-              </div>
-            )}
-
-            {deliveryCoords && (
-              <div style={{background:'#e6fafa',borderRadius:10,padding:'8px 12px',marginBottom:10,fontSize:12,color:'#089898',display:'flex',alignItems:'center',gap:6}}>
-                ✅ Location pinned — rider can navigate here
-              </div>
-            )}
-            {deliveryAddr&&!deliveryCoords&&(
-              <div style={{background:'#fff8e1',borderRadius:10,padding:'8px 12px',marginBottom:10,fontSize:12,color:'#92400e',display:'flex',alignItems:'center',gap:6}}>
-                💡 No pin — rider will use text address. Add room/block details.
-              </div>
-            )}
-
-            <div style={{display:'flex',gap:10,marginTop:6}}>
-              <button onClick={()=>{setDeliveryModal(null);setDeliverySearch('');}} style={{flex:1,padding:12,border:'1px solid #e8ecf0',borderRadius:12,background:'#fff',cursor:'pointer',fontFamily:'inherit',fontWeight:600,color:'#7a90a4'}}>Cancel</button>
+            <div style={{display:'flex',gap:10}}>
+              <button onClick={()=>setDeliveryModal(null)} style={{flex:1,padding:12,border:'1px solid #e8ecf0',borderRadius:12,background:'#fff',cursor:'pointer',fontFamily:'inherit',fontWeight:600,color:'#7a90a4'}}>Cancel</button>
               <button onClick={()=>handleCheckout(deliveryModal.vendorId)} disabled={!deliveryAddr.trim()||checkoutLoading}
                 style={{flex:2,padding:12,background:deliveryAddr.trim()?TEAL:'#ccc',color:'#fff',border:'none',borderRadius:12,fontWeight:700,fontSize:14,cursor:deliveryAddr.trim()?'pointer':'not-allowed',fontFamily:'inherit'}}>
                 {checkoutLoading?'Processing...':'Confirm & Pay'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM / ALERT MODAL */}
+      {confirmModal && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)',zIndex:700,display:'flex',alignItems:'center',justifyContent:'center',padding:24}}>
+          <div style={{background:'#fff',borderRadius:20,width:'100%',maxWidth:340,padding:28,boxShadow:'0 20px 60px rgba(0,0,0,.3)'}}>
+            <h3 style={{margin:'0 0 10px',fontWeight:800,color:DARK,fontSize:17}}>{confirmModal.title}</h3>
+            <p style={{margin:'0 0 24px',fontSize:14,color:'#7a90a4',lineHeight:1.6}}>{confirmModal.message}</p>
+            <div style={{display:'flex',gap:10}}>
+              <button onClick={()=>setConfirmModal(null)}
+                style={{flex:1,padding:12,border:'1px solid #e8ecf0',borderRadius:12,background:'#fff',cursor:'pointer',fontFamily:'inherit',fontWeight:600,color:'#7a90a4',fontSize:14}}>
+                {confirmModal.onConfirm ? 'Cancel' : 'OK'}
+              </button>
+              {confirmModal.onConfirm && (
+                <button onClick={confirmModal.onConfirm}
+                  style={{flex:1,padding:12,border:'none',borderRadius:12,background:'#e74c3c',color:'#fff',cursor:'pointer',fontFamily:'inherit',fontWeight:700,fontSize:14}}>
+                  Confirm
+                </button>
+              )}
             </div>
           </div>
         </div>
