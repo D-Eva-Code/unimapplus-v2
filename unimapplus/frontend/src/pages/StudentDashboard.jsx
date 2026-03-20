@@ -307,7 +307,7 @@ export default function StudentDashboard() {
         const fromLL = L.latLng(from[0], from[1]);
         const toLL   = L.latLng(to[0],   to[1]);
         const straightM = fromLL.distanceTo(toLL);
-        const campusDistM = straightM * 1.35; // 1.35 = typical campus path factor
+        const campusDistM = straightM * 1.9; // adjusted for real UNIBEN walking paths
         const mins = Math.ceil(campusDistM / 80); // 80m/min = comfortable walking pace
         const km = (campusDistM / 1000).toFixed(2);
         if (bar) bar.querySelector('#route-text').textContent = `${mins} min · ${km} km — to ${name}`;
