@@ -205,7 +205,7 @@ export default function VendorDashboard() {
         {isMobile && (
           <div style={{position:'sticky',top:0,zIndex:200,background:'#fff',borderBottom:'1px solid #e8ecf0',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 16px',marginBottom:20,marginLeft:-16,marginRight:-16,boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
             <div style={{display:'flex',alignItems:'center',gap:8}}>
-              <div style={{width:32,height:32,background:TEAL,borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontWeight:900,fontSize:14}}>U+</div>
+              <div style={{width:32,height:32,background:TEAL,borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontWeight:900,fontSize:14}}>U</div>
               <div>
                 <div style={{fontWeight:800,fontSize:14,color:DARK,lineHeight:1}}>{vendor?.vendor_name}</div>
                 <div style={{fontSize:10,color:'#7a90a4'}}>Vendor Dashboard</div>
