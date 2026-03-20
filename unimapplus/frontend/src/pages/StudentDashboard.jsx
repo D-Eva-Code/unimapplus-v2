@@ -79,8 +79,6 @@ export default function StudentDashboard() {
   const [deliveryAddr, setDeliveryAddr]     = useState('');
   const [deliveryCoords, setDeliveryCoords] = useState(null);
   const [deliverySearch, setDeliverySearch] = useState('');
-  const [deliveryCoords, setDeliveryCoords] = useState(null);
-  const [deliverySearch, setDeliverySearch] = useState('');
   const [recommendations, setRecommendations] = useState(null);
 
   const mapRef     = useRef(null);
