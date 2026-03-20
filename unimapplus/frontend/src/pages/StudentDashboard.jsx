@@ -451,7 +451,7 @@ export default function StudentDashboard() {
                 </div>
                 {heroIdx===0
                   ? <img src="/burger.png" alt="burger" style={{position:'absolute',right:0,bottom:0,height:isMobile?'95%':'100%',objectFit:'contain',objectPosition:'bottom right',filter:'drop-shadow(-4px 0 8px rgba(0,0,0,0.15))'}}/>
-                  : <div style={{width:isMobile?80:120,height:isMobile?80:120,borderRadius:'50%',background:`${slide.accent}33`,flexShrink:0}}/>
+                  : <div style={{width:isMobile?80:120,height:isMobile?80:120,borderRadius:'50%',background:`${slide.accent}33`}}/>
                 }
                 <div style={{position:'absolute',bottom:12,left:'50%',transform:'translateX(-50%)',display:'flex',gap:6}}>
                   {SLIDES.map((_,i)=>(
