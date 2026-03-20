@@ -129,7 +129,7 @@ const useCartStore = create(
       },
     }),
     {
-      name: 'unimap-cart', // localStorage key
+      name: 'unimap-cart', // localStorage key - persists across sessions
       // Only persist carts, not derived state
       partialize: (state) => ({ carts: state.carts }),
     }
