@@ -13,7 +13,8 @@ export default function RiderDashboard() {
   const [loading, setLoading]       = useState(true);
   const [tab, setTab]               = useState('active');
   const [broadcasting, setBroadcasting] = useState(false);
-  const [newRequest, setNewRequest] = useState(null); // incoming delivery popup
+  const [newRequest, setNewRequest] = useState(null);
+  const [riderToast, setRiderToast] = useState('');
   const locationInterval = useRef(null);
 
   useEffect(() => {
@@ -25,6 +26,8 @@ export default function RiderDashboard() {
     });
     return () => { socket.off('rider_assigned'); socket.off('new_available_order'); stopBroadcast(); };
   }, []);
+
+  function showToast(msg) { setRiderToast(msg); setTimeout(()=>setRiderToast(''), 3000); }
 
   async function loadDashboard() {
     try {
@@ -72,7 +75,7 @@ export default function RiderDashboard() {
       }
       
     } catch (e) {
-      alert(e.response?.data?.message || 'Failed to update availability');
+      showToast('❌ ' + (e.response?.data?.message || 'Failed to update'));
     }
   }
 
@@ -101,26 +104,41 @@ export default function RiderDashboard() {
       setTab('active');
       loadDashboard();
       startBroadcast();
-    } catch (e) { alert(e.response?.data?.message || 'Order no longer available'); loadDashboard(); }
+    } catch (e) { showToast('❌ ' + (e.response?.data?.message || 'Order no longer available')); loadDashboard(); }
   }
 
   async function updateStatus(orderId, status) {
     try {
       await api.put(`/rider/orders/${orderId}/status`, { status });
       setDashboard(d => d ? { ...d, activeOrders: d.activeOrders?.map(o => o.order_id===orderId ? {...o,status} : o) } : d);
-    } catch (e) { alert(e.response?.data?.message || 'Failed'); }
+    } catch (e) { showToast('❌ ' + (e.response?.data?.message || 'Failed')); }
   }
 
   async function markDelivered(orderId) {
-    if (!navigator.geolocation) return alert('Location access required');
-    navigator.geolocation.getCurrentPosition(async pos => {
-      try {
-        await api.post(`/rider/orders/${orderId}/delivered`, {
-          latitude: pos.coords.latitude, longitude: pos.coords.longitude
-        });
-        loadDashboard();
-      } catch (e) { alert(e.response?.data?.message || 'Error confirming delivery'); }
-    }, () => alert('Please enable location'));
+    if (!navigator.geolocation) {
+      showToast('❌ Location not supported on this device');
+      return;
+    }
+    showToast('📍 Getting your location...');
+    navigator.geolocation.getCurrentPosition(
+      async pos => {
+        try {
+          await api.post(`/rider/orders/${orderId}/delivered`, {
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude
+          });
+          showToast('✅ Delivery confirmed!');
+          loadDashboard();
+        } catch (e) {
+          showToast('❌ ' + (e.response?.data?.message || 'Error confirming delivery'));
+        }
+      },
+      (err) => {
+        // Location denied or timed out
+        showToast('❌ Location access denied. Enable location for this site in browser settings.');
+      },
+      { timeout: 10000, enableHighAccuracy: false } // 10s timeout, no high accuracy needed
+    );
   }
 
   if (loading) return (
@@ -335,6 +353,13 @@ export default function RiderDashboard() {
         {/* ── EARNINGS TAB ── */}
         {tab==='earnings' && <EarningsHistory />}
       </div>
+
+      {/* TOAST */}
+      {riderToast&&(
+        <div style={{position:'fixed',bottom:24,left:'50%',transform:'translateX(-50%)',background:DARK,color:'#fff',padding:'10px 20px',borderRadius:30,fontSize:13,fontWeight:600,zIndex:600,whiteSpace:'nowrap',boxShadow:'0 4px 16px rgba(0,0,0,.2)',maxWidth:'90vw',textAlign:'center'}}>
+          {riderToast}
+        </div>
+      )}
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
