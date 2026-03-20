@@ -119,7 +119,7 @@ export default function RiderDashboard() {
       showToast('❌ Location not supported on this device');
       return;
     }
-    showToast('📍 Getting your location...');
+    showToast(' Getting your location...');
     navigator.geolocation.getCurrentPosition(
       async pos => {
         try {

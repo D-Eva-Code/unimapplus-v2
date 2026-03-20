@@ -267,31 +267,28 @@ async function confirmDelivery(req, res) {
     const [order] = await pool.query('SELECT * FROM orders WHERE order_id = ? AND driver_id = ?', [order_id, driverId]);
     if (!order[0]) return res.status(404).json({ success: false, message: 'Order not found' });
 
-    // Require rider to provide their GPS coordinates
-    if (!rider_latitude || !rider_longitude) {
-      return res.status(400).json({
-        success: false,
-        message: 'Location access required to confirm delivery. Please enable GPS.',
-      });
-    }
+    // GPS is optional — store for audit trail if provided
+    // Only enforce proximity check if delivery has stored coordinates
+    if (rider_latitude && rider_longitude) {
+      // Store rider location as audit trail
+      await pool.query(
+        'UPDATE orders SET rider_latitude = ?, rider_longitude = ? WHERE order_id = ?',
+        [rider_latitude, rider_longitude, order_id]
+      );
 
-    // If we have the delivery coordinates, verify proximity
-    if (order[0].delivery_latitude && order[0].delivery_longitude) {
-      const dist = getDistanceKm(rider_latitude, rider_longitude, order[0].delivery_latitude, order[0].delivery_longitude);
-      if (dist > 0.5) { // 500m threshold (campus is small)
-        return res.status(400).json({
-          success: false,
-          message: `You are ${(dist * 1000).toFixed(0)}m from the delivery location. Get closer to confirm.`,
-          distance_meters: Math.round(dist * 1000)
-        });
+      // If delivery also has stored coords, verify proximity
+      if (order[0].delivery_latitude && order[0].delivery_longitude) {
+        const dist = getDistanceKm(rider_latitude, rider_longitude, order[0].delivery_latitude, order[0].delivery_longitude);
+        if (dist > 0.5) {
+          return res.status(400).json({
+            success: false,
+            message: `You are ${(dist * 1000).toFixed(0)}m from the delivery location. Get closer to confirm.`,
+            distance_meters: Math.round(dist * 1000)
+          });
+        }
       }
     }
-    // Even without stored coords, rider must confirm via OTP sent to student
-    // For now: store rider's confirmation location for audit trail
-    await pool.query(
-      'UPDATE orders SET rider_latitude = ?, rider_longitude = ? WHERE order_id = ?',
-      [rider_latitude, rider_longitude, order_id]
-    );
+    // If no GPS provided, allow delivery — rider tapped the button manually
 
     await pool.query(`UPDATE orders SET status = 'delivered', updated_at = NOW() WHERE order_id = ?`, [order_id]);
 
