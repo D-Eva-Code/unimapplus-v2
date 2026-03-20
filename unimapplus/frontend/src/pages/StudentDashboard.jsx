@@ -302,14 +302,10 @@ export default function StudentDashboard() {
         routeLayer.current = L.polyline(coords, {
           color: TEAL, weight: 4, opacity: 0.85
         }).addTo(map);
-        // OSRM routes via roads (overestimates campus walks)
-        // Use straight-line distance × 1.35 for accurate campus footpath time
-        const fromLL = L.latLng(from[0], from[1]);
-        const toLL   = L.latLng(to[0],   to[1]);
-        const straightM = fromLL.distanceTo(toLL);
-        const campusDistM = straightM * 1.9; // adjusted for real UNIBEN walking paths
-        const mins = Math.ceil(campusDistM / 80); // 80m/min = comfortable walking pace
-        const km = (campusDistM / 1000).toFixed(2);
+        // Use actual OSRM route distance for time (83m/min = 5km/h walking)
+        const routeDistM = route.distance; // metres along actual path
+        const mins = Math.ceil(routeDistM / 83);
+        const km = (routeDistM / 1000).toFixed(2);
         if (bar) bar.querySelector('#route-text').textContent = `${mins} min · ${km} km — to ${name}`;
         map.fitBounds(routeLayer.current.getBounds(), {padding:[30,30]});
       } else {
@@ -825,10 +821,10 @@ export default function StudentDashboard() {
                   )}
 
                   {/* Delete if stuck pending */}
-                  {['pending','paid'].includes(trackedOrder.status)&&(
+                  {trackedOrder.status==='pending'&&trackedOrder.payment_status!=='paid'&&(
                     <button onClick={()=>deleteOrder(trackedOrder.order_id)}
                       style={{background:'#fff0f0',color:'#e74c3c',border:'none',borderRadius:10,padding:'8px 14px',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:12,width:'100%'}}>
-                      🗑️ Cancel & delete this order
+                      🗑️ Cancel this order
                     </button>
                   )}
 

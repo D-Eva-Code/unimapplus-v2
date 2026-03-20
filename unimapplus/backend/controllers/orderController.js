@@ -45,10 +45,15 @@ async function checkout(req, res) {
       verifiedItems.push({ ...item, quantity: cartItem.quantity, portions });
     }
 
-    const platformFee  = Math.round(subtotal * PLATFORM_FEE_PCT * 100) / 100; // 7% to Unimap
-    const vendorAmount = Math.round(subtotal * VENDOR_SHARE_PCT  * 100) / 100; // 93% to vendor
+    // Fee breakdown:
+    // Student pays: subtotal + packing + delivery + service fee (7% of subtotal)
+    // Vendor gets:  subtotal + packing fee
+    // Rider gets:   delivery fee
+    // Unimap keeps: service fee (7% of subtotal)
+    const platformFee  = Math.round(subtotal * PLATFORM_FEE_PCT * 100) / 100;
+    const vendorAmount = subtotal + packingFee; // vendor gets food + packing
     const riderAmount  = DELIVERY_FEE;
-    const totalAmount  = subtotal + DELIVERY_FEE + packingFee;
+    const totalAmount  = subtotal + DELIVERY_FEE + packingFee + platformFee;
 
     const [student] = await pool.query('SELECT * FROM students_tb WHERE st_id = ?', [studentId]);
     const orderId    = uuidv4();
@@ -394,7 +399,7 @@ async function deleteOrder(req, res) {
     const studentId = req.user.id;
     // Only allow deleting your own pending/unpaid orders
     const [order] = await pool.query(
-      "SELECT * FROM orders WHERE order_id = ? AND student_id = ? AND status IN ('pending','cancelled') AND payment_status IN ('pending','failed')",
+      "SELECT * FROM orders WHERE order_id = ? AND student_id = ? AND status = 'pending' AND payment_status = 'pending'",
       [order_id, studentId]
     );
     if (!order[0]) return res.status(404).json({ success: false, message: 'Order not found or cannot be deleted' });
