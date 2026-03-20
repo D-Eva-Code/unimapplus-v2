@@ -306,7 +306,7 @@ export default function StudentDashboard() {
         const routeDistM = route.distance; // metres along actual path
         const mins = Math.ceil(routeDistM / 83);
         const km = (routeDistM / 1000).toFixed(2);
-        if (bar) bar.querySelector('#route-text').textContent = `🚶 ${mins} min · ${km} km — to ${name}`;
+        if (bar) bar.querySelector('#route-text').textContent = `${mins} min · ${km} km — to ${name}`;
         map.fitBounds(routeLayer.current.getBounds(), {padding:[30,30]});
       } else {
         throw new Error('No route');
@@ -321,7 +321,7 @@ export default function StudentDashboard() {
       const dist = fromLL.distanceTo(toLL);
       const mins = Math.ceil(dist * 1.25 / 80);
       const km   = (dist * 1.25 / 1000).toFixed(2);
-      if (bar) bar.querySelector('#route-text').textContent = `🚶 ~${mins} min · ${km} km — to ${name}`;
+      if (bar) bar.querySelector('#route-text').textContent = `~${mins} min · ${km} km — to ${name}`;
       map.fitBounds(routeLayer.current.getBounds(), {padding:[30,30]});
     }
   }
