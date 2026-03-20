@@ -66,7 +66,7 @@ async function addMenuItem(req, res) {
   try {
     const vendorId = req.user.id;
     const { uploadToCloudinary } = require('../config/s3');
-    const { item_name, description, price, tags, prep_time } = req.body;
+    const { item_name, description, price, tags, prep_time, item_type } = req.body;
     const image_url = req.file ? await uploadToCloudinary(req.file.buffer, 'unimapplus/menu') : null;
 
     if (!item_name || !price) {
@@ -76,8 +76,8 @@ async function addMenuItem(req, res) {
     const tagsArray = tags ? (Array.isArray(tags) ? tags : JSON.parse(tags)) : [];
 
     const [result] = await pool.query(
-      'INSERT INTO menu_items (vendor_id, item_name, description, price, image_url, tags, prep_time) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [vendorId, item_name, description || '', price, image_url, JSON.stringify(tagsArray), prep_time || 15]
+      'INSERT INTO menu_items (vendor_id, item_name, description, price, image_url, tags, prep_time, item_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [vendorId, item_name, description || '', price, image_url, JSON.stringify(tagsArray), prep_time || 15, item_type || 'food']
     );
 
     const [item] = await pool.query('SELECT * FROM menu_items WHERE menu_id = ?', [result.insertId]);
@@ -93,7 +93,7 @@ async function updateMenuItem(req, res) {
   try {
     const vendorId = req.user.id;
     const { menu_id } = req.params;
-    const { item_name, description, price, tags, is_available, prep_time } = req.body;
+    const { item_name, description, price, tags, is_available, prep_time, item_type } = req.body;
     const image_url = req.file ? await uploadToCloudinary(req.file.buffer, 'unimapplus/menu') : undefined;
 
     // Ensure this item belongs to the vendor
@@ -104,6 +104,7 @@ async function updateMenuItem(req, res) {
 
     const updates = { item_name, description, price, tags: JSON.stringify(tagsArray), is_available };
     if (prep_time !== undefined) updates.prep_time = prep_time;
+    if (item_type !== undefined) updates.item_type = item_type;
     if (image_url) updates.image_url = image_url;
 
     const setClauses = Object.keys(updates).filter(k => updates[k] !== undefined).map(k => `${k} = ?`).join(', ');

@@ -157,6 +157,7 @@ export default function StudentDashboard() {
     setSelectedVendor(v); setMenuLoading(true); setTab('home');
     // Packing fee: 200 for food vendors, 0 for bakery/drinks/foodstuff
     const noPackingCats = ['bakery','foodstuff','drinks'];
+    // Default packing fee based on vendor category; will be recalculated per-cart based on items
     setPackingFee(noPackingCats.includes(v.category) ? 0 : 200);
     try { const {data}=await api.get(`/vendors/${v.vendor_id}/menu`); setMenu(data.items||[]); } catch {}
     setMenuLoading(false);
@@ -821,10 +822,10 @@ export default function StudentDashboard() {
                   )}
 
                   {/* Delete if stuck pending */}
-                  {trackedOrder.status==='pending'&&trackedOrder.payment_status!=='paid'&&(
+                  {['pending','paid'].includes(trackedOrder.status)&&(
                     <button onClick={()=>deleteOrder(trackedOrder.order_id)}
                       style={{background:'#fff0f0',color:'#e74c3c',border:'none',borderRadius:10,padding:'8px 14px',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:12,width:'100%'}}>
-                      🗑️ Cancel this order
+                      🗑️ Cancel & delete this order
                     </button>
                   )}
 
@@ -977,10 +978,11 @@ export default function StudentDashboard() {
                 {vendorList.filter(v => vendorList.length===1 || !checkoutVendorId || v.vendorId===checkoutVendorId).map(v => {
                   const subtotal = v.total; // already includes portions (qty × price × portions)
                   const noPackCats = ['bakery','foodstuff','drinks'];
-                  // Use packingFee state if this is the currently open vendor, else default 200
-                  const vPacking = noPackCats.includes(
-                    vendors.find(vn=>vn.vendor_id===v.vendorId)?.category
-                  ) ? 0 : 200;
+                  const vendorCat = vendors.find(vn=>vn.vendor_id===v.vendorId)?.category;
+                  // No packing if: vendor is drinks/bakery/foodstuff category
+                  // OR if ALL items in cart are drinks
+                  const allDrinks = v.items.every(i => i.item_type === 'drink');
+                  const vPacking = noPackCats.includes(vendorCat) || allDrinks ? 0 : 200;
                   const serviceFee = Math.round(subtotal * 0.07);
                   const grandTotal = subtotal + 300 + vPacking + serviceFee;
                   return (

@@ -14,7 +14,7 @@ export default function VendorDashboard() {
   const [addMenuOpen, setAddMenuOpen] = useState(false);
   const [editItem, setEditItem]   = useState(null);
   const [menuItems, setMenuItems] = useState([]);
-  const [newItem, setNewItem]     = useState({ item_name:'', description:'', price:'', prep_time:'', image:null, tags:'' });
+  const [newItem, setNewItem]     = useState({ item_name:'', description:'', price:'', prep_time:'', image:null, tags:'', item_type:'food' });
   const [saving, setSaving]       = useState(false);
   const [orders, setOrders]       = useState([]);
   const [activeSection, setActiveSection] = useState('orders'); // orders | menu | history
@@ -74,6 +74,7 @@ export default function VendorDashboard() {
       fd.append('price', newItem.price);
       if (newItem.image) fd.append('image', newItem.image);
       fd.append('tags', JSON.stringify(newItem.tags.split(',').map(t=>t.trim()).filter(Boolean)));
+      fd.append('item_type', newItem.item_type || 'food');
       if (newItem.prep_time) fd.append('prep_time', newItem.prep_time);
       if (editItem) {
         await api.put(`/vendor/menu/${editItem.menu_id}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
@@ -374,7 +375,7 @@ export default function VendorDashboard() {
                             let parsedTags = [];
                             try { parsedTags = JSON.parse(item.tags||'[]'); } catch {}
                             setEditItem(item);
-                            setNewItem({item_name:item.item_name,description:item.description||'',price:item.price,prep_time:item.prep_time||'',image:null,tags:parsedTags.join(', ')});
+                            setNewItem({item_name:item.item_name,description:item.description||'',price:item.price,prep_time:item.prep_time||'',image:null,tags:parsedTags.join(', '),item_type:item.item_type||'food'});
                             setAddMenuOpen(true);
                           }}
                             style={{flex:1,padding:'7px',background:'#f0f8f8',color:TEAL,border:`1px solid ${TEAL}44`,borderRadius:9,fontWeight:600,fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>
@@ -401,13 +402,13 @@ export default function VendorDashboard() {
       {/* ADD/EDIT MENU MODAL */}
       {addMenuOpen && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.35)',zIndex:500,display:'flex',alignItems:'flex-end',justifyContent:'center'}} onClick={()=>setAddMenuOpen(false)}>
-          <div style={{background:'#fff',borderRadius:'20px 20px 0 0',width:'100%',maxWidth:520,maxHeight:'90vh',overflowY:'auto',padding:24}} onClick={e=>e.stopPropagation()}>
+          <div style={{background:'#fff',borderRadius:'20px 20px 0 0',width:'100%',maxWidth:520,maxHeight:'78vh',overflowY:'auto',padding:'24px 24px 80px'}} onClick={e=>e.stopPropagation()}>
             <div style={{width:36,height:4,background:'#e0eeee',borderRadius:2,margin:'0 auto 20px'}}/>
             <h3 style={{margin:'0 0 20px',fontWeight:800,color:DARK}}>{editItem?'Edit Menu Item':'Add Menu Item'}</h3>
             <form onSubmit={saveMenuItem}>
               {[
                 {label:'Item Name',key:'item_name',type:'text',required:true,placeholder:'e.g. Jollof Rice'},
-                {label:'Description (optional)',key:'description',type:'text',placeholder:'Short description'},
+                {label:'Description',key:'description',type:'text',required:true,placeholder:'e.g. Served with stew and plantain'},
                 {label:'Price (₦)',key:'price',type:'number',required:true,placeholder:'1200'},
                 {label:'Prep Time (minutes)',key:'prep_time',type:'number',placeholder:'e.g. 15'},
                 {label:'Tags — comma separated (for search)',key:'tags',type:'text',placeholder:'spicy, vegetarian, rice'},
@@ -418,6 +419,21 @@ export default function VendorDashboard() {
                     value={newItem[f.key]} onChange={e=>setNewItem(p=>({...p,[f.key]:e.target.value}))} style={inp}/>
                 </div>
               ))}
+              {/* Item type selector - determines packing fee */}
+              <div style={{marginBottom:14}}>
+                <label style={lbl}>Item Type <span style={{color:'#e74c3c',fontSize:10,fontWeight:400}}>(determines packing fee)</span></label>
+                <div style={{display:'flex',gap:10,marginTop:4}}>
+                  {[['food','🍽️ Food','Packing fee applies'],['drink','🥤 Drink','No packing fee']].map(([type,label,hint])=>(
+                    <div key={type} onClick={()=>setNewItem(p=>({...p,item_type:type}))}
+                      style={{flex:1,padding:'10px 12px',borderRadius:10,border:`2px solid ${newItem.item_type===type?TEAL:'#dde8e8'}`,background:newItem.item_type===type?'#e6fafa':'#fff',cursor:'pointer',textAlign:'center',transition:'all .15s'}}>
+                      <div style={{fontSize:16,marginBottom:2}}>{label.split(' ')[0]}</div>
+                      <div style={{fontWeight:700,fontSize:13,color:newItem.item_type===type?TEAL:DARK}}>{label.split(' ').slice(1).join(' ')}</div>
+                      <div style={{fontSize:10,color:'#7a90a4',marginTop:2}}>{hint}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div style={{marginBottom:20}}>
                 <label style={lbl}>Food Photo</label>
                 <input type="file" accept="image/*" onChange={e=>setNewItem(p=>({...p,image:e.target.files[0]}))}
