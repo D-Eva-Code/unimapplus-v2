@@ -450,7 +450,7 @@ export default function StudentDashboard() {
                   <button style={{background:'#fff',color:slide.bg,border:'none',borderRadius:20,padding:'8px 18px',fontWeight:700,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>{slide.cta}</button>
                 </div>
                 {heroIdx===0
-                  ? <img src="/burger.png" alt="burger" style={{height:isMobile?110:170,marginRight:isMobile?-14:-8,marginBottom:-4,flexShrink:0,objectFit:'contain',filter:'drop-shadow(0 4px 12px rgba(0,0,0,0.2))'}}/>
+                  ? <img src="/burger.png" alt="burger" style={{position:'absolute',right:0,bottom:0,height:isMobile?'95%':'100%',objectFit:'contain',objectPosition:'bottom right',filter:'drop-shadow(-4px 0 8px rgba(0,0,0,0.15))'}}/>
                   : <div style={{width:isMobile?80:120,height:isMobile?80:120,borderRadius:'50%',background:`${slide.accent}33`,flexShrink:0}}/>
                 }
                 <div style={{position:'absolute',bottom:12,left:'50%',transform:'translateX(-50%)',display:'flex',gap:6}}>
