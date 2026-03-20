@@ -302,10 +302,14 @@ export default function StudentDashboard() {
         routeLayer.current = L.polyline(coords, {
           color: TEAL, weight: 4, opacity: 0.85
         }).addTo(map);
-        // Use actual OSRM route distance for time (83m/min = 5km/h walking)
-        const routeDistM = route.distance; // metres along actual path
-        const mins = Math.ceil(routeDistM / 83);
-        const km = (routeDistM / 1000).toFixed(2);
+        // OSRM routes via roads (overestimates campus walks)
+        // Use straight-line distance × 1.35 for accurate campus footpath time
+        const fromLL = L.latLng(from[0], from[1]);
+        const toLL   = L.latLng(to[0],   to[1]);
+        const straightM = fromLL.distanceTo(toLL);
+        const campusDistM = straightM * 1.35; // 1.35 = typical campus path factor
+        const mins = Math.ceil(campusDistM / 80); // 80m/min = comfortable walking pace
+        const km = (campusDistM / 1000).toFixed(2);
         if (bar) bar.querySelector('#route-text').textContent = `${mins} min · ${km} km — to ${name}`;
         map.fitBounds(routeLayer.current.getBounds(), {padding:[30,30]});
       } else {
