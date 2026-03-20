@@ -34,7 +34,7 @@ export default function VendorDashboard() {
     socket.on('order_status_updated', data => {
       setOrders(prev => prev.map(o => o.order_id === data.order_id ? { ...o, status: data.status } : o));
     });
-    return () => { socket.off('new_order'); socket.off('order_status_updated'); };
+    return () => { socket.off('new_order'); socket.off('order_status_updated'); window.removeEventListener('resize', handleResize); };
   }, []);
 
   async function loadDashboard() {

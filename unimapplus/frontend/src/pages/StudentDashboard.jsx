@@ -70,6 +70,7 @@ export default function StudentDashboard() {
   const [toast, setToast]                 = useState('');
   const [mapLoaded, setMapLoaded]         = useState(false);
   const [isMobile, setIsMobile]           = useState(window.innerWidth < 768);
+  const [sideOpen, setSideOpen]           = useState(false);
   const [weather, setWeather]             = useState(null);
   const [nearbyLocations, setNearbyLocations] = useState([]);
   const [packingFee, setPackingFee]         = useState(0);
@@ -370,32 +371,11 @@ export default function StudentDashboard() {
           </div>
           <p style={{fontSize:10,fontWeight:700,color:'#b0bec5',letterSpacing:1,margin:'0 4px 8px',textTransform:'uppercase'}}>Student</p>
           {NAV.map(n=><SideItem key={n.id} {...n}/>)}
-          <div style={{marginTop:'auto'}}>
-            
-          </div>
         </div>
       )}
 
       {/* MOBILE DRAWER */}
-      {isMobile && sideOpen && (
-        <>
-          <div onClick={()=>setSideOpen(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,.4)',zIndex:300}}/>
-          <div style={{position:'fixed',top:0,left:0,width:220,height:'100vh',background:'#fff',zIndex:400,padding:'20px 12px',display:'flex',flexDirection:'column'}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:28}}>
-              <div style={{display:'flex',alignItems:'center',gap:8}}>
-                <div style={{width:30,height:30,background:TEAL,borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontWeight:900,fontSize:13}}>U</div>
-                <span style={{fontWeight:900,fontSize:16,color:DARK}}>Unimap<span style={{color:TEAL}}>+</span></span>
-              </div>
-              <button onClick={()=>setSideOpen(false)} style={{background:'none',border:'none',cursor:'pointer',color:'#7a90a4'}}><IcClose/></button>
-            </div>
-            <p style={{fontSize:10,fontWeight:700,color:'#b0bec5',letterSpacing:1,margin:'0 4px 8px',textTransform:'uppercase'}}>Student</p>
-            {NAV.map(n=><SideItem key={n.id} {...n}/>)}
-            <div style={{marginTop:'auto'}}>
-              <button onClick={logout} style={{width:'100%',padding:'10px 14px',border:'none',borderRadius:10,cursor:'pointer',fontFamily:'inherit',background:'#fff0f0',color:'#e74c3c',fontWeight:600,fontSize:13,textAlign:'left'}}>🚪 Logout</button>
-            </div>
-          </div>
-        </>
-      )}
+
 
       {/* MAIN */}
       <div style={{flex:1,marginLeft:isMobile?0:200,display:'flex',flexDirection:'column',minHeight:'100vh'}}>
@@ -527,7 +507,7 @@ export default function StudentDashboard() {
                         <button key={rec.menu_id}
                           onClick={()=>openVendor({vendor_id:rec.vendor_id,vendor_name:rec.vendor_name})}
                           style={{background:'rgba(11,191,191,.15)',border:'1px solid rgba(11,191,191,.3)',borderRadius:20,padding:'5px 12px',fontSize:11,fontWeight:600,color:'#7ee8e8',cursor:'pointer',fontFamily:'inherit',display:'flex',alignItems:'center',gap:4}}>
-                          {rec.is_personal && <span style={{fontSize:9}}>❤</span>}
+                          {rec.is_personal && <span style={{fontSize:9}}>❤️</span>}
                           +{rec.item_name} — ₦{Number(rec.price).toLocaleString()}
                         </button>
                       ))
@@ -602,7 +582,7 @@ export default function StudentDashboard() {
   )}
 </div>
 
-              {/* FEATURED MENU*/}
+              {/* FEATURED MENU - real data */}
               <h3 style={{margin:'0 0 12px',fontSize:15,fontWeight:800,color:DARK}}>Featured Menu</h3>
               {featuredMenu.length === 0 ? (
                 <div style={{background:'#fff',borderRadius:14,padding:'32px 20px',textAlign:'center',color:'#7a90a4',boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
