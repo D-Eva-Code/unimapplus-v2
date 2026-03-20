@@ -408,7 +408,7 @@ export default function VendorDashboard() {
             <form onSubmit={saveMenuItem}>
               {[
                 {label:'Item Name',key:'item_name',type:'text',required:true,placeholder:'e.g. Jollof Rice'},
-                {label:'Description',key:'description',type:'text',required:true,placeholder:'e.g. Served with stew and plantain'},
+                {label:'Description (optional)',key:'description',type:'text',required:true,placeholder:'e.g. Served with stew and plantain'},
                 {label:'Price (₦)',key:'price',type:'number',required:true,placeholder:'1200'},
                 {label:'Prep Time (minutes)',key:'prep_time',type:'number',placeholder:'e.g. 15'},
                 {label:'Tags — comma separated (for search)',key:'tags',type:'text',placeholder:'spicy, vegetarian, rice'},
