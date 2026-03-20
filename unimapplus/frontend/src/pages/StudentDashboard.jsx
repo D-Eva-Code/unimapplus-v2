@@ -75,7 +75,6 @@ export default function StudentDashboard() {
   const [nearbyLocations, setNearbyLocations] = useState([]);
   const [packingFee, setPackingFee]         = useState(0);
   const [deliveryModal, setDeliveryModal]   = useState(null); // { vendorId, vendorName }
-  const [confirmModal, setConfirmModal]     = useState(null); // { title, message, onConfirm }
   const [deliveryAddr, setDeliveryAddr]     = useState('');
   const [recommendations, setRecommendations] = useState(null);
 
@@ -179,32 +178,20 @@ export default function StudentDashboard() {
     setDeliveryAddr('');
   }
 
-  function deleteOrder(orderId) {
-    setConfirmModal({
-      title: 'Cancel Order',
-      message: 'Are you sure you want to cancel this order? This cannot be undone.',
-      onConfirm: async () => {
-        setConfirmModal(null);
-        try {
-          await api.delete(`/student/orders/${orderId}`);
-          setOrders(prev => prev.filter(o => o.order_id !== orderId));
-          if (trackedOrder?.order_id === orderId) setTrackedOrder(null);
-          showToast('Order cancelled');
-        } catch(err) {
-          setConfirmModal({
-            title: 'Cannot Delete Order',
-            message: err.response?.data?.message || 'Order cannot be deleted after payment has been made.',
-            onConfirm: null,
-          });
-        }
-      }
-    });
+  async function deleteOrder(orderId) {
+    if (!window.confirm('Delete this order? This cannot be undone.')) return;
+    try {
+      await api.delete(`/student/orders/${orderId}`);
+      setOrders(prev => prev.filter(o => o.order_id !== orderId));
+      if (trackedOrder?.order_id === orderId) setTrackedOrder(null);
+      showToast('Order deleted');
+    } catch(err) { alert(err.response?.data?.message || 'Could not delete order'); }
   }
 
   async function handleCheckout(vendorId) {
     const cartArr = getCartArray(vendorId);
     if (!cartArr.length) return;
-    if (!deliveryAddr.trim()) { setConfirmModal({ title: 'Delivery Location Required', message: 'Please enter your hostel, hall, or location before paying.', onConfirm: null }); return; }
+    if (!deliveryAddr.trim()) { alert('Please enter your delivery location'); return; }
     setDeliveryModal(null);
     setCartOpen(false);
     setCheckoutLoading(true);
@@ -216,7 +203,7 @@ export default function StudentDashboard() {
       });
       clearVendorCart(vendorId);
       window.location.href = data.payment_url;
-    } catch(err) { setConfirmModal({ title: 'Checkout Failed', message: err.response?.data?.message || 'Checkout failed. Please try again.', onConfirm: null }); }
+    } catch(err) { alert(err.response?.data?.message||'Checkout failed'); }
     setCheckoutLoading(false);
   }
 
@@ -683,7 +670,7 @@ export default function StudentDashboard() {
                           ):(
                             <button onClick={()=>addToCart(item)} style={{width:34,height:34,borderRadius:10,border:'none',background:TEAL,cursor:'pointer',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center'}}><IcPlus/></button>
                           )}
-                          {qty>0&&(
+                          {qty>0&&item.item_type!=='drink'&&(
                             <div style={{display:'flex',alignItems:'center',gap:3}}>
                               <span style={{fontSize:9,color:'#7a90a4'}}>portions:</span>
                               <select value={carts[selectedVendor?.vendor_id]?.items[item.menu_id]?.portions||1}
@@ -835,16 +822,11 @@ export default function StudentDashboard() {
                   )}
 
                   {/* Delete if stuck pending */}
-                  {trackedOrder.status==='pending'&&(
+                  {['pending','paid'].includes(trackedOrder.status)&&(
                     <button onClick={()=>deleteOrder(trackedOrder.order_id)}
                       style={{background:'#fff0f0',color:'#e74c3c',border:'none',borderRadius:10,padding:'8px 14px',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:12,width:'100%'}}>
-                      Cancel this order
+                      Cancel & delete this order
                     </button>
-                  )}
-                  {trackedOrder.status==='paid'&&(
-                    <div style={{background:'#fff8e1',border:'1px solid #ffc107',borderRadius:10,padding:'10px 14px',marginBottom:12,fontSize:12,color:'#856404',textAlign:'center'}}>
-                      Order cannot be cancelled after payment. Contact support if needed.
-                    </div>
                   )}
 
                   {/* Order items */}
@@ -1074,28 +1056,6 @@ export default function StudentDashboard() {
                 style={{flex:2,padding:12,background:deliveryAddr.trim()?TEAL:'#ccc',color:'#fff',border:'none',borderRadius:12,fontWeight:700,fontSize:14,cursor:deliveryAddr.trim()?'pointer':'not-allowed',fontFamily:'inherit'}}>
                 {checkoutLoading?'Processing...':'Confirm & Pay'}
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* CONFIRM / ALERT MODAL */}
-      {confirmModal && (
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)',zIndex:700,display:'flex',alignItems:'center',justifyContent:'center',padding:24}}>
-          <div style={{background:'#fff',borderRadius:20,width:'100%',maxWidth:340,padding:28,boxShadow:'0 20px 60px rgba(0,0,0,.3)'}}>
-            <h3 style={{margin:'0 0 10px',fontWeight:800,color:DARK,fontSize:17}}>{confirmModal.title}</h3>
-            <p style={{margin:'0 0 24px',fontSize:14,color:'#7a90a4',lineHeight:1.6}}>{confirmModal.message}</p>
-            <div style={{display:'flex',gap:10}}>
-              <button onClick={()=>setConfirmModal(null)}
-                style={{flex:1,padding:12,border:'1px solid #e8ecf0',borderRadius:12,background:'#fff',cursor:'pointer',fontFamily:'inherit',fontWeight:600,color:'#7a90a4',fontSize:14}}>
-                {confirmModal.onConfirm ? 'Cancel' : 'OK'}
-              </button>
-              {confirmModal.onConfirm && (
-                <button onClick={confirmModal.onConfirm}
-                  style={{flex:1,padding:12,border:'none',borderRadius:12,background:'#e74c3c',color:'#fff',cursor:'pointer',fontFamily:'inherit',fontWeight:700,fontSize:14}}>
-                  Confirm
-                </button>
-              )}
             </div>
           </div>
         </div>
