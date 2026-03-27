@@ -230,7 +230,7 @@ export default function Signup() {
                   Short Description
                   <span style={{ fontSize: 11, color: '#7a7a9a', fontWeight: 400, marginLeft: 4 }}>(optional)</span>
                 </label>
-                <input type="text" placeholder="e.g. Best jollof rice on campus 🔥" maxLength={100}
+                <input type="text" placeholder="e.g. Best jollof rice on campus " maxLength={100}
                   value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} style={inp}/>
                 <p style={{ margin: '4px 0 0', fontSize: 11, color: '#7a7a9a' }}>{form.description.length}/100</p>
               </div>
