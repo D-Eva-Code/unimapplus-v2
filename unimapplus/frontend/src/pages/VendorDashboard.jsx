@@ -73,7 +73,9 @@ export default function VendorDashboard() {
       const fd = new FormData();
       fd.append('item_name', newItem.item_name);
       fd.append('description', newItem.description);
+      if (vendor?.category !== 'foodstuff') {
       fd.append('price', newItem.price);
+      }
       if (newItem.image) fd.append('image', newItem.image);
       fd.append('tags', JSON.stringify(newItem.tags.split(',').map(t=>t.trim()).filter(Boolean)));
       fd.append('item_type', newItem.item_type || 'food');
@@ -127,19 +129,19 @@ export default function VendorDashboard() {
     <div style={{display:'flex',minHeight:'100vh',fontFamily:"'Plus Jakarta Sans',sans-serif",background:BG}}>
 
      {/* SIDEBAR */}
-<div style={{
-  width: isMobile ? 0 : 220, // Collapse width on mobile
-  overflow: 'hidden',        
-  display: isMobile ? 'none' : 'flex', // Or use a hamburger menu to toggle this
-  background: '#fff',
-  borderRight: '1px solid #e0eeee',
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  height: '100vh',
-  flexDirection: 'column',
-  zIndex: 100
-}}>
+    <div style={{
+      width: isMobile ? 0 : 220, // Collapse width on mobile
+      overflow: 'hidden',        
+      display: isMobile ? 'none' : 'flex', // Or use a hamburger menu to toggle this
+      background: '#fff',
+      borderRight: '1px solid #e0eeee',
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      height: '100vh',
+      flexDirection: 'column',
+      zIndex: 100
+    }}>
 
   
         {/* Logo */}
@@ -416,7 +418,13 @@ export default function VendorDashboard() {
               {[
                 {label:'Item Name',key:'item_name',type:'text',required:true,placeholder:'e.g. Jollof Rice'},
                 {label:'Description (optional)',key:'description',type:'text',required:false,placeholder:'e.g. Served with stew and plantain'},
-                {label:'Price (₦)',key:'price',type:'number',required:true,placeholder:'1200'},
+                 ...(vendor?.category !== 'foodstuff' ? [{
+                label:'Price (₦)',
+                key:'price',
+                type:'number',
+                required:true,
+                placeholder:'1200'
+              }] : []),
                 {label:'Prep Time (minutes)',key:'prep_time',type:'number',placeholder:'e.g. 15'},
                 {label:'Tags (separate with comma)',key:'tags',type:'text',placeholder:'spicy, vegetarian, rice'},
               ].map(f=>(
