@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import useCartStore from '../store/cartStore';
 import { useOrderTracking } from '../hooks/useSocket';
+import { useNavigate } from 'react-router-dom';
 
 const TEAL = '#0BBFBF';
 const DARK = '#0d2137';
@@ -49,6 +50,7 @@ const getVendorColor = (name = "") => {
 
 export default function StudentDashboard() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const { carts, addItem, removeItem, clearVendorCart, setPortions, getCartArray, getVendorTotal, getVendorList, getTotalCount } = useCartStore();
   const [checkoutVendorId, setCheckoutVendorId] = useState(null);
   const vendorList = getVendorList(); // recomputes on every render when carts changes
@@ -79,12 +81,44 @@ export default function StudentDashboard() {
   const [deliveryAddr, setDeliveryAddr]     = useState('');
   const [deliveryCoords, setDeliveryCoords] = useState(null);
   const [deliverySearch, setDeliverySearch] = useState('');
+  const [itemCustomizations, setItemCustomizations] = useState({}); // {menu_id: {variant, toppings[], designNote}}
   const [recommendations, setRecommendations] = useState(null);
 
   const mapRef     = useRef(null);
   const leafletMap = useRef(null);
 
   const cartCount = getTotalCount();
+
+  // Handle browser back button — go to previous tab, not logout
+  useEffect(() => {
+    // Push initial state
+    window.history.pushState({ tab: 'home', vendor: null }, '');
+    const handlePop = (e) => {
+      const state = e.state;
+      if (state) {
+        if (state.vendor) {
+          setSelectedVendor(state.vendor);
+        } else {
+          setSelectedVendor(null);
+          setTab(state.tab || 'home');
+        }
+      }
+    };
+    window.addEventListener('popstate', handlePop);
+    return () => window.removeEventListener('popstate', handlePop);
+  }, []);
+
+  // Push state when tab changes
+  useEffect(() => {
+    window.history.pushState({ tab, vendor: null }, '');
+  }, [tab]);
+
+  // Push state when vendor opens
+  useEffect(() => {
+    if (selectedVendor) {
+      window.history.pushState({ tab: 'home', vendor: selectedVendor }, '');
+    }
+  }, [selectedVendor]);
 
   useEffect(() => {
     const fn = () => setIsMobile(window.innerWidth < 768);
@@ -97,14 +131,7 @@ export default function StudentDashboard() {
     return () => clearInterval(t);
   }, []);
 
-  useEffect(() => { loadVendors(); loadOrders(); loadFeaturedMenu(); fetchWeather(); loadLocations(); }, []);
-
-  async function loadLocations() {
-    try {
-      const {data} = await api.get('/locations', {params:{school_id:user?.school_id}});
-      setNearbyLocations(data.locations || []);
-    } catch {}
-  }
+  useEffect(() => { loadVendors(); loadOrders(); loadFeaturedMenu(); fetchWeather(); }, []);
 
   useOrderTracking(
     trackedOrder?.order_id,
@@ -173,8 +200,28 @@ export default function StudentDashboard() {
     setMenuLoading(false);
   }
   function addToCart(item, portions) {
-    addItem(item, selectedVendor?.vendor_id, selectedVendor?.vendor_name, portions);
-    showToast(`Added: ${item.item_name}${portions>1?' ('+portions+' portions)':''}`);
+    const custom = itemCustomizations[item.menu_id] || {};
+    // Calculate price with variant and toppings
+    const variantPrice = custom.variant ? custom.variant.price : item.price;
+    const toppingsTotal = (custom.toppings || []).reduce((s,t) => s + (t.price||0), 0);
+    const finalPrice = variantPrice + toppingsTotal;
+    const itemWithCustom = { ...item, price: finalPrice, custom };
+    addItem(itemWithCustom, selectedVendor?.vendor_id, selectedVendor?.vendor_name, portions);
+    showToast(`Added: ${item.item_name}${portions>1?' ('+portions+' portions)':''}${custom.variant?' · '+custom.variant.label:''}`);
+  }
+
+  function setItemCustom(menuId, field, value) {
+    setItemCustomizations(prev => ({
+      ...prev,
+      [menuId]: { ...(prev[menuId]||{}), [field]: value }
+    }));
+  }
+
+  function toggleTopping(menuId, topping) {
+    const current = itemCustomizations[menuId]?.toppings || [];
+    const exists = current.find(t => t.label === topping.label);
+    const updated = exists ? current.filter(t => t.label !== topping.label) : [...current, topping];
+    setItemCustom(menuId, 'toppings', updated);
   }
   function showToast(msg) { setToast(msg); setTimeout(()=>setToast(''),2200); }
 
@@ -677,8 +724,66 @@ export default function StudentDashboard() {
                         }
                         <div style={{flex:1,minWidth:0}}>
                           <div style={{fontWeight:700,fontSize:14,color:DARK,marginBottom:2}}>{item.item_name}</div>
-                          <div style={{fontSize:11,color:'#7a90a4',marginBottom:6}}>{selectedVendor.vendor_name} · ⏱ {item.prep_time||15} min</div>
-                          <div style={{fontWeight:800,fontSize:15,color:TEAL}}>₦{Number(item.price).toLocaleString()}</div>
+                          <div style={{fontSize:11,color:'#7a90a4',marginBottom:4}}>{selectedVendor.vendor_name} · ⏱ {item.prep_time||15} min</div>
+
+                          {/* FOODSTUFF: Variant picker */}
+                          {(() => {
+                            const variants = (() => { try { return JSON.parse(item.variants||'[]'); } catch { return []; } })();
+                            if (variants.length > 0) return (
+                              <select value={itemCustomizations[item.menu_id]?.variant?.label||''}
+                                onChange={e=>{
+                                  const v = variants.find(v=>v.label===e.target.value);
+                                  setItemCustom(item.menu_id,'variant',v||null);
+                                }}
+                                style={{width:'100%',padding:'5px 8px',border:`1px solid ${TEAL}55`,borderRadius:8,fontSize:12,fontFamily:'inherit',marginBottom:4,color:DARK}}>
+                                <option value="">Select quantity...</option>
+                                {variants.map(v=><option key={v.label} value={v.label}>{v.label} — ₦{Number(v.price).toLocaleString()}</option>)}
+                              </select>
+                            );
+                            return null;
+                          })()}
+
+                          {/* BAKERY: Toppings */}
+                          {(() => {
+                            const toppings = (() => { try { return JSON.parse(item.toppings||'[]'); } catch { return []; } })();
+                            if (toppings.length > 0) return (
+                              <div style={{marginBottom:4}}>
+                                <div style={{fontSize:10,color:'#7a90a4',marginBottom:3}}>Toppings:</div>
+                                <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+                                  {toppings.map(t=>{
+                                    const selected = (itemCustomizations[item.menu_id]?.toppings||[]).find(x=>x.label===t.label);
+                                    return (
+                                      <span key={t.label} onClick={()=>toggleTopping(item.menu_id,t)}
+                                        style={{fontSize:10,padding:'2px 8px',borderRadius:20,cursor:'pointer',border:`1px solid ${selected?TEAL:'#dde8e8'}`,background:selected?TEAL:'#fff',color:selected?'#fff':DARK,fontWeight:selected?700:400}}>
+                                        {t.label}{t.price>0?` +₦${t.price}`:''}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                            return null;
+                          })()}
+
+                          {/* BAKERY: Design notes */}
+                          {item.allow_design_notes==1&&(
+                            <input type="text" placeholder="Describe your cake design (optional)..."
+                              value={itemCustomizations[item.menu_id]?.designNote||''}
+                              onChange={e=>setItemCustom(item.menu_id,'designNote',e.target.value)}
+                              style={{width:'100%',padding:'5px 8px',border:'1px solid #e8ecf0',borderRadius:8,fontSize:11,fontFamily:'inherit',marginBottom:4,boxSizing:'border-box'}}/>
+                          )}
+
+                          <div style={{fontWeight:800,fontSize:15,color:TEAL}}>
+                            ₦{Number(
+                              (() => {
+                                const variants = (() => { try { return JSON.parse(item.variants||'[]'); } catch { return []; } })();
+                                const custom = itemCustomizations[item.menu_id]||{};
+                                const base = variants.length>0 ? (custom.variant?.price||item.price) : item.price;
+                                const extras = (custom.toppings||[]).reduce((s,t)=>s+(t.price||0),0);
+                                return base + extras;
+                              })()
+                            ).toLocaleString()}
+                          </div>
                         </div>
                         <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:5}}>
                           {!selectedVendor?.is_open ? (
@@ -1071,7 +1176,7 @@ export default function StudentDashboard() {
               type="text"
               value={deliveryAddr}
               onChange={e=>setDeliveryAddr(e.target.value)}
-              placeholder="e.g. Hall 6, Room 204 or Back Gate"
+              placeholder="e.g. Hall 6, Room 204 or SUB Gate"
               style={{width:'100%',padding:'12px 14px',border:'1.5px solid #e8ecf0',borderRadius:12,fontSize:14,outline:'none',fontFamily:'inherit',boxSizing:'border-box',marginBottom:14}}
             />
             <div style={{background:'#e6fafa',borderRadius:12,padding:'10px 14px',marginBottom:18,fontSize:12,color:'#089898'}}>

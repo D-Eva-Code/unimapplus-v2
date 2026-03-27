@@ -14,8 +14,10 @@ export default function VendorDashboard() {
   const [addMenuOpen, setAddMenuOpen] = useState(false);
   const [editItem, setEditItem]   = useState(null);
   const [menuItems, setMenuItems] = useState([]);
-  const [newItem, setNewItem]     = useState({ item_name:'', description:'', price:'', prep_time:'', image:null, tags:'', item_type:'food' });
+  const [newItem, setNewItem]     = useState({ item_name:'', description:'', price:'', prep_time:'', image:null, tags:'', item_type:'food', variants:[], toppings:[] });
   const [saving, setSaving]       = useState(false);
+  const [newVariant, setNewVariant] = useState({ label:'', price:'' });
+  const [newTopping, setNewTopping] = useState({ label:'', price:'' });
   const [orders, setOrders]       = useState([]);
   const [activeSection, setActiveSection] = useState('orders'); // orders | menu | history
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -75,6 +77,8 @@ export default function VendorDashboard() {
       if (newItem.image) fd.append('image', newItem.image);
       fd.append('tags', JSON.stringify(newItem.tags.split(',').map(t=>t.trim()).filter(Boolean)));
       fd.append('item_type', newItem.item_type || 'food');
+      if (newItem.variants.length > 0) fd.append('variants', JSON.stringify(newItem.variants));
+      if (newItem.toppings.length > 0) fd.append('toppings', JSON.stringify(newItem.toppings));
       if (newItem.prep_time) fd.append('prep_time', newItem.prep_time);
       if (editItem) {
         await api.put(`/vendor/menu/${editItem.menu_id}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
@@ -375,7 +379,10 @@ export default function VendorDashboard() {
                             let parsedTags = [];
                             try { parsedTags = JSON.parse(item.tags||'[]'); } catch {}
                             setEditItem(item);
-                            setNewItem({item_name:item.item_name,description:item.description||'',price:item.price,prep_time:item.prep_time||'',image:null,tags:parsedTags.join(', '),item_type:item.item_type||'food'});
+                            setNewItem({item_name:item.item_name,description:item.description||'',price:item.price,prep_time:item.prep_time||'',image:null,tags:parsedTags.join(', '),item_type:item.item_type||'food',
+      variants: (() => { try { return JSON.parse(item.variants||'[]'); } catch { return []; } })(),
+      toppings: (() => { try { return JSON.parse(item.toppings||'[]'); } catch { return []; } })(),
+    });
                             setAddMenuOpen(true);
                           }}
                             style={{flex:1,padding:'7px',background:'#f0f8f8',color:TEAL,border:`1px solid ${TEAL}44`,borderRadius:9,fontWeight:600,fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>
@@ -411,7 +418,7 @@ export default function VendorDashboard() {
                 {label:'Description (optional)',key:'description',type:'text',required:false,placeholder:'e.g. Served with stew and plantain'},
                 {label:'Price (₦)',key:'price',type:'number',required:true,placeholder:'1200'},
                 {label:'Prep Time (minutes)',key:'prep_time',type:'number',placeholder:'e.g. 15'},
-                {label:'Tags — comma separated (for search)',key:'tags',type:'text',placeholder:'spicy, vegetarian, rice'},
+                {label:'Tags (separate with comma)',key:'tags',type:'text',placeholder:'spicy, vegetarian, rice'},
               ].map(f=>(
                 <div key={f.key} style={{marginBottom:14}}>
                   <label style={lbl}>{f.label}</label>
@@ -433,6 +440,79 @@ export default function VendorDashboard() {
                   ))}
                 </div>
               </div>
+
+              {/* FOODSTUFF: Quantity variants */}
+              {vendor?.category === 'foodstuff' && (
+                <div style={{marginBottom:16}}>
+                  <label style={lbl}>Quantity Types & Prices <span style={{color:'#e74c3c'}}>*</span></label>
+                  <p style={{fontSize:11,color:'#7a90a4',margin:'0 0 8px'}}>Add the different quantities you sell (e.g. Rubber, Bag, 1 kilo) with their prices</p>
+                  {newItem.variants.map((v,i)=>(
+                    <div key={i} style={{display:'flex',alignItems:'center',gap:8,marginBottom:6,background:'#f0fafa',borderRadius:10,padding:'8px 12px'}}>
+                      <span style={{flex:1,fontSize:13,fontWeight:600,color:DARK}}>{v.label}</span>
+                      <span style={{fontSize:13,color:TEAL,fontWeight:700}}>₦{Number(v.price).toLocaleString()}</span>
+                      <button type="button" onClick={()=>setNewItem(p=>({...p,variants:p.variants.filter((_,j)=>j!==i)}))}
+                        style={{background:'#fff0f0',border:'none',borderRadius:6,padding:'4px 8px',color:'#e74c3c',cursor:'pointer',fontSize:12}}>✕</button>
+                    </div>
+                  ))}
+                  <div style={{display:'flex',gap:8,marginTop:6}}>
+                    <select value={newVariant.label} onChange={e=>setNewVariant(p=>({...p,label:e.target.value}))}
+                      style={{flex:2,...inp,padding:'8px 10px'}}>
+                      <option value="">Select quantity type...</option>
+                      {['Rubber','1/2 Rubber','Full Carton','1/2 Carton','1/4 Carton','Bag','1/4 Bag','1/2 Bag','Full Crate','1/2 Crate','Roll','Pieces','1/2 Kilo','1 Kilo','1/4 Kilo'].map(q=>(
+                        <option key={q} value={q}>{q}</option>
+                      ))}
+                    </select>
+                    <input type="number" placeholder="Price ₦" value={newVariant.price}
+                      onChange={e=>setNewVariant(p=>({...p,price:e.target.value}))}
+                      style={{flex:1,...inp,padding:'8px 10px'}}/>
+                    <button type="button" onClick={()=>{
+                      if (!newVariant.label||!newVariant.price) return;
+                      setNewItem(p=>({...p,variants:[...p.variants,{label:newVariant.label,price:Number(newVariant.price)}]}));
+                      setNewVariant({label:'',price:''});
+                    }} style={{padding:'8px 14px',background:TEAL,color:'#fff',border:'none',borderRadius:10,fontWeight:700,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>+ Add</button>
+                  </div>
+                </div>
+              )}
+
+              {/* BAKERY: Toppings options */}
+              {vendor?.category === 'bakery' && (
+                <div style={{marginBottom:16}}>
+                  <label style={lbl}>Toppings / Add-ons <span style={{fontSize:11,color:'#7a90a4',fontWeight:400}}>(optional)</span></label>
+                  <p style={{fontSize:11,color:'#7a90a4',margin:'0 0 8px'}}>Add toppings students can choose from (e.g. Sprinkles +₦200, Oreos +₦500)</p>
+                  {newItem.toppings.map((t,i)=>(
+                    <div key={i} style={{display:'flex',alignItems:'center',gap:8,marginBottom:6,background:'#f0fafa',borderRadius:10,padding:'8px 12px'}}>
+                      <span style={{flex:1,fontSize:13,fontWeight:600,color:DARK}}>{t.label}</span>
+                      <span style={{fontSize:13,color:TEAL,fontWeight:700}}>{t.price>0?`+₦${Number(t.price).toLocaleString()}`:'Free'}</span>
+                      <button type="button" onClick={()=>setNewItem(p=>({...p,toppings:p.toppings.filter((_,j)=>j!==i)}))}
+                        style={{background:'#fff0f0',border:'none',borderRadius:6,padding:'4px 8px',color:'#e74c3c',cursor:'pointer',fontSize:12}}>✕</button>
+                    </div>
+                  ))}
+                  <div style={{display:'flex',gap:8,marginTop:6}}>
+                    <input type="text" placeholder="Topping name (e.g. Sprinkles)"
+                      value={newTopping.label} onChange={e=>setNewTopping(p=>({...p,label:e.target.value}))}
+                      style={{flex:2,...inp,padding:'8px 10px'}}/>
+                    <input type="number" placeholder="+₦ price" value={newTopping.price}
+                      onChange={e=>setNewTopping(p=>({...p,price:e.target.value}))}
+                      style={{flex:1,...inp,padding:'8px 10px'}}/>
+                    <button type="button" onClick={()=>{
+                      if (!newTopping.label) return;
+                      setNewItem(p=>({...p,toppings:[...p.toppings,{label:newTopping.label,price:Number(newTopping.price)||0}]}));
+                      setNewTopping({label:'',price:''});
+                    }} style={{padding:'8px 14px',background:TEAL,color:'#fff',border:'none',borderRadius:10,fontWeight:700,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>+ Add</button>
+                  </div>
+                  {/* Design notes for custom cakes */}
+                  <div style={{marginTop:12,background:'#fff8e1',borderRadius:10,padding:'10px 12px',fontSize:12,color:'#92400e'}}>
+                    💡 <b>Custom designs:</b> Enable "Design notes" below so customers can describe their cake design. You can update the price after reviewing their note before accepting the order.
+                  </div>
+                  <div style={{marginTop:8,display:'flex',alignItems:'center',gap:10}}>
+                    <div onClick={()=>setNewItem(p=>({...p,allow_design_notes:!p.allow_design_notes}))}
+                      style={{width:40,height:22,background:newItem.allow_design_notes?TEAL:'#dde8e8',borderRadius:20,position:'relative',cursor:'pointer',transition:'background .25s',flexShrink:0}}>
+                      <div style={{width:16,height:16,background:'#fff',borderRadius:'50%',position:'absolute',top:3,left:newItem.allow_design_notes?21:3,transition:'left .25s'}}/>
+                    </div>
+                    <span style={{fontSize:13,color:DARK,fontWeight:600}}>Allow customers to add design notes</span>
+                  </div>
+                </div>
+              )}
 
               <div style={{marginBottom:20}}>
                 <label style={lbl}>Food Photo</label>
