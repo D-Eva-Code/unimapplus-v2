@@ -427,19 +427,28 @@ export default function VendorDashboard() {
                 </div>
               ))}
               {/* Item type selector - determines packing fee */}
-              <div style={{marginBottom:14}}>
-                <label style={lbl}>Item Type <span style={{color:'#e74c3c',fontSize:10,fontWeight:400}}>(determines packing fee)</span></label>
-                <div style={{display:'flex',gap:10,marginTop:4}}>
-                  {[['food','🍽️ Food','Packing fee applies'],['drink','🥤 Drink','No packing fee']].map(([type,label,hint])=>(
-                    <div key={type} onClick={()=>setNewItem(p=>({...p,item_type:type}))}
-                      style={{flex:1,padding:'10px 12px',borderRadius:10,border:`2px solid ${newItem.item_type===type?TEAL:'#dde8e8'}`,background:newItem.item_type===type?'#e6fafa':'#fff',cursor:'pointer',textAlign:'center',transition:'all .15s'}}>
-                      <div style={{fontSize:16,marginBottom:2}}>{label.split(' ')[0]}</div>
-                      <div style={{fontWeight:700,fontSize:13,color:newItem.item_type===type?TEAL:DARK}}>{label.split(' ').slice(1).join(' ')}</div>
-                      <div style={{fontSize:10,color:'#7a90a4',marginTop:2}}>{hint}</div>
+              {/* Only show packing fee option for non-bakery & non-foodstuff */}
+                {!['bakery', 'foodstuff'].includes(vendor?.category) && (
+                  <div style={{marginBottom:14}}>
+                    <label style={lbl}>
+                      Item Type 
+                      <span style={{color:'#e74c3c',fontSize:10,fontWeight:400}}>
+                        (determines packing fee)
+                      </span>
+                    </label>
+
+                    <div style={{display:'flex',gap:10,marginTop:4}}>
+                      {[['food','🍽️ Food','Packing fee applies'],['drink','🥤 Drink','No packing fee']].map(([type,label,hint])=>(
+                        <div key={type} onClick={()=>setNewItem(p=>({...p,item_type:type}))}
+                          style={{flex:1, padding:'10px 12px', borderRadius:10, border:`2px solid ${newItem.item_type===type?TEAL:'#dde8e8'}`, background:newItem.item_type===type?'#e6fafa':'#fff', cursor:'pointer', textAlign:'center'
+                          }}>
+                          <div>{label}</div>
+                          <div style={{fontSize:10,color:'#7a90a4'}}>{hint}</div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
+                  </div>
+                )}
 
               {/* FOODSTUFF: Quantity variants */}
               {vendor?.category === 'foodstuff' && (
