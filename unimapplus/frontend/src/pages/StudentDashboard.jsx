@@ -723,9 +723,9 @@ export default function StudentDashboard() {
                     }
                   };
 
-                    const hasCustomizations =
-                    (item.variants && JSON.parse(item.variants || '[]').length > 0) ||
-                    (item.toppings && JSON.parse(item.toppings || '[]').length > 0) ||
+                   const hasCustomizations =
+                    parseSafe(item.variants).length > 0 ||
+                    parseSafe(item.toppings).length > 0 ||
                     item.allow_design_notes == 1;
                     const qty=carts[selectedVendor?.vendor_id]?.items[item.menu_id]?.quantity||0;
                     return (
