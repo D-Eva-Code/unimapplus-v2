@@ -73,9 +73,13 @@ export default function VendorDashboard() {
       const fd = new FormData();
       fd.append('item_name', newItem.item_name);
       fd.append('description', newItem.description);
-      if (vendor?.category !== 'foodstuff') {
+      if (vendor?.category === 'foodstuff') {
+      // If they have variants, use the first variant price as the base price. Otherwise, default to 0.
+      const basePrice = newItem.variants.length > 0 ? newItem.variants[0].price : 0;
+      fd.append('price', basePrice);
+    } else {
       fd.append('price', newItem.price);
-      }
+    }
       if (newItem.image) fd.append('image', newItem.image);
       fd.append('tags', JSON.stringify(newItem.tags.split(',').map(t=>t.trim()).filter(Boolean)));
       fd.append('item_type', newItem.item_type || 'food');
