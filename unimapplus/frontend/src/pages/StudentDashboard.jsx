@@ -715,6 +715,10 @@ export default function StudentDashboard() {
               : (
                 <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(auto-fill,minmax(280px,1fr))',gap:12}}>
                   {menu.map(item=>{
+                    const hasCustomizations =
+                    (item.variants && JSON.parse(item.variants || '[]').length > 0) ||
+                    (item.toppings && JSON.parse(item.toppings || '[]').length > 0) ||
+                    item.allow_design_notes == 1;
                     const qty=carts[selectedVendor?.vendor_id]?.items[item.menu_id]?.quantity||0;
                     return (
                       <div key={item.menu_id} style={{background:'#fff',borderRadius:14,padding:14,display:'flex',gap:12,alignItems:'center',boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
@@ -797,7 +801,7 @@ export default function StudentDashboard() {
                           ):(
                             <button onClick={()=>addToCart(item)} style={{width:34,height:34,borderRadius:10,border:'none',background:TEAL,cursor:'pointer',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center'}}><IcPlus/></button>
                           )}
-                          {qty>0&&item.item_type!=='drink'&&(
+                          {qty > 0 && item.item_type !== 'drink' && !hasCustomizations && (
                             <div style={{display:'flex',alignItems:'center',gap:3}}>
                               <span style={{fontSize:9,color:'#7a90a4'}}>portions:</span>
                               <select value={carts[selectedVendor?.vendor_id]?.items[item.menu_id]?.portions||1}
