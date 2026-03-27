@@ -715,6 +715,14 @@ export default function StudentDashboard() {
               : (
                 <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(auto-fill,minmax(280px,1fr))',gap:12}}>
                   {menu.map(item=>{
+                    const parseSafe = (val) => {
+                    try {
+                      return typeof val === 'string' ? JSON.parse(val) : (val || []);
+                    } catch {
+                      return [];
+                    }
+                  };
+
                     const hasCustomizations =
                     (item.variants && JSON.parse(item.variants || '[]').length > 0) ||
                     (item.toppings && JSON.parse(item.toppings || '[]').length > 0) ||
