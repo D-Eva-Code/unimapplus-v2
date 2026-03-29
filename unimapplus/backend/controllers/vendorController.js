@@ -34,6 +34,31 @@ async function getVendors(req, res) {
 
 // Get vendor menu
 async function getVendorMenu(req, res) {
+  // try {
+  //   const { vendor_id } = req.params;
+  //   const { tag, search } = req.query;
+
+  //   let query = `
+  //     SELECT * FROM menu_items WHERE vendor_id = ? AND is_available = TRUE
+  //   `;
+  //   const params = [vendor_id];
+
+  //   if (tag) {
+  //     query += ` AND JSON_CONTAINS(tags, JSON_QUOTE(?))`;
+  //     params.push(tag);
+  //   }
+  //   if (search) {
+  //     query += ' AND (item_name LIKE ? OR description LIKE ?)';
+  //     params.push(`%${search}%`, `%${search}%`);
+  //   }
+  //   query += ' ORDER BY item_name';
+
+  //   const [items] = await pool.query(query, params);
+  //   return res.json({ success: true, items });
+  // } catch (err) {
+  //   console.error(err);
+  //   return res.status(500).json({ success: false, message: 'Error fetching menu' });
+  // }
   try {
     const { vendor_id } = req.params;
     const { tag, search } = req.query;
@@ -54,7 +79,18 @@ async function getVendorMenu(req, res) {
     query += ' ORDER BY item_name';
 
     const [items] = await pool.query(query, params);
-    return res.json({ success: true, items });
+
+    // FIX: Manually parse the JSON columns if they come back as strings
+    const formattedItems = items.map(item => {
+      return {
+        ...item,
+        tags: typeof item.tags === 'string' ? JSON.parse(item.tags || '[]') : item.tags,
+        variants: typeof item.variants === 'string' ? JSON.parse(item.variants || '[]') : item.variants,
+        toppings: typeof item.toppings === 'string' ? JSON.parse(item.toppings || '[]') : item.toppings
+      };
+    });
+
+    return res.json({ success: true, items: formattedItems });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ success: false, message: 'Error fetching menu' });
