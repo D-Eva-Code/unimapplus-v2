@@ -715,14 +715,18 @@ export default function StudentDashboard() {
               : (
                 <div style={{display:'grid',gridTemplateColumns:isMobile?'1fr':'repeat(auto-fill,minmax(280px,1fr))',gap:12}}>
                   {menu.map(item=>{
-                    const parseSafe = (val) => {
-                    try {
-                      return typeof val === 'string' ? JSON.parse(val) : (val || []);
-                    } catch {
-                      return [];
-                    }
-                  };
+                    const parseData = (val) => {
+                      if (!val) return [];
+                      if (Array.isArray(val)) return val; 
+                      try {
+                        return typeof val === 'string' ? JSON.parse(val) : (val || []);
+                      } catch (e) {
+                        return [];
+                      }
+                    };
 
+                    const itemToppings = parseData(item.toppings);
+                    const itemVariants = parseData(item.variants);
                    const hasCustomizations =
                     parseSafe(item.variants).length > 0 ||
                     parseSafe(item.toppings).length > 0 ||
@@ -740,42 +744,99 @@ export default function StudentDashboard() {
 
                           {/* FOODSTUFF: Variant picker */}
                           {(() => {
-                            const variants = (() => { try { return JSON.parse(item.variants||'[]'); } catch { return []; } })();
-                            if (variants.length > 0) return (
-                              <select value={itemCustomizations[item.menu_id]?.variant?.label||''}
-                                onChange={e=>{
-                                  const v = variants.find(v=>v.label===e.target.value);
-                                  setItemCustom(item.menu_id,'variant',v||null);
-                                }}
-                                style={{width:'100%',padding:'5px 8px',border:`1px solid ${TEAL}55`,borderRadius:8,fontSize:12,fontFamily:'inherit',marginBottom:4,color:DARK}}>
-                                <option value="">Select quantity...</option>
-                                {variants.map(v=><option key={v.label} value={v.label}>{v.label} — ₦{Number(v.price).toLocaleString()}</option>)}
-                              </select>
-                            );
-                            return null;
-                          })()}
+                          //   const variants = (() => { try { return JSON.parse(item.variants||'[]'); } catch { return []; } })();
+                          //   if (variants.length > 0) return (
+                          //     <select value={itemCustomizations[item.menu_id]?.variant?.label||''}
+                          //       onChange={e=>{
+                          //         const v = variants.find(v=>v.label===e.target.value);
+                          //         setItemCustom(item.menu_id,'variant',v||null);
+                          //       }}
+                          //       style={{width:'100%',padding:'5px 8px',border:`1px solid ${TEAL}55`,borderRadius:8,fontSize:12,fontFamily:'inherit',marginBottom:4,color:DARK}}>
+                          //       <option value="">Select quantity...</option>
+                          //       {variants.map(v=><option key={v.label} value={v.label}>{v.label} — ₦{Number(v.price).toLocaleString()}</option>)}
+                          //     </select>
+                          //   );
+                          //   return null;
+                          // })()}
 
-                          {/* BAKERY: Toppings */}
-                          {(() => {
-                            const toppings = (() => { try { return JSON.parse(item.toppings||'[]'); } catch { return []; } })();
-                            if (toppings.length > 0) return (
-                              <div style={{marginBottom:4}}>
-                                <div style={{fontSize:10,color:'#7a90a4',marginBottom:3}}>Toppings:</div>
-                                <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
-                                  {toppings.map(t=>{
-                                    const selected = (itemCustomizations[item.menu_id]?.toppings||[]).find(x=>x.label===t.label);
-                                    return (
-                                      <span key={t.label} onClick={()=>toggleTopping(item.menu_id,t)}
-                                        style={{fontSize:10,padding:'2px 8px',borderRadius:20,cursor:'pointer',border:`1px solid ${selected?TEAL:'#dde8e8'}`,background:selected?TEAL:'#fff',color:selected?'#fff':DARK,fontWeight:selected?700:400}}>
-                                        {t.label}{t.price>0?` +₦${t.price}`:''}
-                                      </span>
-                                    );
-                                  })}
-                                </div>
+                          // {/* BAKERY: Toppings */}
+                          // {(() => {
+                          //   const toppings = (() => { try { return JSON.parse(item.toppings||'[]'); } catch { return []; } })();
+                          //   if (toppings.length > 0) return (
+                          //     <div style={{marginBottom:4}}>
+                          //       <div style={{fontSize:10,color:'#7a90a4',marginBottom:3}}>Toppings:</div>
+                          //       <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+                          //         {toppings.map(t=>{
+                          //           const selected = (itemCustomizations[item.menu_id]?.toppings||[]).find(x=>x.label===t.label);
+                          //           return (
+                          //             <span key={t.label} onClick={()=>toggleTopping(item.menu_id,t)}
+                          //               style={{fontSize:10,padding:'2px 8px',borderRadius:20,cursor:'pointer',border:`1px solid ${selected?TEAL:'#dde8e8'}`,background:selected?TEAL:'#fff',color:selected?'#fff':DARK,fontWeight:selected?700:400}}>
+                          //               {t.label}{t.price>0?` +₦${t.price}`:''}
+                          //             </span>
+                          //           );
+                          //         })}
+                          //       </div>
+                          //     </div>
+                          //   );
+                          //   return null;
+                          // })()}
+                          const variants = Array.isArray(item.variants) 
+                            ? item.variants 
+                            : (() => { try { return JSON.parse(item.variants || '[]'); } catch { return []; } })();
+
+                          if (variants.length > 0) return (
+                            <select 
+                              value={itemCustomizations[item.menu_id]?.variant?.label || ''}
+                              onChange={e => {
+                                const v = variants.find(v => v.label === e.target.value);
+                                setItemCustom(item.menu_id, 'variant', v || null);
+                              }}
+                              style={{width:'100%', padding:'5px 8px', border:`1px solid ${TEAL}55`, borderRadius:8, fontSize:12, fontFamily:'inherit', marginBottom:4, color:DARK}}
+                            >
+                              <option value="">Select quantity/option...</option>
+                              {variants.map(v => (
+                                <option key={v.label} value={v.label}>
+                                  {v.label} — ₦{Number(v.price).toLocaleString()}
+                                </option>
+                              ))}
+                            </select>
+                          );
+                          return null;
+                        })()}
+
+                        {/* TOPPINGS (Used by Bakery and others) */}
+                        {(() => {
+                          const toppings = Array.isArray(item.toppings)
+                            ? item.toppings
+                            : (() => { try { return JSON.parse(item.toppings || '[]'); } catch { return []; } })();
+
+                          if (toppings.length > 0) return (
+                            <div style={{marginBottom:4}}>
+                              <div style={{fontSize:10, color:'#7a90a4', marginBottom:3}}>Toppings:</div>
+                              <div style={{display:'flex', flexWrap:'wrap', gap:4}}>
+                                {toppings.map(t => {
+                                  const selected = (itemCustomizations[item.menu_id]?.toppings || []).find(x => x.label === t.label);
+                                  return (
+                                    <span 
+                                      key={t.label} 
+                                      onClick={() => toggleTopping(item.menu_id, t)}
+                                      style={{
+                                        fontSize:10, padding:'2px 8px', borderRadius:20, cursor:'pointer',
+                                        border:`1px solid ${selected ? TEAL : '#dde8e8'}`,
+                                        background: selected ? TEAL : '#fff',
+                                        color: selected ? '#fff' : DARK,
+                                        fontWeight: selected ? 700 : 400
+                                      }}
+                                    >
+                                      {t.label}{t.price > 0 ? ` +₦${t.price}` : ''}
+                                    </span>
+                                  );
+                                })}
                               </div>
-                            );
-                            return null;
-                          })()}
+                            </div>
+                          );
+                          return null;
+                        })()}
 
                           {/* BAKERY: Design notes */}
                           {item.allow_design_notes==1&&(
