@@ -68,7 +68,12 @@ export default function VendorDashboard() {
   }
 
   async function saveMenuItem(e) {
-    e.preventDefault(); setSaving(true);
+    e.preventDefault();
+    if (vendor?.category === 'foodstuff' && newItem.variants.length === 0) {
+      alert('Please add at least one quantity type and price before saving.');
+      return;
+    }
+    setSaving(true);
     try {
       const fd = new FormData();
       fd.append('item_name', newItem.item_name);
@@ -83,7 +88,7 @@ export default function VendorDashboard() {
       if (newItem.image) fd.append('image', newItem.image);
       fd.append('tags', JSON.stringify(newItem.tags.split(',').map(t=>t.trim()).filter(Boolean)));
       fd.append('item_type', newItem.item_type || 'food');
-      if (newItem.variants.length > 0) fd.append('variants', JSON.stringify(newItem.variants));
+      fd.append('variants', JSON.stringify(newItem.variants || []));
       if (newItem.toppings.length > 0) fd.append('toppings', JSON.stringify(newItem.toppings));
       if (newItem.prep_time) fd.append('prep_time', newItem.prep_time);
       if (editItem) {
@@ -91,7 +96,7 @@ export default function VendorDashboard() {
       } else {
         await api.post('/vendor/menu', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       }
-      setNewItem({ item_name:'', description:'', price:'', image:null, tags:'' });
+      setNewItem({ item_name:'', description:'', price:'', prep_time:'', image:null, tags:'', item_type:'food', variants:[], toppings:[], allow_design_notes:false });
       setEditItem(null);
       setAddMenuOpen(false);
       // Reload menu
@@ -421,7 +426,7 @@ export default function VendorDashboard() {
             <form onSubmit={saveMenuItem}>
               {[
                 {label:'Item Name',key:'item_name',type:'text',required:true,placeholder:'e.g. Jollof Rice'},
-                {label:'Description (optional)',key:'description',type:'text',required:false,placeholder:'e.g. Served with stew and plantain'},
+                {label:'Description',key:'description',type:'text',required:true,placeholder:'e.g. Served with stew and plantain'},
                  ...(vendor?.category !== 'foodstuff' ? [{
                 label:'Price (₦)',
                 key:'price',

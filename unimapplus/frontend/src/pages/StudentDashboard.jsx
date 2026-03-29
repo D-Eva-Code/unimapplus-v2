@@ -494,7 +494,7 @@ export default function StudentDashboard() {
         )}
 
         {/* PAGE CONTENT */}
-        <div style={{flex:1,padding:isMobile?'16px 14px 90px':'24px 28px 40px',maxWidth:1100}}>
+        <div style={{flex:1,padding:isMobile?'16px 14px 90px':'24px 28px 40px',maxWidth:isMobile?'100vw':1100,width:'100%',boxSizing:'border-box',overflowX:'hidden'}}>
 
           {/* HOME */}
           {tab==='home' && !selectedVendor && (
@@ -729,7 +729,7 @@ export default function StudentDashboard() {
                     item.allow_design_notes == 1;
                     const qty=carts[selectedVendor?.vendor_id]?.items[item.menu_id]?.quantity||0;
                     return (
-                      <div key={item.menu_id} style={{background:'#fff',borderRadius:14,padding:14,display:'flex',gap:12,alignItems:'center',boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
+                      <div key={item.menu_id} style={{background:'#fff',borderRadius:14,padding:14,display:'flex',gap:12,alignItems:'flex-start',boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
                         {item.image_url
                           ?<img src={item.image_url} alt={item.item_name} style={{width:72,height:72,borderRadius:12,objectFit:'cover',flexShrink:0}}/>
                           :<div style={{width:72,height:72,borderRadius:12,background:'#f0fafa',display:'flex',alignItems:'center',justifyContent:'center',fontSize:30,flexShrink:0}}>🍽️</div>
