@@ -105,9 +105,15 @@ async function updateMenuItem(req, res) {
     const updates = { item_name, description, price, tags: JSON.stringify(tagsArray), is_available };
     if (prep_time !== undefined) updates.prep_time = prep_time;
     if (item_type !== undefined) updates.item_type = item_type;
-    if (variants !== undefined) updates.variants = variants;
-    if (toppings !== undefined) updates.toppings = toppings;
-    if (allow_design_notes !== undefined) updates.allow_design_notes = allow_design_notes === 'true' ? 1 : 0;
+    if (variants !== undefined) {
+    updates.variants = typeof variants === 'string' ? variants : JSON.stringify(variants);
+      }
+      if (toppings !== undefined) {
+          updates.toppings = typeof toppings === 'string' ? toppings : JSON.stringify(toppings);
+      }
+      if (allow_design_notes !== undefined) {
+          updates.allow_design_notes = allow_design_notes === 'true' || allow_design_notes === 1 ? 1 : 0;
+      }
     if (image_url) updates.image_url = image_url;
 
     const setClauses = Object.keys(updates).filter(k => updates[k] !== undefined).map(k => `${k} = ?`).join(', ');
