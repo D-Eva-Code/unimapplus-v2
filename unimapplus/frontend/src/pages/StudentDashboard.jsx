@@ -827,12 +827,12 @@ export default function StudentDashboard() {
                         })()}
 
                           {/* BAKERY: Design notes */}
-                          (item.allow_design_notes) == 1 || (item.allow_design_notes) == 0 &&(
+                          {(item.allow_design_notes) == 1 || (item.allow_design_notes) == 0 &&(
                             <input type="text" placeholder="Describe your cake design (optional)..."
                               value={itemCustomizations[item.menu_id]?.designNote||''}
                               onChange={e=>setItemCustom(item.menu_id,'designNote',e.target.value)}
                               style={{width:'100%',padding:'5px 8px',border:'1px solid #e8ecf0',borderRadius:8,fontSize:11,fontFamily:'inherit',marginBottom:4,boxSizing:'border-box'}}/>
-                          )
+                          )}
 
                           <div style={{fontWeight:800,fontSize:15,color:TEAL}}>
                             ₦{Number(
