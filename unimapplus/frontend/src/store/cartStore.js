@@ -12,7 +12,13 @@ const useCartStore = create(
       addItem(item, vendorId, vendorName, portions) {
         const { carts } = get();
         const vc = carts[vendorId] || { vendorName: vendorName || 'Eatery', items: {} };
-        const existing = vc.items[item.menu_id];
+        
+        // Create a unique ID so "Cupcake + Oreo" is different from "Cupcake + Sprinkles"
+        const customKey = item.custom ? JSON.stringify(item.custom) : 'none';
+        const uniqueKey = `${item.menu_id}_${customKey}`;
+        
+        const existing = vc.items[uniqueKey];
+        
         set({
           carts: {
             ...carts,
@@ -21,9 +27,10 @@ const useCartStore = create(
               vendorName: vendorName || vc.vendorName,
               items: {
                 ...vc.items,
-                [item.menu_id]: {
+                [uniqueKey]: {
                   item,
                   quantity: (existing?.quantity || 0) + 1,
+                  // Only multiply by portions for non-bakery items if needed
                   portions: portions ?? existing?.portions ?? 1,
                 }
               }
@@ -97,9 +104,17 @@ const useCartStore = create(
       getVendorTotal(vendorId) {
         const vc = get().carts[vendorId];
         if (!vc) return 0;
-        return Object.values(vc.items).reduce(
-          (s, i) => s + i.item.price * i.quantity * (i.portions || 1), 0
+        const total = Object.values(vc.items).reduce(
+          (sum, i) => {
+            // Ensure we are working with Numbers
+            const price = Number(i.item.price);
+            const qty = Number(i.quantity);
+            const pts = Number(i.portions || 1);
+            return sum + (price * qty * pts);
+          }, 0
         );
+        // Round to nearest whole number
+        return Math.round(total);
       },
 
       // All vendors with items
