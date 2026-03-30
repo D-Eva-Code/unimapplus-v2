@@ -15,43 +15,43 @@ const useCartStore = create(
         
         // Create a unique ID so "Cupcake + Oreo" is different from "Cupcake + Sprinkles"
         const customKey = item.custom ? JSON.stringify(item.custom) : 'none';
-        const uniqueKey = `${item.menu_id}_${customKey}`;
-        
-        const existing = vc.items[uniqueKey];
-        
-        set({
-          carts: {
-            ...carts,
-            [vendorId]: {
-              ...vc,
-              vendorName: vendorName || vc.vendorName,
-              items: {
-                ...vc.items,
-                [uniqueKey]: {
-                  item,
-                  quantity: (existing?.quantity || 0) + 1,
-                  // Only multiply by portions for non-bakery items if needed
-                  portions: portions ?? existing?.portions ?? 1,
+            const uniqueKey = `${item.menu_id}_${customKey}`;
+            const existing = vc.items[uniqueKey];
+
+            set({
+              carts: {
+                ...carts,
+                [vendorId]: {
+                  ...vc,
+                  vendorName: vendorName || vc.vendorName,
+                  items: {
+                    ...vc.items,
+                    [uniqueKey]: {
+                      item,
+                      quantity: (existing?.quantity || 0) + 1,
+                      portions: portions ?? existing?.portions ?? 1,
+                    }
+                  }
                 }
               }
-            }
-          }
-        });
+            });
       },
 
-      removeItem(menu_id, vendorId) {
+      removeItem(uniqueKey, vendorId) {
         const { carts } = get();
         const vc = carts[vendorId];
         if (!vc) return;
-        const existing = vc.items[menu_id];
+        const existing = vc.items[uniqueKey];
         if (!existing) return;
+
         let newItems;
         if (existing.quantity <= 1) {
-          const { [menu_id]: _, ...rest } = vc.items;
+          const { [uniqueKey]: _, ...rest } = vc.items;
           newItems = rest;
         } else {
-          newItems = { ...vc.items, [menu_id]: { ...existing, quantity: existing.quantity - 1 } };
+          newItems = { ...vc.items, [uniqueKey]: { ...existing, quantity: existing.quantity - 1 } };
         }
+
         if (Object.keys(newItems).length === 0) {
           const { [vendorId]: _, ...rest } = carts;
           set({ carts: rest });
