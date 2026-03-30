@@ -200,15 +200,38 @@ export default function StudentDashboard() {
     setMenuLoading(false);
   }
   function addToCart(item, portions) {
-    const custom = itemCustomizations[item.menu_id] || {};
-    // Calculate price with variant and toppings
-    const variantPrice = custom.variant ? custom.variant.price : item.price;
-    const toppingsTotal = (custom.toppings || []).reduce((s,t) => s + (t.price||0), 0);
-    const finalPrice = variantPrice + toppingsTotal;
-    const itemWithCustom = { ...item, price: finalPrice, custom };
-    addItem(itemWithCustom, selectedVendor?.vendor_id, selectedVendor?.vendor_name, portions);
-    showToast(`Added: ${item.item_name}${portions>1?' ('+portions+' portions)':''}${custom.variant?' · '+custom.variant.label:''}`);
-  }
+  const custom = itemCustomizations[item.menu_id] || {};
+
+  const variantPrice = custom.variant 
+    ? Number(custom.variant.price) 
+    : Number(item.price);
+
+  const toppingsTotal = (custom.toppings || []).reduce(
+    (s, t) => s + Number(t.price || 0),
+    0
+  );
+
+  const finalPrice = variantPrice + toppingsTotal;
+
+  const itemWithCustom = { 
+    ...item, 
+    price: Math.round(finalPrice * 100) / 100, 
+    custom 
+  };
+
+  addItem(
+    itemWithCustom, 
+    selectedVendor?.vendor_id, 
+    selectedVendor?.vendor_name, 
+    portions
+  );
+
+  showToast(
+    `Added: ${item.item_name}${
+      portions > 1 ? ' (' + portions + ' portions)' : ''
+    }${custom.variant ? ' · ' + custom.variant.label : ''}`
+  );
+}
 
   function setItemCustom(menuId, field, value) {
     setItemCustomizations(prev => ({
