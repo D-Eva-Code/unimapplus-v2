@@ -891,7 +891,7 @@ export default function StudentDashboard() {
                             <span style={{fontSize:10,color:'#856404',background:'#fff3cd',padding:'4px 8px',borderRadius:8,fontWeight:600}}>Closed</span>
                           ) : qty>0?(
                             <div style={{display:'flex',alignItems:'center',gap:6}}>
-                              <button onClick={()=>removeItem(`${item.menu_id}_${JSON.stringify(itemCustomizations[item.menu_id] || {})}`, selectedVendor?.vendor_id)} style={{width:28,height:28,borderRadius:7,border:'none',background:'#f0fafa',cursor:'pointer',fontSize:16,fontWeight:700,color:TEAL}}>-</button>
+                              <button onClick={()=>removeItem(item.menu_id,selectedVendor?.vendor_id)} style={{width:28,height:28,borderRadius:7,border:'none',background:'#f0fafa',cursor:'pointer',fontSize:16,fontWeight:700,color:TEAL}}>-</button>
                               <span style={{fontWeight:700,minWidth:16,textAlign:'center',fontSize:14}}>{qty}</span>
                               <button onClick={()=>addToCart(item)} style={{width:28,height:28,borderRadius:7,border:'none',background:TEAL,cursor:'pointer',fontSize:16,fontWeight:700,color:'#fff'}}>+</button>
                             </div>
