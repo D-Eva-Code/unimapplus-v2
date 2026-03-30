@@ -793,7 +793,7 @@ export default function StudentDashboard() {
                               }}
                               style={{width:'100%', padding:'5px 8px', border:`1px solid ${TEAL}55`, borderRadius:8, fontSize:12, fontFamily:'inherit', marginBottom:4, color:DARK}}
                             >
-                              <option value="">Select quantity/option...</option>
+                              <option value="">Select quantity...</option>
                               {variants.map(v => (
                                 <option key={v.label} value={v.label}>
                                   {v.label} — ₦{Number(v.price).toLocaleString()}
