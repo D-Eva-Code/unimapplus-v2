@@ -874,8 +874,13 @@ export default function StudentDashboard() {
                               (() => {
                                 const variants = (() => { try { return JSON.parse(item.variants||'[]'); } catch { return []; } })();
                                 const custom = itemCustomizations[item.menu_id]||{};
-                                const base = variants.length>0 ? (custom.variant?.price||item.price) : item.price;
-                                const extras = (custom.toppings||[]).reduce((s,t)=>s+(t.price||0),0);
+                                const base = variants.length > 0 
+                                  ? Number(custom.variant?.price || item.price)
+                                  : Number(item.price);
+                                const extras = (custom.toppings || []).reduce(
+                                  (s, t) => s + Number(t.price || 0),
+                                  0
+                                );
                                 return base + extras;
                               })()
                             ).toLocaleString()}

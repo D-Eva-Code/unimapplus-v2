@@ -113,7 +113,7 @@ const useCartStore = create(
             return sum + (price * qty * pts);
           }, 0
         );
-        // Round to nearest whole number
+        // Round to nearest whole number 
         return Math.round(total);
       },
 
