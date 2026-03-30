@@ -728,8 +728,8 @@ export default function StudentDashboard() {
                     const itemToppings = parseData(item.toppings);
                     const itemVariants = parseData(item.variants);
                    const hasCustomizations =
-                    parseSafe(item.variants).length > 0 ||
-                    parseSafe(item.toppings).length > 0 ||
+                    itemVariants.length > 0 ||
+                    itemToppings.length > 0 ||
                     item.allow_design_notes == 1;
                     const qty=carts[selectedVendor?.vendor_id]?.items[item.menu_id]?.quantity||0;
                     return (
