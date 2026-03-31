@@ -281,8 +281,29 @@ export default function StudentDashboard() {
     });
   }
 
+  async function handleFinalPayment(order) {
+  setCheckoutLoading(true);
+  try {
+    // This calls existing Paystack initialization route
+    const { data } = await api.post('/orders/initialize-payment', {
+      order_id: order.order_id
+    });
+    
+    if (data.payment_url) {
+      window.location.href = data.payment_url;
+    }
+  } catch (err) {
+    alert("Failed to initialize payment. Please try again.");
+  } finally {
+    setCheckoutLoading(false);
+  }
+}
+
   async function handleCheckout(vendorId) {
   const cartArr = getCartArray(vendorId);
+
+  const currentVendor = vendors.find(v => v.vendor_id === vendorId);
+  const supportsCustomDesign = currentVendor?.allow_design_note;
 
   const bakeryItems = cartArr.filter(item => (item.design_note || item.designNote || '').trim() !== '');
   const normalItems = cartArr.filter(item => !(item.design_note || item.designNote || '').trim());
@@ -303,7 +324,7 @@ export default function StudentDashboard() {
 
   try {
     //If there are bakery items, request review and STOP
-    if (bakeryItems.length > 0) {
+    if (supportsCustomDesign && bakeryItems.length > 0) {
       await api.post('/orders/request-review', {
         vendor_id: vendorId,
         
@@ -487,8 +508,8 @@ export default function StudentDashboard() {
     if (userLatLng.current) drawRoute(leafletMap.current, userLatLng.current, [lat, lng], loc.name);
   }
 
-  const statusLabels = {pending:'Pending',paid:'Paid',accepted:'Accepted',preparing:'Preparing',ready:'Ready for pickup',rider_assigned:'Rider assigned',picked_up:'Picked up',on_the_way:'On the way!',delivered:'Delivered ✓',cancelled:'Cancelled'};
-  const statusColors = {pending:'#f59e0b',paid:'#3b82f6',accepted:'#8b5cf6',preparing:'#f97316',rider_assigned:'#06b6d4',picked_up:'#10b981',on_the_way:TEAL,delivered:'#22c55e',cancelled:'#ef4444'};
+  const statusLabels = {pending:'Pending',pending_review: 'Reviewing Design',paid:'Paid',accepted:'Accepted',preparing:'Preparing',ready:'Ready for pickup',rider_assigned:'Rider assigned',picked_up:'Picked up',on_the_way:'On the way!',delivered:'Delivered ✓',cancelled:'Cancelled'};
+  const statusColors = {pending:'#f59e0b',pending_review: '#f59e0b',paid:'#3b82f6',accepted:'#8b5cf6',preparing:'#f97316',rider_assigned:'#06b6d4',picked_up:'#10b981',on_the_way:TEAL,delivered:'#22c55e',cancelled:'#ef4444'};
   const slide = SLIDES[heroIdx];
 
   const NAV = [
@@ -507,6 +528,8 @@ export default function StudentDashboard() {
       </button>
     );
   }
+
+  
 
   return (
     <div style={{display:'flex',minHeight:'100vh',fontFamily:"'Plus Jakarta Sans',sans-serif",background:BG,position:'relative'}}>
@@ -1034,6 +1057,7 @@ export default function StudentDashboard() {
                   <div style={{marginBottom:16}}>
                     {(() => {
                       const steps = [
+                        {key:'pending_review', label:'Reviewing',  icon:'📋'},
                         {key:'paid',           label:'Paid',        icon:'💳'},
                         {key:'accepted',       label:'Accepted',    icon:'✅'},
                         {key:'preparing',      label:'Preparing',   icon:'👨‍🍳'},
@@ -1064,6 +1088,27 @@ export default function StudentDashboard() {
                       );
                     })()}
                   </div>
+
+                  {trackedOrder.status === 'awaiting_payment' && (
+                    <button
+                      onClick={() => handleFinalPayment(trackedOrder)}
+                      disabled={checkoutLoading}
+                      style={{
+                        width: '100%',
+                        padding: '14px',
+                        background: TEAL,
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 12,
+                        fontWeight: 800,
+                        fontSize: 14,
+                        cursor: 'pointer',
+                        boxShadow: `0 4px 12px ${TEAL}44`
+                      }}
+                    >
+                      {checkoutLoading ? 'Processing...' : `Pay ₦${Number(trackedOrder.total_amount).toLocaleString()} Now`}
+                    </button>
+                  )}
 
                   {/* Rider info if assigned */}
                   {trackedOrder.driver_name&&(
