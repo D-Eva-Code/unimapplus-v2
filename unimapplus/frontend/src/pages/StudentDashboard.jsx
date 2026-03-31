@@ -51,7 +51,7 @@ const getVendorColor = (name = "") => {
 export default function StudentDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { carts, addItem, removeItem, clearVendorCart, setPortions, getCartArray, getVendorTotal, getVendorList, getTotalCount } = useCartStore();
+  const { carts, addItem, removeItem, clearVendorCart, setPortions, getCartArray, getVendorTotal, getVendorList, getTotalCount, setDesignNote } = useCartStore();
   const [checkoutVendorId, setCheckoutVendorId] = useState(null);
   const vendorList = getVendorList(); // recomputes on every render when carts changes
 
@@ -223,7 +223,8 @@ export default function StudentDashboard() {
     itemWithCustom, 
     selectedVendor?.vendor_id, 
     selectedVendor?.vendor_name, 
-    portions
+    portions,
+    itemCustomizations[item.menu_id]?.designNote
   );
 
   showToast(
@@ -282,19 +283,54 @@ export default function StudentDashboard() {
 
   async function handleCheckout(vendorId) {
     const cartArr = getCartArray(vendorId);
+    const bakeryItems = cartArr.filter(item => item.design_note);
+    const normalItems = cartArr.filter(item => !item.design_note);
     if (!cartArr.length) return;
     if (!deliveryAddr.trim()) { setConfirmModal({ title: 'Delivery Location Required', message: 'Please enter your hostel, hall, or location before paying.', onConfirm: null }); return; }
     setDeliveryModal(null);
     setCartOpen(false);
     setCheckoutLoading(true);
     try {
-      const {data} = await api.post('/checkout',{
-        vendor_id: vendorId,
-        cart: cartArr.map(i=>({menu_id:i.menu_id,quantity:i.quantity,portions:i.portions||1})),
-        delivery_address: deliveryAddr.trim(),
-      });
+      // const {data} = await api.post('/checkout',{
+      //   vendor_id: vendorId,
+      //   cart: cartArr.map(i=>({menu_id:i.menu_id,quantity:i.quantity,portions:i.portions||1})),
+      //   delivery_address: deliveryAddr.trim(),
+      // });
+      // clearVendorCart(vendorId);
+      // window.location.href = data.payment_url;
+      // 1. Send bakery items for vendor review
+      if (bakeryItems.length > 0) {
+        await api.post('/orders/request-review', {
+          vendor_id: vendorId,
+          items: bakeryItems,
+          delivery_address: deliveryAddr.trim()
+        });
+      }
+
+      // Checkout normal items immediately
+      if (normalItems.length > 0) {
+        const { data } = await api.post('/checkout', {
+          vendor_id: vendorId,
+          cart: normalItems.map(i => ({
+            menu_id: i.menu_id,
+            quantity: i.quantity,
+            portions: i.portions || 1
+          })),
+          delivery_address: deliveryAddr.trim(),
+        });
+
+        window.location.href = data.payment_url;
+      }
+
+      //Clear cart AFTER both actions
       clearVendorCart(vendorId);
-      window.location.href = data.payment_url;
+
+      // Feedback
+      showToast(
+        bakeryItems.length > 0
+          ? 'Some items sent for vendor approval'
+          : 'Redirecting to payment...'
+      );
     } catch(err) { setConfirmModal({ title: 'Checkout Failed', message: err.response?.data?.message || 'Checkout failed. Please try again.', onConfirm: null }); }
     setCheckoutLoading(false);
   }
@@ -830,7 +866,9 @@ export default function StudentDashboard() {
                           {(item.allow_design_notes) == 1 &&(
                             <input type="text" placeholder="Describe your cake design (optional)..."
                               value={itemCustomizations[item.menu_id]?.designNote||''}
-                              onChange={e=>setItemCustom(item.menu_id,'designNote',e.target.value)}
+                              onChange={e=>{setItemCustom(item.menu_id,'designNote',e.target.value);
+                                setDesignNote(item.menu_id, selectedVendor?.vendor_id, e.target.value);
+                              }}
                               style={{width:'100%',padding:'5px 8px',border:'1px solid #e8ecf0',borderRadius:8,fontSize:11,fontFamily:'inherit',marginBottom:4,boxSizing:'border-box'}}/>
                           )}
 

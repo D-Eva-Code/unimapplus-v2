@@ -9,7 +9,7 @@ const useCartStore = create(
     (set, get) => ({
       carts: {},
 
-      addItem(item, vendorId, vendorName, portions) {
+      addItem(item, vendorId, vendorName, portions, designNote) {
         const { carts } = get();
         const vc = carts[vendorId] || { vendorName: vendorName || 'Eatery', items: {} };
         const existing = vc.items[item.menu_id];
@@ -25,6 +25,29 @@ const useCartStore = create(
                   item,
                   quantity: (existing?.quantity || 0) + 1,
                   portions: portions ?? existing?.portions ?? 1,
+                  designNote: designNote ?? existing?.designNote ?? '',
+                }
+              }
+            }
+          }
+        });
+      },
+
+      setDesignNote(menu_id, vendorId, note) {
+        const { carts } = get();
+        const vc = carts[vendorId];
+        if (!vc || !vc.items[menu_id]) return;
+
+        set({
+          carts: {
+            ...carts,
+            [vendorId]: {
+              ...vc,
+              items: {
+                ...vc.items,
+                [menu_id]: {
+                  ...vc.items[menu_id],
+                  designNote: note
                 }
               }
             }
@@ -84,12 +107,13 @@ const useCartStore = create(
       getCartArray(vendorId) {
         const vc = get().carts[vendorId];
         if (!vc) return [];
-        return Object.values(vc.items).map(({ item, quantity, portions }) => ({
+        return Object.values(vc.items).map(({ item, quantity, portions, designNote }) => ({
           menu_id: item.menu_id,
           item_name: item.item_name,
           price: item.price,
           quantity,
           portions: portions || 1,
+          design_note: designNote || '',
         }));
       },
 
@@ -111,12 +135,13 @@ const useCartStore = create(
           total: Object.values(vc.items).reduce(
             (s, i) => s + i.item.price * i.quantity * (i.portions || 1), 0
           ),
-          items: Object.values(vc.items).map(({ item, quantity, portions }) => ({
+          items: Object.values(vc.items).map(({ item, quantity, portions, designNote }) => ({
             menu_id: item.menu_id,
             item_name: item.item_name,
             price: item.price,
             quantity,
             portions: portions || 1,
+            design_note: designNote || '',
           }))
         }));
       },

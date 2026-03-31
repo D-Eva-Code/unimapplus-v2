@@ -91,6 +91,7 @@ export default function VendorDashboard() {
       fd.append('variants', JSON.stringify(newItem.variants || []));
       if (newItem.toppings.length > 0) fd.append('toppings', JSON.stringify(newItem.toppings));
       if (newItem.prep_time) fd.append('prep_time', newItem.prep_time);
+      fd.append('allow_design_notes', newItem.allow_design_notes ? 1 : 0);
       if (editItem) {
         await api.put(`/vendor/menu/${editItem.menu_id}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       } else {

@@ -409,4 +409,119 @@ async function deleteOrder(req, res) {
   }
 }
 
-module.exports = { checkout, verifyPayment, paystackWebhook, confirmDelivery, getStudentOrders, getOrder, autoAssignRider, deleteOrder };
+
+// Student sends bakery order for vendor review (NO PAYMENT YET)
+async function requestReview(req, res) {
+  try {
+    const studentId = req.user.id;
+    const { vendor_id, items, delivery_address } = req.body;
+
+    if (!items || items.length === 0) {
+      return res.status(400).json({ success: false, message: 'No items provided' });
+    }
+
+    // Create order (NO payment yet)
+    const orderId = uuidv4();
+
+    await pool.query(
+      `INSERT INTO orders (order_id, student_id, vendor_id, delivery_address, status, payment_status)
+       VALUES (?, ?, ?, ?, 'pending_review', 'pending')`,
+      [orderId, studentId, vendor_id, delivery_address]
+    );
+
+    // Save items WITH design_note
+    for (const item of items) {
+      await pool.query(
+        `INSERT INTO order_items (order_id, menu_id, quantity, price, design_note)
+         VALUES (?, ?, ?, ?, ?)`,
+        [
+          orderId,
+          item.menu_id,
+          item.quantity,
+          item.price || 0,
+          item.design_note || ''
+        ]
+      );
+    }
+
+    // Notify vendor (socket)
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`vendor_${vendor_id}`).emit('new_review_order', { order_id: orderId });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Order sent for vendor review',
+      order_id: orderId
+    });
+
+  } catch (err) {
+    console.error('Request review error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to request review' });
+  }
+}
+
+// Vendor updates price after seeing design note
+async function updatePrice(req, res) {
+  try {
+    const vendorId = req.user.id;
+    const { order_id, items } = req.body;
+
+    if (!items || items.length === 0) {
+      return res.status(400).json({ success: false, message: 'No items provided' });
+    }
+
+    // Verify order belongs to vendor
+    const [order] = await pool.query(
+      'SELECT * FROM orders WHERE order_id = ? AND vendor_id = ?',
+      [order_id, vendorId]
+    );
+
+    if (!order[0]) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    let newTotal = 0;
+
+    // Update each item price
+    for (const item of items) {
+      await pool.query(
+        `UPDATE order_items 
+         SET price = ?
+         WHERE order_id = ? AND menu_id = ?`,
+        [item.price, order_id, item.menu_id]
+      );
+
+      newTotal += item.price * item.quantity;
+    }
+
+    // Update order total + status
+    await pool.query(
+      `UPDATE orders 
+       SET total_amount = ?, status = 'awaiting_payment'
+       WHERE order_id = ?`,
+      [newTotal, order_id]
+    );
+
+    // Notify student
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`student_${order[0].student_id}`).emit('price_updated', {
+        order_id,
+        total: newTotal
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Price updated, waiting for student payment'
+    });
+
+  } catch (err) {
+    console.error('Update price error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to update price' });
+  }
+}
+
+module.exports = { checkout, verifyPayment, paystackWebhook, confirmDelivery, getStudentOrders, getOrder, autoAssignRider, deleteOrder, requestReview, updatePrice };
