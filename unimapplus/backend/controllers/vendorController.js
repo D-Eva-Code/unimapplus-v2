@@ -110,10 +110,10 @@ async function addMenuItem(req, res) {
     }
 
     const tagsArray = tags ? (Array.isArray(tags) ? tags : JSON.parse(tags)) : [];
-
+    const allowDesignNotes = Number(req.body.allow_design_notes) || 0;
     const [result] = await pool.query(
       'INSERT INTO menu_items (vendor_id, item_name, description, price, image_url, tags, prep_time, item_type, variants, toppings, allow_design_notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [vendorId, item_name, description || '', price, image_url, JSON.stringify(tagsArray), prep_time || 15, item_type || 'food', variants || '[]', toppings || '[]', allow_design_notes === 'true' ? 1 : 0]
+      [vendorId, item_name, description || '', price, image_url, JSON.stringify(tagsArray), prep_time || 15, item_type || 'food', variants || '[]', toppings || '[]', allowDesignNotes]
     );
 
     const [item] = await pool.query('SELECT * FROM menu_items WHERE menu_id = ?', [result.insertId]);
@@ -148,7 +148,7 @@ async function updateMenuItem(req, res) {
           updates.toppings = typeof toppings === 'string' ? toppings : JSON.stringify(toppings);
       }
       if (allow_design_notes !== undefined) {
-          updates.allow_design_notes = allow_design_notes === 'true' || allow_design_notes === 1 ? 1 : 0;
+          updates.allow_design_notes = Number(allow_design_notes) || 0;
       }
     if (image_url) updates.image_url = image_url;
 
