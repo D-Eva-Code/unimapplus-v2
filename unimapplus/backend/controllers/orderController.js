@@ -422,13 +422,7 @@ async function requestReview(req, res) {
 
     // Create order (NO payment yet)
     const orderId = uuidv4();
-    console.log('Creating order with:', {
-      orderId,
-      studentId,
-      vendor_id,
-      delivery_address
-    });
-
+  
     try{
     await pool.query(
       `INSERT INTO orders (order_id, student_id, vendor_id, delivery_address, status, payment_status)
@@ -471,9 +465,11 @@ async function requestReview(req, res) {
     });
 
   } catch (err) {
-    console.error('Request review error:', err);
-    return res.status(500).json({ success: false, message: 'Failed to request review' });
-  }
+  console.error('Request review error:', err);
+  if (err.sqlMessage) console.error('SQL Message:', err.sqlMessage);
+  if (err.code) console.error('Error code:', err.code);
+  return res.status(500).json({ success: false, message: 'Failed to request review' });
+}
 }
 
 // Vendor updates price after seeing design note
