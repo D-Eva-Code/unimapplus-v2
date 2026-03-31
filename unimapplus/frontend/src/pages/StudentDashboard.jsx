@@ -284,8 +284,8 @@ export default function StudentDashboard() {
   async function handleCheckout(vendorId) {
   const cartArr = getCartArray(vendorId);
 
-  const bakeryItems = cartArr.filter(item => item.designNote && item.designNote.trim() !== "");
-  const normalItems = cartArr.filter(item => !item.designNote || item.designNote.trim() === "");
+  const bakeryItems = cartArr.filter(item => (item.design_note || item.designNote || '').trim() !== '');
+  const normalItems = cartArr.filter(item => !(item.design_note || item.designNote || '').trim());
 
   if (!cartArr.length) return;
   if (!deliveryAddr.trim()) { 
@@ -311,7 +311,7 @@ export default function StudentDashboard() {
           menu_id: i.menu_id,
           quantity: i.quantity,
           price: i.price,
-          design_note: i.designNote 
+          design_note: i.design_note || i.designNote || '',
         })),
         delivery_address: deliveryAddr.trim()
       });
@@ -334,7 +334,9 @@ export default function StudentDashboard() {
         cart: normalItems.map(i => ({
           menu_id: i.menu_id,
           quantity: i.quantity,
-          portions: i.portions || 1
+          portions: i.portions || 1,
+          custom_price: i.price, // price already includes variants/toppings
+          design_note: i.design_note || '',
         })),
         delivery_address: deliveryAddr.trim(),
       });

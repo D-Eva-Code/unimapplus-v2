@@ -41,8 +41,12 @@ async function checkout(req, res) {
       if (menuRows.length === 0) return res.status(400).json({ success: false, message: `Item ${cartItem.menu_id} not available` });
       const item = menuRows[0];
       const portions = cartItem.portions || 1;
-      subtotal += item.price * cartItem.quantity * portions;
-      verifiedItems.push({ ...item, quantity: cartItem.quantity, portions });
+      // Use custom_price if provided (includes toppings/variants), else use DB price
+      const unitPrice = cartItem.custom_price && Number(cartItem.custom_price) > 0
+        ? Number(cartItem.custom_price)
+        : item.price;
+      subtotal += unitPrice * cartItem.quantity * portions;
+      verifiedItems.push({ ...item, price: unitPrice, quantity: cartItem.quantity, portions, design_note: cartItem.design_note || '' });
     }
 
     // Fee breakdown:
@@ -134,7 +138,9 @@ async function checkout(req, res) {
 
     // Save order items (with portions note in item_name)
     for (const item of verifiedItems) {
-      const itemName = item.portions > 1 ? `${item.item_name} (${item.portions} portions)` : item.item_name;
+      const portionLabel = item.portions > 1 ? ` (${item.portions} portions)` : '';
+      const noteLabel = item.design_note ? ` [Note: ${item.design_note}]` : '';
+      const itemName = item.item_name + portionLabel + noteLabel;
       await pool.query(
         'INSERT INTO order_items (order_id, menu_id, item_name, quantity, price) VALUES (?, ?, ?, ?, ?)',
         [orderId, item.menu_id, itemName, item.quantity, item.price * item.portions]
