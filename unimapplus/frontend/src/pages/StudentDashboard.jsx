@@ -282,24 +282,28 @@ export default function StudentDashboard() {
   }
 
   async function handleCheckout(vendorId) {
-    const cartArr = getCartArray(vendorId);
-    const bakeryItems = cartArr.filter(item => item.designNote);
-    const normalItems = cartArr.filter(item => !item.designNote);
-    if (!cartArr.length) return;
-    if (!deliveryAddr.trim()) { setConfirmModal({ title: 'Delivery Location Required', message: 'Please enter your hostel, hall, or location before paying.', onConfirm: null }); return; }
-    setDeliveryModal(null);
-    setCartOpen(false);
-    setCheckoutLoading(true);
-    try {
-      // const {data} = await api.post('/checkout',{
-      //   vendor_id: vendorId,
-      //   cart: cartArr.map(i=>({menu_id:i.menu_id,quantity:i.quantity,portions:i.portions||1})),
-      //   delivery_address: deliveryAddr.trim(),
-      // });
-      // clearVendorCart(vendorId);
-      // window.location.href = data.payment_url;
-      //Send bakery items for vendor review
-      if (bakeryItems.length > 0) {
+  const cartArr = getCartArray(vendorId);
+
+  const bakeryItems = cartArr.filter(item => item.designNote && item.designNote.trim() !== "");
+  const normalItems = cartArr.filter(item => !item.designNote || item.designNote.trim() === "");
+
+  if (!cartArr.length) return;
+  if (!deliveryAddr.trim()) { 
+    setConfirmModal({ 
+      title: 'Delivery Location Required', 
+      message: 'Please enter your location before paying.', 
+      onConfirm: null 
+    }); 
+    return; 
+  }
+
+  setDeliveryModal(null);
+  setCartOpen(false);
+  setCheckoutLoading(true);
+
+  try {
+    //If there are bakery items, request review and STOP
+    if (bakeryItems.length > 0) {
       await api.post('/orders/request-review', {
         vendor_id: vendorId,
         
@@ -307,38 +311,47 @@ export default function StudentDashboard() {
           menu_id: i.menu_id,
           quantity: i.quantity,
           price: i.price,
-          design_note: i.designNote // Send it as 'design_note' to the API
+          design_note: i.designNote 
         })),
         delivery_address: deliveryAddr.trim()
       });
-    }
-      // Checkout normal items immediately
-      if (normalItems.length > 0) {
-        const { data } = await api.post('/checkout', {
-          vendor_id: vendorId,
-          cart: normalItems.map(i => ({
-            menu_id: i.menu_id,
-            quantity: i.quantity,
-            portions: i.portions || 1
-          })),
-          delivery_address: deliveryAddr.trim(),
-        });
 
-        window.location.href = data.payment_url;
-      }
-
-      //Clear cart AFTER both actions
       clearVendorCart(vendorId);
+      setConfirmModal({
+        title: 'Review Requested',
+        message: 'Your custom order has been sent to the vendor for review. You will be notified when you can proceed to payment.',
+        onConfirm: () => navigate('/orders') // Optional: redirect to orders tab
+      });
+      
+      setCheckoutLoading(false);
+      return; // so it doesn't run normal checkout below
+    }
 
-      // Feedback
-      showToast(
-        bakeryItems.length > 0
-          ? 'Some items sent for vendor approval'
-          : 'Redirecting to payment...'
-      );
-    } catch(err) { setConfirmModal({ title: 'Checkout Failed', message: err.response?.data?.message || 'Checkout failed. Please try again.', onConfirm: null }); }
-    setCheckoutLoading(false);
+    // if there are NO bakery items
+    if (normalItems.length > 0) {
+      const { data } = await api.post('/checkout', {
+        vendor_id: vendorId,
+        cart: normalItems.map(i => ({
+          menu_id: i.menu_id,
+          quantity: i.quantity,
+          portions: i.portions || 1
+        })),
+        delivery_address: deliveryAddr.trim(),
+      });
+
+      clearVendorCart(vendorId);
+      window.location.href = data.payment_url;
+    }
+
+  } catch (err) { 
+    setConfirmModal({ 
+      title: 'Checkout Failed', 
+      message: err.response?.data?.message || 'Something went wrong.', 
+      onConfirm: null 
+    }); 
   }
+  setCheckoutLoading(false);
+}
 
   const userLatLng = useRef(null);
   const nearbyMarkers = useRef({});
