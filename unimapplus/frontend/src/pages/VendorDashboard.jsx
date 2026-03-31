@@ -359,12 +359,25 @@ export default function VendorDashboard() {
                         {isReview && (
                           <button 
                             onClick={() => {
-                              const price = prompt("Enter total price for this custom order (₦):");
-                              if (price) approveCustomOrder(order.order_id, price);
+                              const currentPrice = order.total_amount || 0;
+                              const price = prompt(
+                                `Review Price (₦):\n\n- Leave empty to keep student's price (₦${currentPrice.toLocaleString()})\n- Or enter a new price:`, 
+                                currentPrice
+                              );
+                              
+                              // If user clicks 'Cancel', do nothing.
+                              if (price === null) return;
+
+                              // Use the new price if entered, otherwise use the original
+                              const finalPrice = price.trim() === "" ? currentPrice : price;
+                              
+                              if (confirm(`Approve this order for ₦${Number(finalPrice).toLocaleString()}?`)) {
+                                approveCustomOrder(order.order_id, finalPrice);
+                              }
                             }}
                             style={{ flex: 1, padding: '10px', background: TEAL, color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
                           >
-                            💰 Set Price & Approve
+                            💰 Review & Approve
                           </button>
                         )}
 
