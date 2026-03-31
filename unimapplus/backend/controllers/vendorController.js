@@ -192,6 +192,7 @@ async function getVendorDashboard(req, res) {
   try {
     const vendorId = req.user.id;
 
+    // Get vendor stats
     const [stats] = await pool.query(`
       SELECT 
         COUNT(*) as total_orders,
@@ -200,9 +201,11 @@ async function getVendorDashboard(req, res) {
         SUM(CASE WHEN status = 'delivered' THEN vendor_amount ELSE 0 END) as total_earnings,
         SUM(CASE WHEN status = 'delivered' AND DATE(created_at) = CURDATE() THEN vendor_amount ELSE 0 END) as today_earnings,
         SUM(CASE WHEN status IN ('paid','accepted','preparing','ready','rider_assigned','picked_up','on_the_way') THEN 1 ELSE 0 END) as pending_orders
-      FROM orders WHERE vendor_id = ?
+      FROM orders 
+      WHERE vendor_id = ?
     `, [vendorId]);
 
+    // Get active/pending orders
     const [activeOrders] = await pool.query(`
       SELECT o.*, s.fullname as student_name, s.phone as student_phone,
              d.fullname as driver_name, d.phone as driver_phone
@@ -213,13 +216,23 @@ async function getVendorDashboard(req, res) {
       ORDER BY o.created_at DESC
     `, [vendorId]);
 
-    // Attach items to each order
+    // Get vendor info
+    const [vendor] = await pool.query('SELECT * FROM vendors_tb WHERE vendor_id = ?', [vendorId]);
+    const vendorCategory = vendor[0].category;
+
+    // Attach items to each order and handle design notes
     for (const order of activeOrders) {
       const [items] = await pool.query('SELECT * FROM order_items WHERE order_id = ?', [order.order_id]);
-      order.items = items;
-    }
 
-    const [vendor] = await pool.query('SELECT * FROM vendors_tb WHERE vendor_id = ?', [vendorId]);
+      order.items = items.map(item => {
+        // Remove designNote for non-bakery vendors
+        if (vendorCategory !== 'bakery') {
+          const { designNote, ...rest } = item;
+          return rest;
+        }
+        return item;
+      });
+    }
 
     return res.json({
       success: true,
