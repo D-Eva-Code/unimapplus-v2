@@ -760,6 +760,16 @@ export default function StudentDashboard() {
                   </div>
                 </div>
               </div>
+
+              {/* BAKERY NOTICE */}
+              {selectedVendor.category === 'bakery' && (
+                <div style={{background:'#fff8e1',border:'1px solid #f5c518',borderRadius:12,padding:'10px 14px',marginBottom:16,fontSize:12,color:'#92400e',display:'flex',alignItems:'center',gap:6}}>
+                  <span style={{fontSize:16}}>💡</span>
+                  <span>Note: Items with added descriptions may have prices updated by the vendor after review. You will be notified before making payment.</span>
+                </div>
+              )}
+
+
               {!selectedVendor.is_open && (
                 <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:12,padding:'12px 16px',marginBottom:16,display:'flex',alignItems:'center',gap:10}}>
                   <span style={{fontSize:20}}>🔒</span>
