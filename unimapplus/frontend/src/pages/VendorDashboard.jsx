@@ -120,6 +120,25 @@ export default function VendorDashboard() {
     } catch {}
   }
 
+  async function approveCustomOrder(orderId, price) {
+  try {
+    //update order status to 'awaiting_payment' 
+    //and set the total_amount in database.
+    await api.put(`/vendor/orders/${orderId}/approve-design`, { 
+      total_amount: parseFloat(price) 
+    });
+    
+    // Update local state to show it's now waiting for payment
+    setOrders(prev => prev.map(o => 
+      o.order_id === orderId 
+        ? { ...o, status: 'awaiting_payment', total_amount: price, vendor_amount: price } 
+        : o
+    ));
+  } catch (e) {
+    alert(e.response?.data?.message || 'Failed to approve');
+  }
+}
+
   if (loading) return (
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',fontFamily:"'Plus Jakarta Sans',sans-serif",color:'#7a90a4',flexDirection:'column',gap:12,background:BG}}>
       <div style={{width:32,height:32,border:'3px solid #e0eeee',borderTopColor:TEAL,borderRadius:'50%',animation:'spin 1s linear infinite'}}/>
@@ -282,40 +301,90 @@ export default function VendorDashboard() {
               </div>
             ) : (
               <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(340px,1fr))',gap:14}}>
-                {activeOrders.map(order=>(
-                  <div key={order.order_id} style={{background:'#fff',borderRadius:14,padding:18,border:'1px solid #e8f0f0',boxShadow:'0 1px 4px rgba(0,0,0,.04)'}}>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
-                      <div>
-                        <div style={{fontWeight:800,fontSize:14,color:DARK}}>Order #{String(order.order_id).slice(-6)}</div>
-                        <div style={{fontSize:12,color:'#7a90a4',marginTop:2}}>{order.student_name} · {new Date(order.created_at).toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'})}</div>
-                        {order.delivery_address&&<div style={{fontSize:11,color:'#7a90a4',marginTop:2}}>📍 {order.delivery_address}</div>}
-                      </div>
-                      <div style={{textAlign:'right'}}>
-                        <span style={{fontSize:10,fontWeight:700,padding:'3px 9px',borderRadius:20,background:'#e6fafa',color:TEAL}}>{order.status?.replace(/_/g,' ')}</span>
-                        <div style={{fontWeight:800,fontSize:15,color:TEAL,marginTop:4}}>₦{Number(order.vendor_amount||order.total_amount).toLocaleString()}</div>
-                      </div>
-                    </div>
+                {activeOrders.map(order => {
+                  const isReview = order.status === 'pending_review';
+                  const isAwaitingPayment = order.status === 'awaiting_payment';
 
-                    <div style={{background:BG,borderRadius:10,padding:'10px 12px',marginBottom:12}}>
-                      {order.items?.map((i,idx)=>(
-                        <div key={idx} style={{display:'flex',justifyContent:'space-between',fontSize:13,marginBottom:idx<order.items.length-1?4:0}}>
-                          <span style={{color:DARK}}>{i.item_name} × {i.quantity}</span>
-                          <span style={{fontWeight:600,color:'#7a90a4'}}>₦{(i.price*i.quantity).toLocaleString()}</span>
+                  return (
+                    <div key={order.order_id} style={{ 
+                      background: '#fff', 
+                      borderRadius: 14, 
+                      padding: 18, 
+                      border: isReview ? `2px solid ${TEAL}` : '1px solid #e8f0f0', 
+                      boxShadow: '0 1px 4px rgba(0,0,0,.04)' 
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                        <div>
+                          <div style={{ fontWeight: 800, fontSize: 14, color: DARK }}>Order #{String(order.order_id).slice(-6)}</div>
+                          <div style={{ fontSize: 12, color: '#7a90a4', marginTop: 2 }}>{order.student_name} · {new Date(order.created_at).toLocaleTimeString()}</div>
+                          {order.delivery_address && <div style={{ fontSize: 11, color: '#7a90a4', marginTop: 2 }}>📍 {order.delivery_address}</div>}
                         </div>
-                      ))}
-                    </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{ 
+                            fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 20, 
+                            background: isReview ? '#fff7ed' : '#e6fafa', 
+                            color: isReview ? '#c2410c' : TEAL 
+                          }}>
+                            {isReview ? 'Needs Review' : order.status?.replace(/_/g, ' ')}
+                          </span>
+                          <div style={{ fontWeight: 800, fontSize: 15, color: TEAL, marginTop: 4 }}>
+                            {isReview ? 'Price Pending' : `₦${Number(order.vendor_amount || order.total_amount).toLocaleString()}`}
+                          </div>
+                        </div>
+                      </div>
 
-                    <div style={{display:'flex',gap:8}}>
-                      {order.status==='paid' && <>
-                        <button onClick={()=>updateOrderStatus(order.order_id,'accepted')}
-                          style={{flex:2,padding:'9px',background:TEAL,color:'#fff',border:'none',borderRadius:10,fontWeight:700,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>
-                          ✅ Accept Order
-                        </button>
+                      {/* 🎨 SHOW DESIGN NOTES HERE */}
+                      {order.items?.some(i => i.design_note) && (
+                        <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 10, padding: '10px', marginBottom: 12 }}>
+                          <p style={{ margin: '0 0 4px', fontSize: 10, fontWeight: 800, color: '#c2410c' }}>DESIGN INSTRUCTIONS:</p>
+                          {order.items.map((i, idx) => i.design_note && (
+                            <div key={idx} style={{ fontSize: 12, color: DARK, fontStyle: 'italic' }}>
+                              "{i.design_note}"
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div style={{ background: BG, borderRadius: 10, padding: '10px 12px', marginBottom: 12 }}>
+                        {order.items?.map((i, idx) => (
+                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: idx < order.items.length - 1 ? 4 : 0 }}>
+                            <span style={{ color: DARK }}>{i.item_name} × {i.quantity}</span>
+                            {!isReview && <span style={{ fontWeight: 600, color: '#7a90a4' }}>₦{(i.price * i.quantity).toLocaleString()}</span>}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        {/* ACTION: SET PRICE */}
+                        {isReview && (
+                          <button 
+                            onClick={() => {
+                              const price = prompt("Enter total price for this custom order (₦):");
+                              if (price) approveCustomOrder(order.order_id, price);
+                            }}
+                            style={{ flex: 1, padding: '10px', background: TEAL, color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
+                          >
+                            💰 Set Price & Approve
+                          </button>
+                        )}
+
+                        {isAwaitingPayment && (
+                          <div style={{ flex: 1, padding: '9px', background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: 10, fontWeight: 700, fontSize: 12, textAlign: 'center' }}>
+                            ⏳ Waiting for Student to Pay
+                          </div>
+                        )}
+
+                        {order.status === 'paid' && (
+                          <button onClick={() => updateOrderStatus(order.order_id, 'accepted')} style={{ flex: 2, padding: '9px', background: TEAL, color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                            ✅ Accept Order
+                          </button>
+                        )}
+                        {(isReview || order.status === "paid") && (
                         <button onClick={()=>updateOrderStatus(order.order_id,'cancelled')}
                           style={{flex:1,padding:'9px',background:'#fff0f0',color:'#c0392b',border:'1px solid #fecdd3',borderRadius:10,fontWeight:700,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>
                           Reject
                         </button>
-                      </>}
+                      )}
                       {order.status==='accepted' && (
                         <button onClick={()=>updateOrderStatus(order.order_id,'preparing')}
                           style={{flex:1,padding:'9px',background:'#fff7ed',color:'#c2410c',border:'1px solid #fed7aa',borderRadius:10,fontWeight:700,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>
@@ -325,7 +394,7 @@ export default function VendorDashboard() {
                       {order.status==='preparing' && (
                         <button onClick={()=>updateOrderStatus(order.order_id,'ready')}
                           style={{flex:1,padding:'9px',background:'#16a34a',color:'#fff',border:'none',borderRadius:10,fontWeight:700,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>
-                          🟢 Ready for Pickup — Notify Riders
+                          🟢 Ready for Pickup. Notify Riders
                         </button>
                       )}
                       {order.status==='ready' && (
@@ -341,12 +410,13 @@ export default function VendorDashboard() {
                       )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
         )}
-
+ 
         {/* MENU SECTION */}
         {activeSection==='menu' && (
           <div>
