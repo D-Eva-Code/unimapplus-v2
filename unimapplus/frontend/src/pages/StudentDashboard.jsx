@@ -283,8 +283,8 @@ export default function StudentDashboard() {
 
   async function handleCheckout(vendorId) {
     const cartArr = getCartArray(vendorId);
-    const bakeryItems = cartArr.filter(item => item.design_note);
-    const normalItems = cartArr.filter(item => !item.design_note);
+    const bakeryItems = cartArr.filter(item => item.designNote);
+    const normalItems = cartArr.filter(item => !item.designNote);
     if (!cartArr.length) return;
     if (!deliveryAddr.trim()) { setConfirmModal({ title: 'Delivery Location Required', message: 'Please enter your hostel, hall, or location before paying.', onConfirm: null }); return; }
     setDeliveryModal(null);
@@ -298,15 +298,20 @@ export default function StudentDashboard() {
       // });
       // clearVendorCart(vendorId);
       // window.location.href = data.payment_url;
-      // 1. Send bakery items for vendor review
+      //Send bakery items for vendor review
       if (bakeryItems.length > 0) {
-        await api.post('/orders/request-review', {
-          vendor_id: vendorId,
-          items: bakeryItems,
-          delivery_address: deliveryAddr.trim()
-        });
-      }
-
+      await api.post('/orders/request-review', {
+        vendor_id: vendorId,
+        
+        items: bakeryItems.map(i => ({
+          menu_id: i.menu_id,
+          quantity: i.quantity,
+          price: i.price,
+          design_note: i.designNote // Send it as 'design_note' to the API
+        })),
+        delivery_address: deliveryAddr.trim()
+      });
+    }
       // Checkout normal items immediately
       if (normalItems.length > 0) {
         const { data } = await api.post('/checkout', {
