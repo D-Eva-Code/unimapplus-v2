@@ -431,7 +431,7 @@ async function requestReview(req, res) {
     );
     } catch (err) {
   console.error('Failed to insert order:', err);
-  return res.status(500).json({ success: false, message: 'Order creation failed', detail: err.sqlMessage });
+  return res.status(500).json({ success: false, message: 'Order creation failed', detail: err.sqlMessage, error: err.message, sqlState: err.sqlState });
 }
     // Save items WITH design_note
     for (const item of items) {
