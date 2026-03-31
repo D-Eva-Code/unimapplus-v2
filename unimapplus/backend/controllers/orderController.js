@@ -423,19 +423,19 @@ async function requestReview(req, res) {
     // Create order (NO payment yet)
     const orderId = uuidv4();
   
-    // try{
+    try{
     await pool.query(
       `INSERT INTO orders (order_id, student_id, vendor_id, delivery_address, status, payment_status)
        VALUES (?, ?, ?, ?, 'pending_review', 'pending')`,
       [orderId, studentId, vendor_id, delivery_address]
     );
-//     } catch (err) {
-//   console.error('Failed to insert order:', err);
-//   return res.status(500).json({ success: false, message: 'Order creation failed', detail: err.sqlMessage });
-// }
+    } catch (err) {
+  console.error('Failed to insert order:', err);
+  return res.status(500).json({ success: false, message: 'Order creation failed', detail: err.sqlMessage });
+}
     // Save items WITH design_note
     for (const item of items) {
-  // try {
+  try {
     await pool.query(
       `INSERT INTO order_items (order_id, menu_id, quantity, price, design_note)
        VALUES (?, ?, ?, ?, ?)`,
@@ -447,10 +447,10 @@ async function requestReview(req, res) {
         item.design_note || ''
       ]
     );
-  // } catch (err) {
-  //   console.error('Failed to insert order item:', item, err);
-  //   return res.status(500).json({ success: false, message: 'Failed to add item', detail: err.sqlMessage });
-  // }
+  } catch (err) {
+    console.error('Failed to insert order item:', item, err);
+    return res.status(500).json({ success: false, message: 'Failed to add item', detail: err.sqlMessage });
+  }
 }
     // Notify vendor (socket)
     const io = req.app.get('io');
