@@ -15,7 +15,7 @@ const VENDOR_CATEGORIES = [
   { value: 'protein',       label: '🍗 Proteins & Grills',   desc: 'Suya, grilled fish, peppered meat' },
   { value: 'vegetarian',    label: '🥗 Vegetarian',          desc: 'Salads, veggies, plant-based meals' },
   { value: 'foodstuff',     label: '🛒 Foodstuff & Grocery', desc: 'Provisions, ingredients, condiments' },
-  { value: 'other',         label: '🍽️ Other',               desc: 'Something else entirely' },
+  { value: 'other',         label: 'Other',               desc: 'Something else entirely' },
 ];
 
 const roleConfig = {
@@ -202,7 +202,7 @@ export default function Signup() {
             <div style={{ marginBottom: 16 }}>
               <label style={lbl}>Are you a student rider or independent?</label>
               <div style={{ display: 'flex', gap: 10 }}>
-                {[['student','🎓 Student Rider','I am a student at this school'],['independent','🏍️ Independent Rider','I am not a student']].map(([val, label, desc]) => (
+                {[['student','Student Rider','I am a student at this school'],['independent','Independent Rider','I am not a student']].map(([val, label, desc]) => (
                   <div key={val} onClick={() => { setForm(p => ({ ...p, rider_type: val })); setVerifyFile(null); setVerifyPreview(null); }}
                     style={{ flex: 1, padding: '10px 12px', borderRadius: 12, border: `2px solid ${form.rider_type === val ? '#2D6A4F' : '#e4e6ef'}`, background: form.rider_type === val ? '#f0faf4' : '#fff', cursor: 'pointer', textAlign: 'center' }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: form.rider_type === val ? '#2D6A4F' : '#1a1a2e' }}>{label}</div>
