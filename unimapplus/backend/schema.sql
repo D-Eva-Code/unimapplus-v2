@@ -91,6 +91,7 @@ CREATE TABLE IF NOT EXISTS menu_items (
   image_url VARCHAR(500),
   tags JSON,
   prep_time INT DEFAULT 15,
+  prep_time_unit VARCHAR(10) DEFAULT 'mins',
   is_available BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (vendor_id) REFERENCES vendors_tb(vendor_id) ON DELETE CASCADE
@@ -201,3 +202,9 @@ CREATE INDEX idx_drivers_available ON drivers_tb(is_available, school_id);
 CREATE INDEX idx_vendors_school ON vendors_tb(school_id);
 CREATE INDEX idx_students_school ON students_tb(school_id);
 CREATE INDEX idx_locations_school ON campus_locations(school_id);
+
+-- ============================================================
+-- MIGRATIONS — run these if upgrading an existing database
+-- ============================================================
+-- Add prep_time_unit column (for vendors that use days instead of minutes)
+-- ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS prep_time_unit VARCHAR(10) DEFAULT 'mins';

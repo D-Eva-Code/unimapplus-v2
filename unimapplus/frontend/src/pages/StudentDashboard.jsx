@@ -81,6 +81,9 @@ export default function StudentDashboard() {
   const [deliveryAddr, setDeliveryAddr]     = useState('');
   const [deliveryCoords, setDeliveryCoords] = useState(null);
   const [deliverySearch, setDeliverySearch] = useState('');
+  const [locationSuggestions, setLocationSuggestions] = useState([]);
+  const [showLocSuggestions, setShowLocSuggestions] = useState(false);
+  const [allCampusLocations, setAllCampusLocations] = useState([]);
   const [itemCustomizations, setItemCustomizations] = useState({}); // {menu_id: {variant, toppings[], designNote}}
   const [recommendations, setRecommendations] = useState(null);
 
@@ -131,7 +134,14 @@ export default function StudentDashboard() {
     return () => clearInterval(t);
   }, []);
 
-  useEffect(() => { loadVendors(); loadOrders(); loadFeaturedMenu(); fetchWeather(); }, []);
+  useEffect(() => { loadVendors(); loadOrders(); loadFeaturedMenu(); fetchWeather(); loadCampusLocations(); }, []);
+
+  async function loadCampusLocations() {
+    try {
+      const { data } = await api.get('/locations', { params: { school_id: user?.school_id } });
+      setAllCampusLocations(data.locations || []);
+    } catch {}
+  }
 
   useOrderTracking(
     trackedOrder?.order_id,
@@ -248,6 +258,28 @@ export default function StudentDashboard() {
     setItemCustom(menuId, 'toppings', updated);
   }
   function showToast(msg) { setToast(msg); setTimeout(()=>setToast(''),2200); }
+
+  // Delivery fee logic:
+  // - Foodstuff vendor: flat ₦2000; Ekosodin/bdpa/osasogie: ₦3000
+  // - Other vendors: distance-based from ₦600 (close) → ₦700 → ₦1000 → max ₦1500
+  //   determined by keywords in the delivery address
+  function calcDeliveryFee(vendorCategory, address) {
+    const addr = (address || '').toLowerCase();
+    if (vendorCategory === 'foodstuff') {
+      if (/ekosodin|bdpa|osasogie/.test(addr)) return 3000;
+      return 2000;
+    }
+    // Distance-based for other vendors (buka-style)
+    if (/ekosodin|bdpa|osasogie/.test(addr)) return 1500;
+    if (/keystone|hall\s*7|hall\s*6|hall\s*5|medical|law faculty|social sci/.test(addr)) return 1000;
+    if (/hall\s*[234]|faculty|engineering|1000lt|jhl|library|microfinance/.test(addr)) return 700;
+    return 600; // close / default (main gate, home and away, food court, hall 1, akindeko)
+  }
+
+  function getDeliveryFeeLabel(vendorCategory) {
+    if (vendorCategory === 'foodstuff') return 'Delivery from ₦2,000';
+    return 'Delivery from ₦600';
+  }
 
   async function doSearch(q) {
     if (!q.trim()) { setSearchResults(null); return; }
@@ -748,6 +780,9 @@ export default function StudentDashboard() {
           <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.9)', background: 'rgba(0,0,0,0.3)', padding: '2px 6px', borderRadius: 10, display: 'inline-block' }}>
             {CAT_LABELS[v.category] || '🍽️ Food'}
           </div>
+          <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>
+            🛵 {getDeliveryFeeLabel(v.category)}
+          </div>
         </div>
       </div>
     ))
@@ -799,7 +834,10 @@ export default function StudentDashboard() {
                   <h2 style={{margin:0,fontSize:18,fontWeight:800,color:DARK}}>{selectedVendor.vendor_name}</h2>
                   <div style={{display:'flex',alignItems:'center',gap:8,marginTop:3}}>
                     <p style={{margin:0,fontSize:12,color:'#7a90a4'}}>{selectedVendor.is_open?' Open':' Closed'} · ⭐ {selectedVendor.rating?Number(selectedVendor.rating).toFixed(1):'New'}</p>
-                    {selectedVendor.category && <span style={{fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#e6fafa',color:TEAL}}>{CAT_LABELS[selectedVendor.category]||selectedVendor.category}</span>}
+                    <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap',marginTop:2}}>
+                      {selectedVendor.category && <span style={{fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:20,background:'#e6fafa',color:TEAL}}>{CAT_LABELS[selectedVendor.category]||selectedVendor.category}</span>}
+                      <span style={{fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'#f0fafa',color:'#089898'}}>🛵 {getDeliveryFeeLabel(selectedVendor.category)}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -852,7 +890,18 @@ export default function StudentDashboard() {
                         }
                         <div style={{flex:1,minWidth:0}}>
                           <div style={{fontWeight:700,fontSize:14,color:DARK,marginBottom:2}}>{item.item_name}</div>
-                          <div style={{fontSize:11,color:'#7a90a4',marginBottom:4}}>{selectedVendor.vendor_name} · ⏱ {item.prep_time||15} min</div>
+                          {/* Show description for bakery vendors */}
+                          {selectedVendor.category === 'bakery' && item.description && (
+                            <div style={{fontSize:11,color:'#92400e',background:'#fff8e1',border:'1px solid #f5c518',borderRadius:7,padding:'3px 8px',marginBottom:4,lineHeight:1.4}}>{item.description}</div>
+                          )}
+                          <div style={{fontSize:11,color:'#7a90a4',marginBottom:4}}>{selectedVendor.vendor_name} · ⏱ {(() => {
+                            if (!item.prep_time) return '15 min';
+                            if (item.prep_time_unit === 'days') {
+                              const d = Math.round(item.prep_time / (60*24));
+                              return `${d} day${d > 1 ? 's' : ''}`;
+                            }
+                            return `${item.prep_time} min`;
+                          })()}</div>
 
                           {/* FOODSTUFF: Variant picker */}
                           {(() => {
@@ -926,20 +975,26 @@ export default function StudentDashboard() {
                           )}
 
                           <div style={{fontWeight:800,fontSize:15,color:TEAL}}>
-                            ₦{Number(
-                              (() => {
-                                const variants = (() => { try { return JSON.parse(item.variants||'[]'); } catch { return []; } })();
-                                const custom = itemCustomizations[item.menu_id]||{};
-                                const base = variants.length > 0 
-                                  ? Number(custom.variant?.price || item.price)
-                                  : Number(item.price);
-                                const extras = (custom.toppings || []).reduce(
-                                  (s, t) => s + Number(t.price || 0),
-                                  0
-                                );
-                                return base + extras;
-                              })()
-                            ).toLocaleString()}
+                            {(() => {
+                              const parsedVars = (() => {
+                                if (Array.isArray(item.variants) && item.variants.length > 0) return item.variants;
+                                try { const p = JSON.parse(item.variants||'[]'); return Array.isArray(p)?p:[]; } catch { return []; }
+                              })();
+                              const custom = itemCustomizations[item.menu_id]||{};
+                              const selectedVariant = custom.variant;
+                              const base = parsedVars.length > 0
+                                ? (selectedVariant ? Number(selectedVariant.price) : null)
+                                : Number(item.price);
+                              const extras = (custom.toppings||[]).reduce((s,t)=>s+Number(t.price||0),0);
+                              if (parsedVars.length > 0 && base === null) {
+                                // No variant selected yet — show range
+                                const prices = parsedVars.map(v=>Number(v.price));
+                                const minP = Math.min(...prices);
+                                const maxP = Math.max(...prices);
+                                return minP===maxP ? `₦${minP.toLocaleString()}` : `₦${minP.toLocaleString()} – ₦${maxP.toLocaleString()}`;
+                              }
+                              return `₦${Number((base||0)+extras).toLocaleString()}`;
+                            })()}
                           </div>
                         </div>
                         <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:5}}>
@@ -1295,7 +1350,11 @@ export default function StudentDashboard() {
                   const allDrinks = v.items.every(i => i.item_type === 'drink');
                   const vPacking = noPackCats.includes(vendorCat) || allDrinks ? 0 : 200;
                   const serviceFee = Math.round(subtotal * 0.07);
-                  const grandTotal = subtotal + 300 + vPacking + serviceFee;
+                  // Dynamic delivery fee based on address + vendor category
+                  const deliveryFee = deliveryAddr.trim()
+                    ? calcDeliveryFee(vendorCat, deliveryAddr)
+                    : (vendorCat === 'foodstuff' ? 2000 : 600);
+                  const grandTotal = subtotal + deliveryFee + vPacking + serviceFee;
                   return (
                     <div key={v.vendorId} style={{marginBottom:vendorList.length>1&&!checkoutVendorId?24:0}}>
                       {vendorList.length>1&&!checkoutVendorId&&(
@@ -1324,7 +1383,7 @@ export default function StudentDashboard() {
                       ))}
                       <div style={{padding:'10px 0',borderBottom:'1px solid #f0f0f0'}}>
                         <div style={{display:'flex',justifyContent:'space-between',fontSize:13,color:'#7a90a4',marginBottom:5}}><span>Subtotal</span><span>₦{subtotal.toLocaleString()}</span></div>
-                        <div style={{display:'flex',justifyContent:'space-between',fontSize:13,color:'#7a90a4',marginBottom:5}}><span>Delivery fee</span><span>₦300</span></div>
+                        <div style={{display:'flex',justifyContent:'space-between',fontSize:13,color:'#7a90a4',marginBottom:5}}><span>Delivery fee</span><span>{deliveryAddr.trim() ? `₦${deliveryFee.toLocaleString()}` : <span style={{color:'#f59e0b'}}>Calculated at checkout</span>}</span></div>
                         {vPacking>0&&<div style={{display:'flex',justifyContent:'space-between',fontSize:13,color:'#7a90a4',marginBottom:5}}><span>Packing fee <span style={{fontSize:10}}>(1 pack)</span></span><span>₦{vPacking}</span></div>}
                         <div style={{display:'flex',justifyContent:'space-between',fontSize:13,color:'#f59e0b',marginBottom:2}}><span>Service fee (7%) </span><span>₦{serviceFee}</span></div>
                       </div>
@@ -1346,24 +1405,65 @@ export default function StudentDashboard() {
 
       {/* DELIVERY ADDRESS MODAL */}
       {deliveryModal && (
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)',zIndex:600,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={()=>setDeliveryModal(null)}>
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)',zIndex:600,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={()=>{setDeliveryModal(null);setShowLocSuggestions(false);}}>
           <div style={{background:'#fff',borderRadius:20,width:'100%',maxWidth:400,padding:28}} onClick={e=>e.stopPropagation()}>
             <h3 style={{margin:'0 0 6px',fontWeight:800,color:DARK}}>Where should we deliver?</h3>
-            <p style={{margin:'0 0 18px',fontSize:13,color:'#7a90a4'}}>Enter your hostel, hall, or location on campus</p>
-            <input
-              autoFocus
-              type="text"
-              value={deliveryAddr}
-              onChange={e=>setDeliveryAddr(e.target.value)}
-              placeholder="e.g. Hall 6, Room 204 or Back Gate"
-              style={{width:'100%',padding:'12px 14px',border:'1.5px solid #e8ecf0',borderRadius:12,fontSize:14,outline:'none',fontFamily:'inherit',boxSizing:'border-box',marginBottom:14}}
-            />
+            <p style={{margin:'0 0 14px',fontSize:13,color:'#7a90a4'}}>Select a campus location or type your address</p>
+            <div style={{position:'relative',marginBottom:14}}>
+              <input
+                autoFocus
+                type="text"
+                value={deliveryAddr}
+                onChange={e => {
+                  const val = e.target.value;
+                  setDeliveryAddr(val);
+                  if (val.trim().length > 0) {
+                    const filtered = allCampusLocations.filter(loc =>
+                      loc.name.toLowerCase().includes(val.toLowerCase()) ||
+                      (loc.description||'').toLowerCase().includes(val.toLowerCase())
+                    );
+                    setLocationSuggestions(filtered.slice(0, 8));
+                    setShowLocSuggestions(true);
+                  } else {
+                    setShowLocSuggestions(false);
+                    setLocationSuggestions([]);
+                  }
+                }}
+                onFocus={() => {
+                  if (allCampusLocations.length > 0 && !deliveryAddr.trim()) {
+                    setLocationSuggestions(allCampusLocations.slice(0, 8));
+                    setShowLocSuggestions(true);
+                  }
+                }}
+                placeholder="e.g. Hall 6, Room 204 or Back Gate"
+                style={{width:'100%',padding:'12px 14px',border:'1.5px solid #e8ecf0',borderRadius:12,fontSize:14,outline:'none',fontFamily:'inherit',boxSizing:'border-box'}}
+              />
+              {showLocSuggestions && locationSuggestions.length > 0 && (
+                <div style={{position:'absolute',top:'100%',left:0,right:0,background:'#fff',border:'1.5px solid #e8ecf0',borderRadius:12,boxShadow:'0 8px 24px rgba(0,0,0,.12)',zIndex:10,maxHeight:220,overflowY:'auto',marginTop:4}}>
+                  {locationSuggestions.map((loc,i) => (
+                    <div key={loc.id||i} onClick={() => {
+                      setDeliveryAddr(loc.name);
+                      setShowLocSuggestions(false);
+                    }}
+                    style={{padding:'10px 14px',cursor:'pointer',display:'flex',alignItems:'center',gap:10,borderBottom:i<locationSuggestions.length-1?'1px solid #f5f5f5':'none'}}
+                    onMouseEnter={e=>e.currentTarget.style.background='#f0fafa'}
+                    onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                      <span style={{fontSize:16}}>{loc.category==='eatery'?'🍽️':loc.category==='hostel'?'🏠':loc.category==='faculty'?'🎓':'📍'}</span>
+                      <div>
+                        <div style={{fontWeight:700,fontSize:13,color:DARK}}>{loc.name}</div>
+                        {loc.description && <div style={{fontSize:11,color:'#7a90a4'}}>{loc.description}</div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             <div style={{background:'#e6fafa',borderRadius:12,padding:'10px 14px',marginBottom:18,fontSize:12,color:'#089898'}}>
               💡 Your location helps the rider find you. Be specific — include room number if possible.
             </div>
             <div style={{display:'flex',gap:10}}>
-              <button onClick={()=>setDeliveryModal(null)} style={{flex:1,padding:12,border:'1px solid #e8ecf0',borderRadius:12,background:'#fff',cursor:'pointer',fontFamily:'inherit',fontWeight:600,color:'#7a90a4'}}>Cancel</button>
-              <button onClick={()=>handleCheckout(deliveryModal.vendorId)} disabled={!deliveryAddr.trim()||checkoutLoading}
+              <button onClick={()=>{setDeliveryModal(null);setShowLocSuggestions(false);}} style={{flex:1,padding:12,border:'1px solid #e8ecf0',borderRadius:12,background:'#fff',cursor:'pointer',fontFamily:'inherit',fontWeight:600,color:'#7a90a4'}}>Cancel</button>
+              <button onClick={()=>{setShowLocSuggestions(false);handleCheckout(deliveryModal.vendorId);}} disabled={!deliveryAddr.trim()||checkoutLoading}
                 style={{flex:2,padding:12,background:deliveryAddr.trim()?TEAL:'#ccc',color:'#fff',border:'none',borderRadius:12,fontWeight:700,fontSize:14,cursor:deliveryAddr.trim()?'pointer':'not-allowed',fontFamily:'inherit'}}>
                 {checkoutLoading?'Processing...':'Confirm & Pay'}
               </button>

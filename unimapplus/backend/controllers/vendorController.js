@@ -102,7 +102,7 @@ async function addMenuItem(req, res) {
   try {
     const vendorId = req.user.id;
     const { uploadToCloudinary } = require('../config/s3');
-    const { item_name, description, price, tags, prep_time, item_type, variants, toppings, allow_design_notes } = req.body;
+    const { item_name, description, price, tags, prep_time, prep_time_unit, item_type, variants, toppings, allow_design_notes } = req.body;
     const image_url = req.file ? await uploadToCloudinary(req.file.buffer, 'unimapplus/menu') : null;
 
     if (!item_name || !price) {
@@ -115,8 +115,8 @@ async function addMenuItem(req, res) {
       ? 1
       : 0;
     const [result] = await pool.query(
-      'INSERT INTO menu_items (vendor_id, item_name, description, price, image_url, tags, prep_time, item_type, variants, toppings, allow_design_notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [vendorId, item_name, description || '', price, image_url, JSON.stringify(tagsArray), prep_time || 15, item_type || 'food', variants || '[]', toppings || '[]', allowDesignNotes]
+      'INSERT INTO menu_items (vendor_id, item_name, description, price, image_url, tags, prep_time, prep_time_unit, item_type, variants, toppings, allow_design_notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [vendorId, item_name, description || '', price, image_url, JSON.stringify(tagsArray), prep_time || 15, prep_time_unit || 'mins', item_type || 'food', variants || '[]', toppings || '[]', allowDesignNotes]
     );
 
     const [item] = await pool.query('SELECT * FROM menu_items WHERE menu_id = ?', [result.insertId]);
@@ -132,7 +132,7 @@ async function updateMenuItem(req, res) {
   try {
     const vendorId = req.user.id;
     const { menu_id } = req.params;
-    const { item_name, description, price, tags, is_available, prep_time, item_type, variants, toppings, allow_design_notes } = req.body;
+    const { item_name, description, price, tags, is_available, prep_time, prep_time_unit, item_type, variants, toppings, allow_design_notes } = req.body;
     const image_url = req.file ? await uploadToCloudinary(req.file.buffer, 'unimapplus/menu') : undefined;
 
     // Ensure this item belongs to the vendor
@@ -143,6 +143,7 @@ async function updateMenuItem(req, res) {
 
     const updates = { item_name, description, price, tags: JSON.stringify(tagsArray), is_available };
     if (prep_time !== undefined) updates.prep_time = prep_time;
+    if (prep_time_unit !== undefined) updates.prep_time_unit = prep_time_unit;
     if (item_type !== undefined) updates.item_type = item_type;
     if (variants !== undefined) {
     updates.variants = typeof variants === 'string' ? variants : JSON.stringify(variants);

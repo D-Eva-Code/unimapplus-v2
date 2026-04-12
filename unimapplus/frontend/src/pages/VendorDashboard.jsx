@@ -14,7 +14,7 @@ export default function VendorDashboard() {
   const [addMenuOpen, setAddMenuOpen] = useState(false);
   const [editItem, setEditItem]   = useState(null);
   const [menuItems, setMenuItems] = useState([]);
-  const [newItem, setNewItem]     = useState({ item_name:'', description:'', price:'', prep_time:'', image:null, tags:'', item_type:'food', variants:[], toppings:[] });
+  const [newItem, setNewItem]     = useState({ item_name:'', description:'', price:'', prep_time:'', prep_time_unit:'mins', image:null, tags:'', item_type:'food', variants:[], toppings:[] });
   const [saving, setSaving]       = useState(false);
   const [newVariant, setNewVariant] = useState({ label:'', price:'' });
   const [newTopping, setNewTopping] = useState({ label:'', price:'' });
@@ -90,14 +90,21 @@ export default function VendorDashboard() {
       fd.append('item_type', newItem.item_type || 'food');
       fd.append('variants', JSON.stringify(newItem.variants || []));
       if (newItem.toppings.length > 0) fd.append('toppings', JSON.stringify(newItem.toppings));
-      if (newItem.prep_time) fd.append('prep_time', newItem.prep_time);
+      if (newItem.prep_time) {
+        // Convert days to minutes for storage
+        const ptMins = newItem.prep_time_unit === 'days'
+          ? Number(newItem.prep_time) * 60 * 24
+          : Number(newItem.prep_time);
+        fd.append('prep_time', ptMins);
+        fd.append('prep_time_unit', newItem.prep_time_unit || 'mins');
+      }
       fd.append('allow_design_notes', newItem.allow_design_notes ? 1 : 0);
       if (editItem) {
         await api.put(`/vendor/menu/${editItem.menu_id}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       } else {
         await api.post('/vendor/menu', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       }
-      setNewItem({ item_name:'', description:'', price:'', prep_time:'', image:null, tags:'', item_type:'food', variants:[], toppings:[], allow_design_notes:false });
+      setNewItem({ item_name:'', description:'', price:'', prep_time:'', prep_time_unit:'mins', image:null, tags:'', item_type:'food', variants:[], toppings:[], allow_design_notes:false });
       setEditItem(null);
       setAddMenuOpen(false);
       // Reload menu
@@ -467,14 +474,14 @@ export default function VendorDashboard() {
                         )}
                         <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
                           <span style={{fontWeight:800,fontSize:15,color:TEAL}}>₦{Number(item.price).toLocaleString()}</span>
-                          {item.prep_time&&<span style={{fontSize:11,color:'#7a90a4',background:'#f0f4f4',padding:'2px 8px',borderRadius:20}}>⏱ {item.prep_time} min</span>}
+                          {item.prep_time&&<span style={{fontSize:11,color:'#7a90a4',background:'#f0f4f4',padding:'2px 8px',borderRadius:20}}>⏱ {item.prep_time_unit==='days' ? `${Math.round(item.prep_time/(60*24))} day${Math.round(item.prep_time/(60*24))>1?'s':''}` : `${item.prep_time} min`}</span>}
                         </div>
                         <div style={{display:'flex',gap:8}}>
                           <button onClick={()=>{
                             let parsedTags = [];
                             try { parsedTags = JSON.parse(item.tags||'[]'); } catch {}
                             setEditItem(item);
-                            setNewItem({item_name:item.item_name,description:item.description||'',price:item.price,prep_time:item.prep_time||'',image:null,tags:parsedTags.join(', '),item_type:item.item_type||'food',
+                            setNewItem({item_name:item.item_name,description:item.description||'',price:item.price,prep_time: item.prep_time_unit==='days' ? Math.round(item.prep_time/(60*24)) : (item.prep_time||''), prep_time_unit: item.prep_time_unit||'mins',image:null,tags:parsedTags.join(', '),item_type:item.item_type||'food',
       variants: (() => { try { return JSON.parse(item.variants||'[]'); } catch { return []; } })(),
       toppings: (() => { try { return JSON.parse(item.toppings||'[]'); } catch { return []; } })(),
     });
@@ -518,7 +525,6 @@ export default function VendorDashboard() {
                 required:true,
                 placeholder:'1200'
               }] : []),
-                {label:'Prep Time (minutes)',key:'prep_time',type:'number',placeholder:'e.g. 15'},
                 {label:'Tags (separate with comma)',key:'tags',type:'text',placeholder:'spicy, vegetarian, rice'},
               ].map(f=>(
                 <div key={f.key} style={{marginBottom:14}}>
@@ -527,6 +533,25 @@ export default function VendorDashboard() {
                     value={newItem[f.key]} onChange={e=>setNewItem(p=>({...p,[f.key]:e.target.value}))} style={inp}/>
                 </div>
               ))}
+              {/* Prep Time with mins/days toggle */}
+              <div style={{marginBottom:14}}>
+                <label style={lbl}>Prep Time</label>
+                <div style={{display:'flex',gap:8}}>
+                  <input type="number" placeholder={newItem.prep_time_unit==='days'?'e.g. 2':'e.g. 15'}
+                    value={newItem.prep_time} onChange={e=>setNewItem(p=>({...p,prep_time:e.target.value}))}
+                    style={{...inp,flex:1}}/>
+                  <div style={{display:'flex',border:'1.5px solid #dde8e8',borderRadius:10,overflow:'hidden',flexShrink:0}}>
+                    {['mins','days'].map(unit=>(
+                      <button key={unit} type="button" onClick={()=>setNewItem(p=>({...p,prep_time_unit:unit}))}
+                        style={{padding:'0 14px',border:'none',fontFamily:'inherit',fontWeight:700,fontSize:13,cursor:'pointer',
+                          background:newItem.prep_time_unit===unit?TEAL:'#fff',
+                          color:newItem.prep_time_unit===unit?'#fff':'#7a90a4',transition:'all .15s'}}>
+                        {unit}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
               {/* Item type selector - determines packing fee */}
               {/* Only show packing fee option for non-bakery & non-foodstuff */}
                 {!['bakery', 'foodstuff'].includes(vendor?.category) && (
