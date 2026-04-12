@@ -590,7 +590,7 @@ export default function StudentDashboard() {
           <div style={{flex:1,display:'flex',alignItems:'center',gap:8,background:BG,border:'1.5px solid #e8ecf0',borderRadius:30,padding:'7px 14px',maxWidth:420, minWidth:0}}>
             <span style={{color:'#7a90a4'}}><IcSearch/></span>
             <input value={searchQ} onChange={e=>{setSearchQ(e.target.value);doSearch(e.target.value);}} placeholder="Search restaurants, food..."
-              style={{border:'none',outline:'none',background:'none',fontFamily:'inherit',fontSize:13,flex:1,color:DARK}}/>
+              style={{border:'none',outline:'none',background:'none',fontFamily:'inherit',fontSize:13,flex:1,color:DARK,minWidth:0}}/>
           </div>
           <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:10}}>
             <button onClick={()=>setCartOpen(true)} style={{position:'relative',background:'none',border:'none',cursor:'pointer',color:DARK,padding:4}}>
