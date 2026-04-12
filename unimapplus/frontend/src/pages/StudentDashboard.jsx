@@ -565,7 +565,7 @@ export default function StudentDashboard() {
   
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',fontFamily:"'Plus Jakarta Sans',sans-serif",background:BG,position:'relative',overflowX:'hidden',maxWidth:'100vw'}}>
+    <div style={{display:'flex',minHeight:'100vh',fontFamily:"'Plus Jakarta Sans',sans-serif",background:BG,position:'relative',overflowX:'hidden',maxWidth:'100%'}}>
 
       {/* SIDEBAR desktop */}
       {!isMobile && (
