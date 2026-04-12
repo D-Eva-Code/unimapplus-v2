@@ -12,7 +12,7 @@ const { getAllLocations, globalSearch, getSchools, addLocation } = require('../c
 const { submitRating } = require('../controllers/ratingController');
 
 // AUTH
-router.post('/auth/register', upload.single('logo'), register);
+router.post('/auth/register', upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'verify_doc', maxCount: 1 }]), register);
 router.post('/auth/login', login);
 
 // SCHOOLS
