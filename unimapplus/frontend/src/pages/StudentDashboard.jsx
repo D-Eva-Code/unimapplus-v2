@@ -564,7 +564,7 @@ export default function StudentDashboard() {
   
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',fontFamily:"'Plus Jakarta Sans',sans-serif",background:BG,position:'relative'}}>
+    <div style={{display:'flex',minHeight:'100vh',fontFamily:"'Plus Jakarta Sans',sans-serif",background:BG,position:'relative',overflowX:'hidden',maxWidth:'100vw'}}>
 
       {/* SIDEBAR desktop */}
       {!isMobile && (
@@ -628,7 +628,7 @@ export default function StudentDashboard() {
         )}
 
         {/* PAGE CONTENT */}
-        <div style={{flex:1,padding:isMobile?'16px 14px 90px':'24px 28px 40px',maxWidth:isMobile?'100vw':1100,width:'100%',boxSizing:'border-box',overflowX:'hidden'}}>
+        <div style={{flex:1,padding:isMobile?'16px 14px 90px':'24px 28px 40px',maxWidth:isMobile?'100%':1100,width:'100%',boxSizing:'border-box',overflowX:'hidden',minWidth:0}}>
 
           {/* HOME */}
           {tab==='home' && !selectedVendor && (

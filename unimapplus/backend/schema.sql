@@ -208,3 +208,15 @@ CREATE INDEX idx_locations_school ON campus_locations(school_id);
 -- ============================================================
 -- Add prep_time_unit column (for vendors that use days instead of minutes)
 -- ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS prep_time_unit VARCHAR(10) DEFAULT 'mins';
+
+CREATE TABLE IF NOT EXISTS email_otps (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(200) NOT NULL,
+  otp VARCHAR(6) NOT NULL,
+  purpose VARCHAR(50) DEFAULT 'school_verify',
+  expires_at TIMESTAMP NOT NULL,
+  verified BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_otp_email (email),
+  INDEX idx_otp_expires (expires_at)
+);

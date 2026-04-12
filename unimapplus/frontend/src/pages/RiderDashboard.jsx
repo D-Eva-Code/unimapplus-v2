@@ -15,6 +15,7 @@ export default function RiderDashboard() {
   const [broadcasting, setBroadcasting] = useState(false);
   const [newRequest, setNewRequest] = useState(null);
   const [riderToast, setRiderToast] = useState('');
+  const [proximityError, setProximityError] = useState(null); // { orderId, message, distM }
   const locationInterval = useRef(null);
 
   useEffect(() => {
@@ -119,25 +120,28 @@ export default function RiderDashboard() {
       showToast('❌ Location not supported on this device');
       return;
     }
-    showToast(' Getting your location...');
+    showToast('📍 Getting your location...');
     navigator.geolocation.getCurrentPosition(
       async pos => {
+        const { latitude, longitude } = pos.coords;
         try {
-          await api.post(`/rider/orders/${orderId}/delivered`, {
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude
-          });
+          await api.post(`/rider/orders/${orderId}/delivered`, { latitude, longitude });
           showToast('✅ Delivery confirmed!');
           loadDashboard();
         } catch (e) {
-          showToast('❌ ' + (e.response?.data?.message || 'Error confirming delivery'));
+          const distM = e.response?.data?.distance_meters;
+          if (distM !== undefined) {
+            const distText = distM >= 1000 ? `${(distM/1000).toFixed(1)}km` : `${distM}m`;
+            setProximityError({ orderId, message: `You are ${distText} from the delivery location. Move within 500m to confirm delivery.`, distM });
+          } else {
+            showToast('❌ ' + (e.response?.data?.message || 'Error confirming delivery'));
+          }
         }
       },
-      (err) => {
-        // Location denied or timed out
-        showToast('❌ Location access denied. Enable location for this site in browser settings.');
+      () => {
+        showToast('❌ Location access denied. Enable location in browser settings and try again.');
       },
-      { timeout: 10000, enableHighAccuracy: false } // 10s timeout, no high accuracy needed
+      { timeout: 12000, enableHighAccuracy: true }
     );
   }
 
@@ -370,6 +374,24 @@ export default function RiderDashboard() {
         {/* ── EARNINGS TAB ── */}
         {tab==='earnings' && <EarningsHistory />}
       </div>
+
+      {/* PROXIMITY ERROR MODAL */}
+      {proximityError && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)',zIndex:700,display:'flex',alignItems:'center',justifyContent:'center',padding:24}}>
+          <div style={{background:'#fff',borderRadius:20,width:'100%',maxWidth:340,padding:28,boxShadow:'0 20px 60px rgba(0,0,0,.3)',textAlign:'center'}}>
+            <div style={{fontSize:48,marginBottom:12}}>📍</div>
+            <h3 style={{margin:'0 0 10px',fontWeight:800,color:'#1a1a2e',fontSize:17}}>Too Far From Delivery Location</h3>
+            <p style={{margin:'0 0 20px',fontSize:14,color:'#7a90a4',lineHeight:1.6}}>{proximityError.message}</p>
+            <div style={{background:'#fff3cd',borderRadius:12,padding:'10px 14px',marginBottom:20,fontSize:12,color:'#856404'}}>
+              💡 Make sure you are at the student's door or location before confirming delivery.
+            </div>
+            <button onClick={()=>setProximityError(null)}
+              style={{width:'100%',padding:12,background:'#0BBFBF',color:'#fff',border:'none',borderRadius:12,fontWeight:700,fontSize:14,cursor:'pointer',fontFamily:'inherit'}}>
+              OK, Got It
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* TOAST */}
       {riderToast&&(
