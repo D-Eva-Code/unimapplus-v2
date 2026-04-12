@@ -1355,7 +1355,7 @@ export default function StudentDashboard() {
               type="text"
               value={deliveryAddr}
               onChange={e=>setDeliveryAddr(e.target.value)}
-              placeholder="e.g. Hall 6, Room 204 or SUB Gate"
+              placeholder="e.g. Hall 6, Room 204 or Back Gate"
               style={{width:'100%',padding:'12px 14px',border:'1.5px solid #e8ecf0',borderRadius:12,fontSize:14,outline:'none',fontFamily:'inherit',boxSizing:'border-box',marginBottom:14}}
             />
             <div style={{background:'#e6fafa',borderRadius:12,padding:'10px 14px',marginBottom:18,fontSize:12,color:'#089898'}}>
