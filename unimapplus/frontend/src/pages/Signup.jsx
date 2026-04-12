@@ -431,7 +431,7 @@ export default function Signup() {
             <div style={{marginBottom:16}}>
               <label style={lbl}>Vendor Type</label>
               <div style={{display:'flex',gap:10}}>
-                {[['student','🎓 Student Vendor','I am a student selling on campus'],['business','🏪 School Buka / Business','Registered business or school canteen']].map(([val,label,desc]) => (
+                {[['student','Student Vendor','I am a student selling on campus'],['business','School Buka / Business','Registered business or school canteen']].map(([val,label,desc]) => (
                   <div key={val} onClick={() => { setForm(p => ({...p, vendor_type:val})); resetVerification(); }}
                     style={{flex:1,padding:'10px 12px',borderRadius:12,border:`2px solid ${form.vendor_type===val?'#E87C2A':'#e4e6ef'}`,background:form.vendor_type===val?'#fff7f0':'#fff',cursor:'pointer',textAlign:'center'}}>
                     <div style={{fontSize:12,fontWeight:700,color:form.vendor_type===val?'#E87C2A':DARK}}>{label}</div>
