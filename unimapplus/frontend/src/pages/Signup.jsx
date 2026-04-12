@@ -125,9 +125,7 @@ export default function Signup() {
     (isDriver && form.rider_type === 'student') ||
     (isVendor && form.vendor_type === 'student');
   // NIN path = independent rider
-  // NIN path disabled until Prembly API is activated — uncomment to re-enable
-  // const isNINPath = isDriver && form.rider_type === 'independent';
-  const isNINPath = false; // NIN_DISABLED
+  const isNINPath = isDriver && form.rider_type === 'independent';
   // CAC path = business vendor
   const isCACPath = isVendor && form.vendor_type === 'business';
 
@@ -175,8 +173,7 @@ export default function Signup() {
     if (isVendor && !form.category) return setError('Please select your eatery category');
     if (isStudentPath && !otpVerified) return setError('Please verify your school email with OTP first');
     if (isStudentPath && !verifyFile) return setError('Please upload your student ID card or admission letter');
-    // NIN validation disabled until Prembly API activated:
-    // if (isNINPath && ninNumber.replace(/\s/g,'').length !== 11) return setError('Please enter a valid 11-digit NIN number');
+    if (isNINPath && ninNumber.replace(/\s/g,'').length !== 11) return setError('Please enter a valid 11-digit NIN number');
     if (isCACPath && !verifyFile) return setError('Please upload your CAC certificate or vendor approval document');
 
     setLoading(true);
@@ -198,7 +195,7 @@ export default function Signup() {
       if (isVendor)            fd.append('vendor_type',    form.vendor_type);
       if (isDriver)            fd.append('rider_type',     form.rider_type);
       if (schoolEmailToken)    fd.append('school_email_token', schoolEmailToken);
-      // if (ninNumber)           fd.append('nin_number',     ninNumber.replace(/\s/g,'')); // NIN_DISABLED
+      if (ninNumber)           fd.append('nin_number',     ninNumber.replace(/\s/g,''));
       if (logoFile)            fd.append('logo',           logoFile);
       if (verifyFile)          fd.append('verify_doc',     verifyFile);
 
@@ -341,7 +338,7 @@ export default function Signup() {
         </button>
       )}
       <div style={{marginTop:10,background:'#fff',border:'1px solid #e0e8ff',borderRadius:10,padding:'8px 12px',fontSize:11,color:'#5a6a8a',lineHeight:1.6}}>
-        🔒 Documents are verified by AI and not stored after registration.
+        Documents are verified first and not stored after registration.
       </div>
     </div>
   );
@@ -510,7 +507,7 @@ export default function Signup() {
                 🔐 Identity Verification
               </div>
               {isStudentPath && <SchoolEmailBlock />}
-              {/* isNINPath && <NINBlock /> */}{/* NIN_DISABLED - uncomment when Prembly API ready */}
+              {isNINPath     && <NINBlock />}
               {(isStudentPath || isCACPath) && <DocumentUploadBlock />}
             </div>
           )}
