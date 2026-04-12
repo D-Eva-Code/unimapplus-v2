@@ -338,7 +338,7 @@ export default function Signup() {
         </button>
       )}
       <div style={{marginTop:10,background:'#fff',border:'1px solid #e0e8ff',borderRadius:10,padding:'8px 12px',fontSize:11,color:'#5a6a8a',lineHeight:1.6}}>
-        🔒 Documents are verified by AI and not stored after registration.
+        Documents are verified first and not stored after registration.
       </div>
     </div>
   );
