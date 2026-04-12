@@ -7,16 +7,16 @@ const TEAL = '#0BBFBF';
 const DARK = '#0d2137';
 
 const VENDOR_CATEGORIES = [
-  { value: 'african_food',  label: '🍲 African Food',       desc: 'Jollof, soups, stews, local dishes' },
-  { value: 'fast_food',     label: '🍔 Fast Food',           desc: 'Burgers, shawarma, fried chicken' },
-  { value: 'snacks',        label: '🥪 Snacks & Bites',      desc: 'Sandwiches, pies, small chops' },
-  { value: 'drinks',        label: '🥤 Drinks & Beverages',  desc: 'Zobo, juices, smoothies, water' },
-  { value: 'bakery',        label: '🍞 Bakery & Pastry',     desc: 'Bread, cakes, puff puff, chin chin' },
-  { value: 'rice_dishes',   label: '🍚 Rice Dishes',         desc: 'Fried rice, ofada, coconut rice' },
-  { value: 'protein',       label: '🍗 Proteins & Grills',   desc: 'Suya, grilled fish, peppered meat' },
-  { value: 'vegetarian',    label: '🥗 Vegetarian',          desc: 'Salads, veggies, plant-based meals' },
-  { value: 'foodstuff',     label: '🛒 Foodstuff & Grocery', desc: 'Provisions, ingredients, condiments' },
-  { value: 'other',         label: '🍽️ Other',               desc: 'Something else entirely' },
+  { value: 'african_food',  label: 'African Food',       desc: 'Jollof, soups, stews, local dishes' },
+  { value: 'fast_food',     label: 'Fast Food',           desc: 'Burgers, shawarma, fried chicken' },
+  { value: 'snacks',        label: 'Snacks & Bites',      desc: 'Sandwiches, pies, small chops' },
+  { value: 'drinks',        label: 'Drinks & Beverages',  desc: 'Zobo, juices, smoothies, water' },
+  { value: 'bakery',        label: 'Bakery & Pastry',     desc: 'Bread, cakes, puff puff, chin chin' },
+  { value: 'rice_dishes',   label: 'Rice Dishes',         desc: 'Fried rice, ofada, coconut rice' },
+  { value: 'protein',       label: 'Proteins & Grills',   desc: 'Suya, grilled fish, peppered meat' },
+  { value: 'vegetarian',    label: 'Vegetarian',          desc: 'Salads, veggies, plant-based meals' },
+  { value: 'foodstuff',     label: 'Foodstuff & Grocery', desc: 'Provisions, ingredients, condiments' },
+  { value: 'other',         label: 'Other',               desc: 'Something else entirely' },
 ];
 
 const roleConfig = {
@@ -222,7 +222,7 @@ export default function Signup() {
   const SchoolEmailBlock = () => (
     <div style={{marginBottom:16, background:'#f8faff', border:'1.5px solid #c7d7ff', borderRadius:14, padding:16}}>
       <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
-        <span style={{fontSize:20}}>🎓</span>
+        <span style={{fontSize:20}}></span>
         <label style={{...lbl, margin:0}}>School Email Verification <span style={{color:'#e74c3c'}}>*</span></label>
       </div>
       <p style={{margin:'0 0 10px',fontSize:11,color:'#5a6a8a',lineHeight:1.5}}>
@@ -302,8 +302,8 @@ export default function Signup() {
 
   // ─── DOCUMENT UPLOAD BLOCK ────────────────────────────────
   const docConfigs = {
-    student_id: { label:'Student ID Card or Admission Letter', hint:'Upload a clear photo. Your name must match exactly as entered above.', icon:'📄' },
-    cac:        { label:'CAC Certificate or Vendor Approval Letter', hint:'Upload your CAC business registration or a school authority approval letter.', icon:'📋' },
+    student_id: { label:'Student ID Card or Admission Letter', hint:'Upload a clear photo. Your name must match exactly as entered above.' },
+    cac:        { label:'CAC Certificate or Vendor Approval Letter', hint:'Upload your CAC business registration or a school authority approval letter.' },
   };
   const activeDocType = isStudentPath ? 'student_id' : isCACPath ? 'cac' : null;
   const docCfg = activeDocType ? docConfigs[activeDocType] : null;
@@ -415,7 +415,7 @@ export default function Signup() {
             <div style={{marginBottom:16}}>
               <label style={lbl}>Rider Type</label>
               <div style={{display:'flex',gap:10}}>
-                {[['student','🎓 Student Rider','I am a student at this school'],['independent','🏍️ Independent Rider','I am not a student']].map(([val,label,desc]) => (
+                {[['student','Student Rider','I am a student at this school'],['independent','Independent Rider','I am not a student']].map(([val,label,desc]) => (
                   <div key={val} onClick={() => { setForm(p => ({...p, rider_type:val})); resetVerification(); }}
                     style={{flex:1,padding:'10px 12px',borderRadius:12,border:`2px solid ${form.rider_type===val?'#2D6A4F':'#e4e6ef'}`,background:form.rider_type===val?'#f0faf4':'#fff',cursor:'pointer',textAlign:'center'}}>
                     <div style={{fontSize:13,fontWeight:700,color:form.rider_type===val?'#2D6A4F':DARK}}>{label}</div>
@@ -489,7 +489,7 @@ export default function Signup() {
           {/* Banking details */}
           {isVendorOrRider && (
             <div style={{background:'#f8fffe',border:'1px solid #e0f7f7',borderRadius:12,padding:14,marginBottom:14}}>
-              <p style={{margin:'0 0 10px',fontSize:12,fontWeight:700,color:'#089898'}}>💰 Banking Details (for payments)</p>
+              <p style={{margin:'0 0 10px',fontSize:12,fontWeight:700,color:'#089898'}}>Banking Details (for payments)</p>
               {[{label:'Bank Name',key:'bank_name',placeholder:'e.g. GTBank, Access, Zenith'},{label:'Account Number',key:'account_number',placeholder:'10-digit account number'},{label:'Account Name',key:'account_name',placeholder:'Name on account'}].map(f => (
                 <div key={f.key} style={{marginBottom:10}}>
                   <label style={lbl}>{f.label}</label>
@@ -526,7 +526,7 @@ export default function Signup() {
 
           <button type="submit" disabled={loading}
             style={{width:'100%',padding:13,background:accentColor,color:'#fff',border:'none',borderRadius:12,fontWeight:700,fontSize:15,cursor:loading?'not-allowed':'pointer',opacity:loading?0.7:1,fontFamily:'inherit',transition:'background .2s'}}>
-            {verifying ? '🔍 Verifying identity...' : loading ? 'Creating account...' : 'Create Account'}
+            {verifying ? 'Verifying identity...' : loading ? 'Creating account...' : 'Create Account'}
           </button>
 
           {loading && verifying && (
