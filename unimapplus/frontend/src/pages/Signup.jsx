@@ -356,7 +356,7 @@ export default function Signup() {
 
               {/* What we verify info box */}
               <div style={{ marginTop: 12, background: '#fff', border: '1px solid #e0e8ff', borderRadius: 10, padding: '8px 12px', fontSize: 11, color: '#5a6a8a', lineHeight: 1.6 }}>
-                🔒 <strong>How verification works:</strong> Your document is checked by our AI system to confirm it's genuine
+                🔒 <strong>How verification works:</strong> Your document is checked to confirm it's genuine
                 {(isDriver && form.rider_type === 'student') || (isVendor && form.vendor_type === 'student')
                   ? ' and that your name matches.'
                   : isDriver
