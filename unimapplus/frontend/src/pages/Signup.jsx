@@ -62,7 +62,7 @@ export default function Signup() {
     }
     if (isVendor) {
       return form.vendor_type === 'student'
-        ? { label: 'Student ID Card or Admission Letter', hint: 'Upload a clear photo of your student ID card or UNIBEN admission letter. Your name on the document must match the name you entered above.', accept: 'image/*', icon: '' }
+        ? { label: 'Student ID Card or Admission Letter', hint: 'Upload a clear photo of your student ID card or UNIBEN admission letter. Your name on the document must match the name you entered above.', accept: 'image/*' }
         : { label: 'CAC Certificate or Vendor Approval Letter', hint: 'Upload your CAC business registration certificate or a letter from the school/market authority approving you to operate as a vendor on campus.', accept: 'image/*', icon: '' };
     }
     return null;
