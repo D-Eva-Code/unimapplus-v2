@@ -587,7 +587,7 @@ export default function StudentDashboard() {
 
         {/* TOP BAR */}
         <div style={{position:'sticky',top:0,zIndex:200,background:'#fff',borderBottom:'1px solid #e8ecf0',display:'flex',alignItems:'center',gap:12,padding:'0 16px',height:58,boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
-          <div style={{flex:1,display:'flex',alignItems:'center',gap:8,background:BG,border:'1.5px solid #e8ecf0',borderRadius:30,padding:'7px 14px',maxWidth:420}}>
+          <div style={{flex:1,display:'flex',alignItems:'center',gap:8,background:BG,border:'1.5px solid #e8ecf0',borderRadius:30,padding:'7px 14px',maxWidth:420, minWidth:0}}>
             <span style={{color:'#7a90a4'}}><IcSearch/></span>
             <input value={searchQ} onChange={e=>{setSearchQ(e.target.value);doSearch(e.target.value);}} placeholder="Search restaurants, food..."
               style={{border:'none',outline:'none',background:'none',fontFamily:'inherit',fontSize:13,flex:1,color:DARK}}/>
