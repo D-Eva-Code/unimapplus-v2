@@ -335,7 +335,8 @@ export default function StudentDashboard() {
   const cartArr = getCartArray(vendorId);
 
   const currentVendor = vendors.find(v => v.vendor_id === vendorId);
-  const supportsCustomDesign = currentVendor?.allow_design_note;
+  // Bakery vendors use the design-review flow (not instant payment)
+  const supportsCustomDesign = currentVendor?.category === 'bakery';
 
   const bakeryItems = cartArr.filter(item => (item.design_note || item.designNote || '').trim() !== '');
   const normalItems = cartArr.filter(item => !(item.design_note || item.designNote || '').trim());
@@ -370,11 +371,11 @@ export default function StudentDashboard() {
       });
 
       clearVendorCart(vendorId);
-      setConfirmModal({
-        title: 'Review Requested',
-        message: 'Your custom order has been sent to the vendor for review. You will be notified when you can proceed to payment.',
-        onConfirm: () => navigate('/orders') // Optional: redirect to orders tab
-      });
+      await loadOrders(); // pull the new pending_review order immediately
+      setSelectedVendor(null); // close vendor menu
+      setTab('orders'); // go straight to orders tab — no modal needed
+      setCheckoutLoading(false);
+      return;
       
       setCheckoutLoading(false);
       return; // so it doesn't run normal checkout below
@@ -564,7 +565,7 @@ export default function StudentDashboard() {
   
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',fontFamily:"'Plus Jakarta Sans',sans-serif",background:BG,position:'relative',overflowX:'hidden',width:'100%',maxWidth:'100vw',boxSizing:'border-box'}}>
+    <div style={{display:'flex',minHeight:'100vh',fontFamily:"'Plus Jakarta Sans',sans-serif",background:BG,position:'relative',overflowX:'hidden',maxWidth:'100vw'}}>
 
       {/* SIDEBAR desktop */}
       {!isMobile && (
@@ -582,22 +583,22 @@ export default function StudentDashboard() {
 
 
       {/* MAIN */}
-      <div style={{flex:1,marginLeft:isMobile?0:200,display:'flex',flexDirection:'column',minHeight:'100vh',minWidth:0,width:isMobile?'100%':'auto',overflowX:'hidden'}}>
+      <div style={{flex:1,marginLeft:isMobile?0:200,display:'flex',flexDirection:'column',minHeight:'100vh'}}>
 
         {/* TOP BAR */}
-        <div style={{position:'sticky',top:0,zIndex:200,background:'#fff',borderBottom:'1px solid #e8ecf0',display:'flex',alignItems:'center',gap:8,padding:'0 12px',height:58,boxShadow:'0 1px 4px rgba(0,0,0,.05)',width:'100%',boxSizing:'border-box'}}>
-          <div style={{flex:1,minWidth:0,display:'flex',alignItems:'center',gap:6,background:BG,border:'1.5px solid #e8ecf0',borderRadius:30,padding:'7px 12px'}}>
-            <span style={{color:'#7a90a4',flexShrink:0}}><IcSearch/></span>
+        <div style={{position:'sticky',top:0,zIndex:200,background:'#fff',borderBottom:'1px solid #e8ecf0',display:'flex',alignItems:'center',gap:12,padding:'0 16px',height:58,boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
+          <div style={{flex:1,display:'flex',alignItems:'center',gap:8,background:BG,border:'1.5px solid #e8ecf0',borderRadius:30,padding:'7px 14px',maxWidth:420}}>
+            <span style={{color:'#7a90a4'}}><IcSearch/></span>
             <input value={searchQ} onChange={e=>{setSearchQ(e.target.value);doSearch(e.target.value);}} placeholder="Search restaurants, food..."
-              style={{border:'none',outline:'none',background:'none',fontFamily:'inherit',fontSize:13,flex:1,minWidth:0,color:DARK}}/>
+              style={{border:'none',outline:'none',background:'none',fontFamily:'inherit',fontSize:13,flex:1,color:DARK}}/>
           </div>
-          <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
-            <button onClick={()=>setCartOpen(true)} style={{position:'relative',background:'none',border:'none',cursor:'pointer',color:DARK,padding:4,flexShrink:0}}>
+          <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:10}}>
+            <button onClick={()=>setCartOpen(true)} style={{position:'relative',background:'none',border:'none',cursor:'pointer',color:DARK,padding:4}}>
               <IcCart/>
               {cartCount>0 && <span style={{position:'absolute',top:0,right:0,background:'#e74c3c',color:'#fff',fontSize:9,fontWeight:700,width:15,height:15,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center'}}>{cartCount}</span>}
             </button>
-            <div style={{display:'flex',alignItems:'center',gap:6,background:BG,border:'1.5px solid #e8ecf0',borderRadius:30,padding:'5px 10px 5px 5px',cursor:'pointer',flexShrink:0}} onClick={()=>setTab('profile')}>
-              <div style={{width:26,height:26,borderRadius:'50%',background:TEAL,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:11,fontWeight:800,flexShrink:0}}>{user?.fullname?.[0]?.toUpperCase()||'S'}</div>
+            <div style={{display:'flex',alignItems:'center',gap:8,background:BG,border:'1.5px solid #e8ecf0',borderRadius:30,padding:'5px 12px 5px 6px',cursor:'pointer'}} onClick={()=>setTab('profile')}>
+              <div style={{width:26,height:26,borderRadius:'50%',background:TEAL,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:11,fontWeight:800}}>{user?.fullname?.[0]?.toUpperCase()||'S'}</div>
               <span style={{fontSize:12,fontWeight:700,color:DARK}}>{user?.fullname?.split(' ')[0]||'Student'}</span>
               <span style={{fontSize:10,color:'#7a90a4'}}>▾</span>
             </div>
@@ -646,7 +647,7 @@ export default function StudentDashboard() {
               )}
 
               {/* HERO */}
-              <div style={{borderRadius:18,overflow:'hidden',marginBottom:20,position:'relative',height:isMobile?160:180,background:slide.bg,display:'flex',alignItems:'center',padding:isMobile?'0 20px':'0 28px',transition:'background .4s',boxSizing:'border-box',width:'100%'}}>
+              <div style={{borderRadius:18,overflow:'hidden',marginBottom:20,position:'relative',height:isMobile?160:180,background:slide.bg,display:'flex',alignItems:'center',padding:'0 28px',transition:'background .4s'}}>
                 <div style={{zIndex:2,flex:1}}>
                   <span style={{fontSize:10,fontWeight:800,letterSpacing:1,color:slide.accent,background:`${slide.accent}33`,padding:'3px 10px',borderRadius:20,textTransform:'uppercase'}}>{slide.tag}</span>
                   <h2 style={{margin:'10px 0 6px',color:'#fff',fontSize:isMobile?22:28,fontWeight:900,lineHeight:1.15,whiteSpace:'pre-line'}}>{slide.title}</h2>
@@ -665,7 +666,7 @@ export default function StudentDashboard() {
               </div>
 
               {/* AI PICK - with real weather */}
-              <div style={{background:'linear-gradient(135deg,#0d2137,#1a3a4a)',borderRadius:16,padding:'14px 18px',marginBottom:24,border:'1px solid rgba(11,191,191,.2)',width:'100%',boxSizing:'border-box',overflow:'hidden'}}>
+              <div style={{background:'linear-gradient(135deg,#0d2137,#1a3a4a)',borderRadius:16,padding:'14px 18px',marginBottom:24,border:'1px solid rgba(11,191,191,.2)'}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
                   <span style={{background:TEAL,color:'#fff',fontSize:10,fontWeight:800,padding:'3px 9px',borderRadius:20,letterSpacing:0.5}}>AI Pick</span>
                   <span style={{fontSize:11,color:'rgba(255,255,255,.7)',background:'rgba(255,255,255,.1)',padding:'4px 11px',borderRadius:20}}>
@@ -738,7 +739,7 @@ export default function StudentDashboard() {
 
              {/* POPULAR VENDORS */}
 <h3 style={{margin:'0 0 12px',fontSize:15,fontWeight:800,color:DARK}}>Popular Vendors</h3>
-<div style={{display:'flex',gap:12,overflowX:'auto',paddingBottom:8,marginBottom:24,scrollbarWidth:'none',width:'100%',boxSizing:'border-box'}}>
+<div style={{display:'flex',gap:12,overflowX:'auto',paddingBottom:8,marginBottom:24,scrollbarWidth:'none'}}>
   {vendors.length === 0 ? (
     <p style={{fontSize:13, color:'#7a90a4'}}>No vendors yet for your school.</p>
   ) : (
