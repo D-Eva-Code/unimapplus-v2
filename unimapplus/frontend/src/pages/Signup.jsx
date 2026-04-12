@@ -6,15 +6,15 @@ import api from '../services/api';
 const TEAL = '#0BBFBF';
 
 const VENDOR_CATEGORIES = [
-  { value: 'african_food',  label: '🍲 African Food',       desc: 'Jollof, soups, stews, local dishes' },
-  { value: 'fast_food',     label: '🍔 Fast Food',           desc: 'Burgers, shawarma, fried chicken' },
-  { value: 'snacks',        label: '🥪 Snacks & Bites',      desc: 'Sandwiches, pies, small chops' },
-  { value: 'drinks',        label: '🥤 Drinks & Beverages',  desc: 'Zobo, juices, smoothies, water' },
-  { value: 'bakery',        label: '🍞 Bakery & Pastry',     desc: 'Bread, cakes, puff puff, chin chin' },
-  { value: 'rice_dishes',   label: '🍚 Rice Dishes',         desc: 'Fried rice, ofada, coconut rice' },
-  { value: 'protein',       label: '🍗 Proteins & Grills',   desc: 'Suya, grilled fish, peppered meat' },
-  { value: 'vegetarian',    label: '🥗 Vegetarian',          desc: 'Salads, veggies, plant-based meals' },
-  { value: 'foodstuff',     label: '🛒 Foodstuff & Grocery', desc: 'Provisions, ingredients, condiments' },
+  { value: 'african_food',  label: 'African Food',       desc: 'Jollof, soups, stews, local dishes' },
+  { value: 'fast_food',     label: 'Fast Food',           desc: 'Burgers, shawarma, fried chicken' },
+  { value: 'snacks',        label: 'Snacks & Bites',      desc: 'Sandwiches, pies, small chops' },
+  { value: 'drinks',        label: 'Drinks & Beverages',  desc: 'Zobo, juices, smoothies, water' },
+  { value: 'bakery',        label: 'Bakery & Pastry',     desc: 'Bread, cakes, puff puff, chin chin' },
+  { value: 'rice_dishes',   label: 'Rice Dishes',         desc: 'Fried rice, ofada, coconut rice' },
+  { value: 'protein',       label: 'Proteins & Grills',   desc: 'Suya, grilled fish, peppered meat' },
+  { value: 'vegetarian',    label: 'Vegetarian',          desc: 'Salads, veggies, plant-based meals' },
+  { value: 'foodstuff',     label: 'Foodstuff & Grocery', desc: 'Provisions, ingredients, condiments' },
   { value: 'other',         label: 'Other',               desc: 'Something else entirely' },
 ];
 
@@ -57,13 +57,13 @@ export default function Signup() {
   function getDocInfo() {
     if (isDriver) {
       return form.rider_type === 'student'
-        ? { label: 'Student ID Card or Admission Letter', hint: 'Upload a clear photo of your student ID card or UNIBEN admission letter. Your name on the document must match the name you entered above.', accept: 'image/*', icon: '🎓' }
+        ? { label: 'Student ID Card or Admission Letter', hint: 'Upload a clear photo of your student ID card or UNIBEN admission letter. Your name on the document must match the name you entered above.', accept: 'image/*', icon: '' }
         : { label: 'NIN Slip or NIMC Card', hint: 'Upload a clear photo of your NIN slip or NIMC national ID card. Your 11-digit NIN number must be clearly visible.', accept: 'image/*', icon: '🪪' };
     }
     if (isVendor) {
       return form.vendor_type === 'student'
-        ? { label: 'Student ID Card or Admission Letter', hint: 'Upload a clear photo of your student ID card or UNIBEN admission letter. Your name on the document must match the name you entered above.', accept: 'image/*', icon: '🎓' }
-        : { label: 'CAC Certificate or Vendor Approval Letter', hint: 'Upload your CAC business registration certificate or a letter from the school/market authority approving you to operate as a vendor on campus.', accept: 'image/*', icon: '📋' };
+        ? { label: 'Student ID Card or Admission Letter', hint: 'Upload a clear photo of your student ID card or UNIBEN admission letter. Your name on the document must match the name you entered above.', accept: 'image/*', icon: '' }
+        : { label: 'CAC Certificate or Vendor Approval Letter', hint: 'Upload your CAC business registration certificate or a letter from the school/market authority approving you to operate as a vendor on campus.', accept: 'image/*', icon: '' };
     }
     return null;
   }
@@ -302,7 +302,7 @@ export default function Signup() {
           {/* Banking details */}
           {isVendorOrRider && (
             <div style={{ background: '#f8fffe', border: '1px solid #e0f7f7', borderRadius: 12, padding: 14, marginBottom: 14 }}>
-              <p style={{ margin: '0 0 10px', fontSize: 12, fontWeight: 700, color: '#089898' }}>💰 Banking Details (for payments)</p>
+              <p style={{ margin: '0 0 10px', fontSize: 12, fontWeight: 700, color: '#089898' }}>Banking Details (for payments)</p>
               {[
                 { label: 'Bank Name',      key: 'bank_name',      placeholder: 'e.g. GTBank, Access, Zenith' },
                 { label: 'Account Number', key: 'account_number', placeholder: '10-digit account number' },
