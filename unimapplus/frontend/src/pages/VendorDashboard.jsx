@@ -30,13 +30,18 @@ export default function VendorDashboard() {
     socket.on('new_order', order => {
       setOrders(prev => [order, ...prev]);
       if (Notification.permission === 'granted') {
-        new Notification('🍽️ New Order!', { body: `Order from ${order.student_name}` });
+        new Notification('New Order!', { body: `Order from ${order.student_name}` });
       }
+    });
+    // Bakery design review orders come through this event
+    socket.on('new_review_order', () => {
+      // Reload dashboard to get the new pending_review order with full details
+      loadDashboard();
     });
     socket.on('order_status_updated', data => {
       setOrders(prev => prev.map(o => o.order_id === data.order_id ? { ...o, status: data.status } : o));
     });
-    return () => { socket.off('new_order'); socket.off('order_status_updated'); window.removeEventListener('resize', handleResize); };
+    return () => { socket.off('new_order'); socket.off('new_review_order'); socket.off('order_status_updated'); window.removeEventListener('resize', handleResize); };
   }, []);
 
   async function loadDashboard() {

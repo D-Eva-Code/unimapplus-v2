@@ -201,7 +201,7 @@ async function getVendorDashboard(req, res) {
         SUM(CASE WHEN status = 'delivered' THEN 1 ELSE 0 END) as completed_orders,
         SUM(CASE WHEN status = 'delivered' THEN vendor_amount ELSE 0 END) as total_earnings,
         SUM(CASE WHEN status = 'delivered' AND DATE(created_at) = CURDATE() THEN vendor_amount ELSE 0 END) as today_earnings,
-        SUM(CASE WHEN status IN ('paid','accepted','preparing','ready','rider_assigned','picked_up','on_the_way') THEN 1 ELSE 0 END) as pending_orders
+        SUM(CASE WHEN status IN ('pending_review','awaiting_payment','paid','accepted','preparing','ready','rider_assigned','picked_up','on_the_way') THEN 1 ELSE 0 END) as pending_orders
       FROM orders 
       WHERE vendor_id = ?
     `, [vendorId]);
@@ -213,7 +213,7 @@ async function getVendorDashboard(req, res) {
       FROM orders o
       JOIN students_tb s ON o.student_id = s.st_id
       LEFT JOIN drivers_tb d ON o.driver_id = d.driver_id
-      WHERE o.vendor_id = ? AND o.status IN ('paid','accepted','preparing','rider_assigned','picked_up','on_the_way')
+      WHERE o.vendor_id = ? AND o.status IN ('pending_review','awaiting_payment','paid','accepted','preparing','ready','rider_assigned','picked_up','on_the_way')
       ORDER BY o.created_at DESC
     `, [vendorId]);
 

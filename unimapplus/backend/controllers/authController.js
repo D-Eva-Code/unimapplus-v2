@@ -335,18 +335,19 @@ async function register(req, res) {
         }
 
       } else if (isNINPath) {
-        // NIN path: verify with Prembly API
-        if (!ninNumber) {
-          return res.status(400).json({ success: false, message: 'Please enter your NIN number.' });
-        }
-        console.log(`🔍 Verifying NIN for: ${fullName}`);
-        const ninResult = await verifyNIN(ninNumber);
-        if (!ninResult.skipped && !ninResult.valid) {
-          return res.status(400).json({
-            success: false,
-            message: ninResult.reason || 'NIN verification failed. Please check your NIN number and try again.',
-          });
-        }
+        // NIN_DISABLED: Prembly API not yet activated. Uncomment block below when ready.
+        // if (!ninNumber) {
+        //   return res.status(400).json({ success: false, message: 'Please enter your NIN number.' });
+        // }
+        // console.log(`Verifying NIN for: ${fullName}`);
+        // const ninResult = await verifyNIN(ninNumber);
+        // if (!ninResult.skipped && !ninResult.valid) {
+        //   return res.status(400).json({
+        //     success: false,
+        //     message: ninResult.reason || 'NIN verification failed. Please check your NIN number and try again.',
+        //   });
+        // }
+        console.log('NIN verification skipped - Prembly API not yet activated');
 
       } else if (isCACPath) {
         // CAC / vendor approval document

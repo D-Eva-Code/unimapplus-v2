@@ -335,7 +335,8 @@ export default function StudentDashboard() {
   const cartArr = getCartArray(vendorId);
 
   const currentVendor = vendors.find(v => v.vendor_id === vendorId);
-  const supportsCustomDesign = currentVendor?.allow_design_note;
+  // Use vendor category to determine if design review flow applies (bakery vendors)
+  const supportsCustomDesign = currentVendor?.category === 'bakery';
 
   const bakeryItems = cartArr.filter(item => (item.design_note || item.designNote || '').trim() !== '');
   const normalItems = cartArr.filter(item => !(item.design_note || item.designNote || '').trim());
@@ -370,10 +371,11 @@ export default function StudentDashboard() {
       });
 
       clearVendorCart(vendorId);
+      await loadOrders(); // refresh orders so it appears immediately
       setConfirmModal({
         title: 'Review Requested',
         message: 'Your custom order has been sent to the vendor for review. You will be notified when you can proceed to payment.',
-        onConfirm: () => navigate('/orders') // Optional: redirect to orders tab
+        onConfirm: () => { setTab('orders'); setSelectedVendor(null); }
       });
       
       setCheckoutLoading(false);
@@ -382,6 +384,8 @@ export default function StudentDashboard() {
 
     // if there are NO bakery items
     if (normalItems.length > 0) {
+      const currentVendorForFee = vendors.find(v => v.vendor_id === vendorId);
+      const dynamicDeliveryFee = calcDeliveryFee(currentVendorForFee?.category, deliveryAddr);
       const { data } = await api.post('/checkout', {
         vendor_id: vendorId,
         cart: normalItems.map(i => ({
@@ -392,6 +396,7 @@ export default function StudentDashboard() {
           design_note: i.design_note || '',
         })),
         delivery_address: deliveryAddr.trim(),
+        delivery_fee: dynamicDeliveryFee,
       });
 
       clearVendorCart(vendorId);
@@ -585,21 +590,21 @@ export default function StudentDashboard() {
       <div style={{flex:1,marginLeft:isMobile?0:200,display:'flex',flexDirection:'column',minHeight:'100vh'}}>
 
         {/* TOP BAR */}
-        <div style={{position:'sticky',top:0,zIndex:200,background:'#fff',borderBottom:'1px solid #e8ecf0',display:'flex',alignItems:'center',gap:12,padding:'0 16px',height:58,boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
-          <div style={{flex:1,display:'flex',alignItems:'center',gap:8,background:BG,border:'1.5px solid #e8ecf0',borderRadius:30,padding:'7px 14px',maxWidth:420}}>
-            <span style={{color:'#7a90a4'}}><IcSearch/></span>
+        <div style={{position:'sticky',top:0,zIndex:200,background:'#fff',borderBottom:'1px solid #e8ecf0',display:'flex',alignItems:'center',gap:8,padding:'0 12px',height:58,boxShadow:'0 1px 4px rgba(0,0,0,.05)',overflow:'hidden',width:'100%',boxSizing:'border-box'}}>
+          <div style={{flex:1,minWidth:0,display:'flex',alignItems:'center',gap:6,background:BG,border:'1.5px solid #e8ecf0',borderRadius:30,padding:'7px 12px'}}>
+            <span style={{color:'#7a90a4',flexShrink:0}}><IcSearch/></span>
             <input value={searchQ} onChange={e=>{setSearchQ(e.target.value);doSearch(e.target.value);}} placeholder="Search restaurants, food..."
-              style={{border:'none',outline:'none',background:'none',fontFamily:'inherit',fontSize:13,flex:1,color:DARK}}/>
+              style={{border:'none',outline:'none',background:'none',fontFamily:'inherit',fontSize:13,flex:1,color:DARK,minWidth:0}}/>
           </div>
-          <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:10}}>
-            <button onClick={()=>setCartOpen(true)} style={{position:'relative',background:'none',border:'none',cursor:'pointer',color:DARK,padding:4}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
+            <button onClick={()=>setCartOpen(true)} style={{position:'relative',background:'none',border:'none',cursor:'pointer',color:DARK,padding:4,flexShrink:0}}>
               <IcCart/>
               {cartCount>0 && <span style={{position:'absolute',top:0,right:0,background:'#e74c3c',color:'#fff',fontSize:9,fontWeight:700,width:15,height:15,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center'}}>{cartCount}</span>}
             </button>
-            <div style={{display:'flex',alignItems:'center',gap:8,background:BG,border:'1.5px solid #e8ecf0',borderRadius:30,padding:'5px 12px 5px 6px',cursor:'pointer'}} onClick={()=>setTab('profile')}>
-              <div style={{width:26,height:26,borderRadius:'50%',background:TEAL,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:11,fontWeight:800}}>{user?.fullname?.[0]?.toUpperCase()||'S'}</div>
-              <span style={{fontSize:12,fontWeight:700,color:DARK}}>{user?.fullname?.split(' ')[0]||'Student'}</span>
-              <span style={{fontSize:10,color:'#7a90a4'}}>▾</span>
+            <div style={{display:'flex',alignItems:'center',gap:6,background:BG,border:'1.5px solid #e8ecf0',borderRadius:30,padding:'5px 10px 5px 5px',cursor:'pointer',flexShrink:0}} onClick={()=>setTab('profile')}>
+              <div style={{width:24,height:24,borderRadius:'50%',background:TEAL,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:11,fontWeight:800,flexShrink:0}}>{user?.fullname?.[0]?.toUpperCase()||'S'}</div>
+              {!isMobile && <span style={{fontSize:12,fontWeight:700,color:DARK}}>{user?.fullname?.split(' ')[0]||'Student'}</span>}
+              {!isMobile && <span style={{fontSize:10,color:'#7a90a4'}}>▾</span>}
             </div>
             {!isMobile && <button onClick={logout} style={{background:'#fff0f0',color:'#e74c3c',border:'none',borderRadius:20,padding:'6px 14px',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Logout</button>}
           </div>

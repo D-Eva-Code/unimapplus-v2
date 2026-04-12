@@ -27,7 +27,10 @@ async function checkout(req, res) {
     if (!vendor[0].is_open) return res.status(400).json({ success: false, message: 'This eatery is currently closed. Please try again later.' });
 
     // Packing fee: free for bakery, drinks, foodstuff — ₦200 for food vendors
-    const packingFee = NO_PACKING_CATEGORIES.includes(vendor[0].category) ? 0 : PACKING_FEE;
+    // Also free if ALL items in cart are drinks (item_type='drink')
+    const vendorPackingExempt = NO_PACKING_CATEGORIES.includes(vendor[0].category);
+    // We'll check allDrinks after verifying items below
+    let packingFee = vendorPackingExempt ? 0 : PACKING_FEE; // may be overridden below
 
     // Verify all items and calculate subtotal (portions multiplied in)
     let subtotal = 0;
@@ -49,6 +52,18 @@ async function checkout(req, res) {
       verifiedItems.push({ ...item, price: unitPrice, quantity: cartItem.quantity, portions, design_note: cartItem.design_note || '' });
     }
 
+    // If not already exempt and all items are drinks, waive packing fee
+    if (!vendorPackingExempt) {
+      const allItemsDrinks = verifiedItems.every(i => i.item_type === 'drink');
+      if (allItemsDrinks) packingFee = 0;
+    }
+
+    // Use dynamic delivery fee sent from frontend (location-based), fallback to constant
+    const requestedFee = req.body.delivery_fee ? Number(req.body.delivery_fee) : null;
+    const effectiveDeliveryFee = (requestedFee && requestedFee >= 600 && requestedFee <= 3000)
+      ? requestedFee
+      : DELIVERY_FEE;
+
     // Fee breakdown:
     // Student pays: subtotal + packing + delivery + service fee (7% of subtotal)
     // Vendor gets:  subtotal + packing fee
@@ -56,8 +71,8 @@ async function checkout(req, res) {
     // Unimap keeps: service fee (7% of subtotal)
     const platformFee  = Math.round(subtotal * PLATFORM_FEE_PCT * 100) / 100;
     const vendorAmount = subtotal + packingFee; // vendor gets food + packing
-    const riderAmount  = DELIVERY_FEE;
-    const totalAmount  = subtotal + DELIVERY_FEE + packingFee + platformFee;
+    const riderAmount  = effectiveDeliveryFee;
+    const totalAmount  = subtotal + effectiveDeliveryFee + packingFee + platformFee;
 
     const [student] = await pool.query('SELECT * FROM students_tb WHERE st_id = ?', [studentId]);
     const orderId    = uuidv4();
