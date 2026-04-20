@@ -388,7 +388,7 @@ export default function VendorDashboard() {
                             }}
                             style={{ flex: 1, padding: '10px', background: TEAL, color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
                           >
-                            💰 Review & Approve
+                            Review & Approve
                           </button>
                         )}
 
