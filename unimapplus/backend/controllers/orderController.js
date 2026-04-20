@@ -554,7 +554,7 @@ async function requestReview(req, res) {
 // }
 
 // Vendor updates price after seeing design note
-async function approveOrder(req, res) {
+async function updatePrice(req, res) {
   try {
     const vendorId = req.user.id;
     const { order_id, total } = req.body;
