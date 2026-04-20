@@ -16,8 +16,8 @@ const allowedOrigin = (origin, callback) => {
   if (
     !origin ||
     origin === production ||
-    origin.match(/^https:\/\/unimap-plus[\w-]*\.vercel\.app$/)
-  ) {
+    origin.endsWith('.vercel.app'))
+ {
     callback(null, true);
   } else {
     callback(new Error('Not allowed by CORS'));
