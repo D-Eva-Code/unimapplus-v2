@@ -8,19 +8,49 @@ const routes = require('./routes/index');
 const app = express();
 const server = http.createServer(app);
 
+
+// ── Temporary CORS ORIGIN FUNCTION ──────────────────────────────────────────────────────
+const allowedOrigin = (origin, callback) => {
+  const production = process.env.FRONTEND_URL;
+
+  if (
+    !origin ||
+    origin === production ||
+    origin.match(/^https:\/\/unimap-plus[\w-]*\.vercel\.app$/)
+  ) {
+    callback(null, true);
+  } else {
+    callback(new Error('Not allowed by CORS'));
+  }
+};
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || '*',
+    origin: allowedOrigin,
     methods: ['GET', 'POST'],
     credentials: true,
   }
 });
 
-// ── CORS ──────────────────────────────────────────────────────────────────────
+// ── Temporary CORS ──────────────────────────────────────────────────────────────────────
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: allowedOrigin,
   credentials: true,
 }));
+
+// const io = new Server(server, {
+//   cors: {
+//     origin: process.env.FRONTEND_URL || '*',
+//     methods: ['GET', 'POST'],
+//     credentials: true,
+//   }
+// });
+
+//  ── CORS ──────────────────────────────────────────────────────────────────────
+// app.use(cors({
+//   origin: process.env.FRONTEND_URL || '*',
+//   credentials: true,
+// }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
