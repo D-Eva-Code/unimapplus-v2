@@ -554,8 +554,53 @@ async function requestReview(req, res) {
 // }
 
 // Vendor updates price after seeing design note
+async function approveOrder(req, res) {
+  try {
+    const vendorId = req.user.id;
+    const { order_id, total } = req.body;
+
+    const [order] = await pool.query(
+      'SELECT * FROM orders WHERE order_id = ? AND vendor_id = ?',
+      [order_id, vendorId]
+    );
+
+    if (!order[0]) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    await pool.query(
+      `UPDATE orders 
+       SET total_amount = ?, status = 'awaiting_payment'
+       WHERE order_id = ?`,
+      [total, order_id]
+    );
+
+    // notify student
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`student_${order[0].student_id}`).emit('price_updated', {
+        order_id,
+        total
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Order approved, awaiting payment'
+    });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: 'Error approving order' });
+  }
+}
+
 // async function updatePrice(req, res) {
+//   const connection = await pool.getConnection();
+
 //   try {
+//     await connection.beginTransaction();
+
 //     const vendorId = req.user.id;
 //     const { order_id, items } = req.body;
 
@@ -564,47 +609,49 @@ async function requestReview(req, res) {
 //     }
 
 //     // Verify order belongs to vendor
-//     const [order] = await pool.query(
+//     const [order] = await connection.query(
 //       'SELECT * FROM orders WHERE order_id = ? AND vendor_id = ?',
 //       [order_id, vendorId]
 //     );
 
 //     if (!order[0]) {
-//       return res.status(404).json({ success: false, message: 'Order not found' });
+//       throw new Error('Order not found');
 //     }
 
 //     let newTotal = 0;
 
-//     // Update each item price
-//     // Update each item price (with validation + safety)
-// for (const item of items) {
-//   if (!item.menu_id || item.price == null) {
-//     throw new Error('Invalid item data');
-//   }
+//     // SAFE LOOP
+//     for (const item of items) {
+//       if (!item.id || item.price == null || item.quantity == null) {
+//         throw new Error('Invalid item data');
+//       }
 
-//   const [result] = await pool.query(
-//     `UPDATE order_items 
-//      SET price = ?
-//      WHERE order_id = ? AND menu_id = ?`,
-//     [item.price, order_id, item.menu_id]
-//   );
+//       const [result] = await connection.query(
+//         `UPDATE order_items 
+//         SET price = ?
+//         WHERE id = ?`,
+//         [item.price, item.id]
+//       );
 
-//   if (result.affectedRows === 0) {
-//     throw new Error(`Item not found for menu_id ${item.menu_id}`);
-//   }
+//       if (result.affectedRows === 0) {
+//         throw new Error(`Item not found for id ${item.id}`);
+//       }
 
-//   newTotal += item.price * item.quantity;
-// }
+//       newTotal += item.price * item.quantity;
+//     }
 
 //     // Update order total + status
-//     await pool.query(
+//     await connection.query(
 //       `UPDATE orders 
 //        SET total_amount = ?, status = 'awaiting_payment'
 //        WHERE order_id = ?`,
 //       [newTotal, order_id]
 //     );
 
-//     // Notify student
+//     // Commit only if EVERYTHING worked
+//     await connection.commit();
+
+//     // Notify student (after commit)
 //     const io = req.app.get('io');
 //     if (io) {
 //       io.to(`student_${order[0].student_id}`).emit('price_updated', {
@@ -619,94 +666,19 @@ async function requestReview(req, res) {
 //     });
 
 //   } catch (err) {
+//     // Rollback EVERYTHING if any error occurs
+//     await connection.rollback();
+
 //     console.error('Update price error:', err);
-//     return res.status(500).json({ success: false, message: 'Failed to update price' });
+
+//     return res.status(500).json({
+//       success: false,
+//       message: err.message || 'Failed to update price'
+//     });
+
+//   } finally {
+//     connection.release();
 //   }
 // }
-async function updatePrice(req, res) {
-  const connection = await pool.getConnection();
-
-  try {
-    await connection.beginTransaction();
-
-    const vendorId = req.user.id;
-    const { order_id, items } = req.body;
-
-    if (!items || items.length === 0) {
-      return res.status(400).json({ success: false, message: 'No items provided' });
-    }
-
-    // Verify order belongs to vendor
-    const [order] = await connection.query(
-      'SELECT * FROM orders WHERE order_id = ? AND vendor_id = ?',
-      [order_id, vendorId]
-    );
-
-    if (!order[0]) {
-      throw new Error('Order not found');
-    }
-
-    let newTotal = 0;
-
-    // SAFE LOOP
-    for (const item of items) {
-      if (!item.id || item.price == null || item.quantity == null) {
-        throw new Error('Invalid item data');
-      }
-
-      const [result] = await connection.query(
-        `UPDATE order_items 
-        SET price = ?
-        WHERE id = ?`,
-        [item.price, item.id]
-      );
-
-      if (result.affectedRows === 0) {
-        throw new Error(`Item not found for id ${item.id}`);
-      }
-
-      newTotal += item.price * item.quantity;
-    }
-
-    // Update order total + status
-    await connection.query(
-      `UPDATE orders 
-       SET total_amount = ?, status = 'awaiting_payment'
-       WHERE order_id = ?`,
-      [newTotal, order_id]
-    );
-
-    // Commit only if EVERYTHING worked
-    await connection.commit();
-
-    // Notify student (after commit)
-    const io = req.app.get('io');
-    if (io) {
-      io.to(`student_${order[0].student_id}`).emit('price_updated', {
-        order_id,
-        total: newTotal
-      });
-    }
-
-    return res.json({
-      success: true,
-      message: 'Price updated, waiting for student payment'
-    });
-
-  } catch (err) {
-    // Rollback EVERYTHING if any error occurs
-    await connection.rollback();
-
-    console.error('Update price error:', err);
-
-    return res.status(500).json({
-      success: false,
-      message: err.message || 'Failed to update price'
-    });
-
-  } finally {
-    connection.release();
-  }
-}
 
 module.exports = { checkout, verifyPayment, paystackWebhook, confirmDelivery, getStudentOrders, getOrder, autoAssignRider, deleteOrder, requestReview, updatePrice };
