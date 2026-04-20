@@ -650,19 +650,19 @@ async function updatePrice(req, res) {
 
     // SAFE LOOP
     for (const item of items) {
-      if (!item.menu_id || item.price == null || item.quantity == null) {
+      if (!item.id || item.price == null || item.quantity == null) {
         throw new Error('Invalid item data');
       }
 
       const [result] = await connection.query(
         `UPDATE order_items 
-         SET price = ?
-         WHERE order_id = ? AND menu_id = ?`,
-        [item.price, order_id, item.menu_id]
+        SET price = ?
+        WHERE id = ?`,
+        [item.price, item.id]
       );
 
       if (result.affectedRows === 0) {
-        throw new Error(`Item not found for menu_id ${item.menu_id}`);
+        throw new Error(`Item not found for id ${item.id}`);
       }
 
       newTotal += item.price * item.quantity;
