@@ -433,7 +433,11 @@ async function deleteOrder(req, res) {
 
 // Student sends bakery order for vendor review (NO PAYMENT YET)
 async function requestReview(req, res) {
+  const connection = await pool.getConnection();
+
   try {
+    await connection.beginTransaction();
+
     const studentId = req.user.id;
     const { vendor_id, items, delivery_address } = req.body;
 
@@ -441,39 +445,37 @@ async function requestReview(req, res) {
       return res.status(400).json({ success: false, message: 'No items provided' });
     }
 
-    // Create order (NO payment yet)
     const orderId = uuidv4();
-  
-    try{
-    await pool.query(
+
+    await connection.query(
       `INSERT INTO orders (order_id, student_id, vendor_id, delivery_address, status, payment_status)
        VALUES (?, ?, ?, ?, 'pending_review', 'pending')`,
       [orderId, studentId, vendor_id, delivery_address]
     );
-    } catch (err) {
-  console.error('Failed to insert order:', err);
-  return res.status(500).json({ success: false, message: 'Order creation failed', detail: err.sqlMessage, error: err.message, sqlState: err.sqlState });
-}
-    // Save items — embed design_note into item_name since order_items has no design_note column
+
     for (const item of items) {
-      try {
-        const [menuRow] = await pool.query('SELECT item_name FROM menu_items WHERE menu_id = ?', [item.menu_id]);
-        const baseName = menuRow[0]?.item_name || 'Item';
-        const itemName = item.design_note ? `${baseName} [Design: ${item.design_note}]` : baseName;
-        await pool.query(
-          'INSERT INTO order_items (order_id, menu_id, item_name, quantity, price) VALUES (?, ?, ?, ?, ?)',
-          [orderId, item.menu_id, itemName, item.quantity, item.price || 0]
-        );
-      } catch (err) {
-        console.error('Failed to insert order item:', item, err);
-        return res.status(500).json({ success: false, message: 'Failed to add item', detail: err.sqlMessage });
+      const [menuRow] = await connection.query(
+        'SELECT item_name FROM menu_items WHERE menu_id = ?',
+        [item.menu_id]
+      );
+
+      if (!menuRow.length) {
+        throw new Error(`Menu item not found: ${item.menu_id}`);
       }
+
+      const baseName = menuRow[0].item_name;
+      const itemName = item.design_note
+        ? `${baseName} [Design: ${item.design_note}]`
+        : baseName;
+
+      await connection.query(
+        `INSERT INTO order_items (order_id, menu_id, item_name, quantity, price)
+         VALUES (?, ?, ?, ?, ?)`,
+        [orderId, item.menu_id, itemName, item.quantity, item.price || 0]
+      );
     }
-    // Notify vendor (socket)
-    const io = req.app.get('io');
-    if (io) {
-      io.to(`vendor_${vendor_id}`).emit('new_review_order', { order_id: orderId });
-    }
+
+    await connection.commit();
 
     return res.json({
       success: true,
@@ -482,16 +484,151 @@ async function requestReview(req, res) {
     });
 
   } catch (err) {
-  console.error('Request review error:', err);
-  if (err.sqlMessage) console.error('SQL Message:', err.sqlMessage);
-  if (err.code) console.error('Error code:', err.code);
-  return res.status(500).json({ success: false, message: 'Failed to request review' });
+    await connection.rollback();
+    console.error(err);
+
+    return res.status(500).json({
+      success: false,
+      message: err.message || 'Failed to request review'
+    });
+
+  } finally {
+    connection.release();
+  }
 }
-}
+// async function requestReview(req, res) {
+//   try {
+//     const studentId = req.user.id;
+//     const { vendor_id, items, delivery_address } = req.body;
+
+//     if (!items || items.length === 0) {
+//       return res.status(400).json({ success: false, message: 'No items provided' });
+//     }
+
+//     // Create order (NO payment yet)
+//     const orderId = uuidv4();
+  
+//     try{
+//     await pool.query(
+//       `INSERT INTO orders (order_id, student_id, vendor_id, delivery_address, status, payment_status)
+//        VALUES (?, ?, ?, ?, 'pending_review', 'pending')`,
+//       [orderId, studentId, vendor_id, delivery_address]
+//     );
+//     } catch (err) {
+//   console.error('Failed to insert order:', err);
+//   return res.status(500).json({ success: false, message: 'Order creation failed', detail: err.sqlMessage, error: err.message, sqlState: err.sqlState });
+// }
+//     // Save items — embed design_note into item_name since order_items has no design_note column
+//     for (const item of items) {
+//       try {
+//         const [menuRow] = await pool.query('SELECT item_name FROM menu_items WHERE menu_id = ?', [item.menu_id]);
+//         const baseName = menuRow[0]?.item_name || 'Item';
+//         const itemName = item.design_note ? `${baseName} [Design: ${item.design_note}]` : baseName;
+//         await pool.query(
+//           'INSERT INTO order_items (order_id, menu_id, item_name, quantity, price) VALUES (?, ?, ?, ?, ?)',
+//           [orderId, item.menu_id, itemName, item.quantity, item.price || 0]
+//         );
+//       } catch (err) {
+//         console.error('Failed to insert order item:', item, err);
+//         return res.status(500).json({ success: false, message: 'Failed to add item', detail: err.sqlMessage });
+//       }
+//     }
+//     // Notify vendor (socket)
+//     const io = req.app.get('io');
+//     if (io) {
+//       io.to(`vendor_${vendor_id}`).emit('new_review_order', { order_id: orderId });
+//     }
+
+//     return res.json({
+//       success: true,
+//       message: 'Order sent for vendor review',
+//       order_id: orderId
+//     });
+
+//   } catch (err) {
+//   console.error('Request review error:', err);
+//   if (err.sqlMessage) console.error('SQL Message:', err.sqlMessage);
+//   if (err.code) console.error('Error code:', err.code);
+//   return res.status(500).json({ success: false, message: 'Failed to request review' });
+// }
+// }
 
 // Vendor updates price after seeing design note
+// async function updatePrice(req, res) {
+//   try {
+//     const vendorId = req.user.id;
+//     const { order_id, items } = req.body;
+
+//     if (!items || items.length === 0) {
+//       return res.status(400).json({ success: false, message: 'No items provided' });
+//     }
+
+//     // Verify order belongs to vendor
+//     const [order] = await pool.query(
+//       'SELECT * FROM orders WHERE order_id = ? AND vendor_id = ?',
+//       [order_id, vendorId]
+//     );
+
+//     if (!order[0]) {
+//       return res.status(404).json({ success: false, message: 'Order not found' });
+//     }
+
+//     let newTotal = 0;
+
+//     // Update each item price
+//     // Update each item price (with validation + safety)
+// for (const item of items) {
+//   if (!item.menu_id || item.price == null) {
+//     throw new Error('Invalid item data');
+//   }
+
+//   const [result] = await pool.query(
+//     `UPDATE order_items 
+//      SET price = ?
+//      WHERE order_id = ? AND menu_id = ?`,
+//     [item.price, order_id, item.menu_id]
+//   );
+
+//   if (result.affectedRows === 0) {
+//     throw new Error(`Item not found for menu_id ${item.menu_id}`);
+//   }
+
+//   newTotal += item.price * item.quantity;
+// }
+
+//     // Update order total + status
+//     await pool.query(
+//       `UPDATE orders 
+//        SET total_amount = ?, status = 'awaiting_payment'
+//        WHERE order_id = ?`,
+//       [newTotal, order_id]
+//     );
+
+//     // Notify student
+//     const io = req.app.get('io');
+//     if (io) {
+//       io.to(`student_${order[0].student_id}`).emit('price_updated', {
+//         order_id,
+//         total: newTotal
+//       });
+//     }
+
+//     return res.json({
+//       success: true,
+//       message: 'Price updated, waiting for student payment'
+//     });
+
+//   } catch (err) {
+//     console.error('Update price error:', err);
+//     return res.status(500).json({ success: false, message: 'Failed to update price' });
+//   }
+// }
 async function updatePrice(req, res) {
+  const connection = await pool.getConnection();
+
   try {
+    await connection.beginTransaction();
+
     const vendorId = req.user.id;
     const { order_id, items } = req.body;
 
@@ -500,38 +637,49 @@ async function updatePrice(req, res) {
     }
 
     // Verify order belongs to vendor
-    const [order] = await pool.query(
+    const [order] = await connection.query(
       'SELECT * FROM orders WHERE order_id = ? AND vendor_id = ?',
       [order_id, vendorId]
     );
 
     if (!order[0]) {
-      return res.status(404).json({ success: false, message: 'Order not found' });
+      throw new Error('Order not found');
     }
 
     let newTotal = 0;
 
-    // Update each item price
+    // SAFE LOOP
     for (const item of items) {
-      await pool.query(
+      if (!item.menu_id || item.price == null || item.quantity == null) {
+        throw new Error('Invalid item data');
+      }
+
+      const [result] = await connection.query(
         `UPDATE order_items 
          SET price = ?
          WHERE order_id = ? AND menu_id = ?`,
         [item.price, order_id, item.menu_id]
       );
 
+      if (result.affectedRows === 0) {
+        throw new Error(`Item not found for menu_id ${item.menu_id}`);
+      }
+
       newTotal += item.price * item.quantity;
     }
 
     // Update order total + status
-    await pool.query(
+    await connection.query(
       `UPDATE orders 
        SET total_amount = ?, status = 'awaiting_payment'
        WHERE order_id = ?`,
       [newTotal, order_id]
     );
 
-    // Notify student
+    // Commit only if EVERYTHING worked
+    await connection.commit();
+
+    // Notify student (after commit)
     const io = req.app.get('io');
     if (io) {
       io.to(`student_${order[0].student_id}`).emit('price_updated', {
@@ -546,8 +694,18 @@ async function updatePrice(req, res) {
     });
 
   } catch (err) {
+    // Rollback EVERYTHING if any error occurs
+    await connection.rollback();
+
     console.error('Update price error:', err);
-    return res.status(500).json({ success: false, message: 'Failed to update price' });
+
+    return res.status(500).json({
+      success: false,
+      message: err.message || 'Failed to update price'
+    });
+
+  } finally {
+    connection.release();
   }
 }
 
