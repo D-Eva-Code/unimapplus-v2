@@ -373,12 +373,9 @@ export default function StudentDashboard() {
       clearVendorCart(vendorId);
       await loadOrders(); // pull the new pending_review order immediately
       setSelectedVendor(null); // close vendor menu
-      setTab('orders'); // go straight to orders tab — no modal needed
       setCheckoutLoading(false);
+      setTab('orders'); // go straight to orders tab
       return;
-      
-      setCheckoutLoading(false);
-      return; // so it doesn't run normal checkout below
     }
 
     // if there are NO bakery items

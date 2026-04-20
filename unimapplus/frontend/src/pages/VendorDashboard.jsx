@@ -485,10 +485,24 @@ export default function VendorDashboard() {
                             let parsedTags = [];
                             try { parsedTags = JSON.parse(item.tags||'[]'); } catch {}
                             setEditItem(item);
-                            setNewItem({item_name:item.item_name,description:item.description||'',price:item.price,prep_time: item.prep_time_unit==='days' ? Math.round(item.prep_time/(60*24)) : (item.prep_time||''), prep_time_unit: item.prep_time_unit||'mins',image:null,tags:parsedTags.join(', '),item_type:item.item_type||'food',
-      variants: (() => { try { return JSON.parse(item.variants||'[]'); } catch { return []; } })(),
-      toppings: (() => { try { return JSON.parse(item.toppings||'[]'); } catch { return []; } })(),
-    });
+                            const parseField = v => {
+                              if (!v) return [];
+                              if (Array.isArray(v)) return v;
+                              try { return JSON.parse(v); } catch { return []; }
+                            };
+                            setNewItem({
+                              item_name: item.item_name,
+                              description: item.description || '',
+                              price: item.price,
+                              prep_time: item.prep_time_unit === 'days' ? Math.round(item.prep_time / (60*24)) : (item.prep_time || ''),
+                              prep_time_unit: item.prep_time_unit || 'mins',
+                              image: null,
+                              tags: parsedTags.join(', '),
+                              item_type: item.item_type || 'food',
+                              variants: parseField(item.variants),
+                              toppings: parseField(item.toppings),
+                              allow_design_notes: item.allow_design_notes == 1,
+                            });
                             setAddMenuOpen(true);
                           }}
                             style={{flex:1,padding:'7px',background:'#f0f8f8',color:TEAL,border:`1px solid ${TEAL}44`,borderRadius:9,fontWeight:600,fontSize:12,cursor:'pointer',fontFamily:'inherit'}}>
