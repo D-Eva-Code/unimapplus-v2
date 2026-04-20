@@ -373,13 +373,18 @@ export default function StudentDashboard() {
       clearVendorCart(vendorId);
       await loadOrders(); // pull the new pending_review order immediately
       setSelectedVendor(null); // close vendor menu
+      setTab('orders'); // go straight to orders tab — no modal needed
       setCheckoutLoading(false);
-      setTab('orders'); // go straight to orders tab
       return;
+      
+      setCheckoutLoading(false);
+      return; // so it doesn't run normal checkout below
     }
 
     // if there are NO bakery items
     if (normalItems.length > 0) {
+      const currentVendorObj = vendors.find(v => v.vendor_id === vendorId);
+      const computedDeliveryFee = calcDeliveryFee(currentVendorObj?.category, deliveryAddr);
       const { data } = await api.post('/checkout', {
         vendor_id: vendorId,
         cart: normalItems.map(i => ({
@@ -390,6 +395,7 @@ export default function StudentDashboard() {
           design_note: i.design_note || '',
         })),
         delivery_address: deliveryAddr.trim(),
+        delivery_fee: computedDeliveryFee,
       });
 
       clearVendorCart(vendorId);

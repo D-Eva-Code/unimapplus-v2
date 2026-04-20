@@ -454,23 +454,25 @@ async function requestReview(req, res) {
   console.error('Failed to insert order:', err);
   return res.status(500).json({ success: false, message: 'Order creation failed', detail: err.sqlMessage, error: err.message, sqlState: err.sqlState });
 }
-    // Save items — embed design_note in item_name since order_items has no design_note column
+    // Save items WITH design_note
     for (const item of items) {
-      try {
-        // Fetch item name from DB since frontend may not send it
-        const [menuRow] = await pool.query('SELECT item_name FROM menu_items WHERE menu_id = ?', [item.menu_id]);
-        const baseName = menuRow[0]?.item_name || 'Custom Item';
-        const noteLabel = item.design_note ? ` [Design: ${item.design_note}]` : '';
-        const itemName = baseName + noteLabel;
-        await pool.query(
-          'INSERT INTO order_items (order_id, menu_id, item_name, quantity, price) VALUES (?, ?, ?, ?, ?)',
-          [orderId, item.menu_id, itemName, item.quantity, item.price || 0]
-        );
-      } catch (err) {
-        console.error('Failed to insert order item:', item, err);
-        return res.status(500).json({ success: false, message: 'Failed to add item to order', detail: err.sqlMessage });
-      }
-    }
+  try {
+    await pool.query(
+      `INSERT INTO order_items (order_id, menu_id, quantity, price, design_note)
+       VALUES (?, ?, ?, ?, ?)`,
+      [
+        orderId,
+        item.menu_id,
+        item.quantity,
+        item.price || 0,
+        item.design_note || ''
+      ]
+    );
+  } catch (err) {
+    console.error('Failed to insert order item:', item, err);
+    return res.status(500).json({ success: false, message: 'Failed to add item', detail: err.sqlMessage });
+  }
+}
     // Notify vendor (socket)
     const io = req.app.get('io');
     if (io) {
