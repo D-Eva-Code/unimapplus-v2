@@ -17,13 +17,6 @@ npm install
 cp .env.example .env      # Set VITE_API_URL
 npm run dev               # Starts on :3000
 ```
-
-### 3. Database
-Run `schema.sql` in your MySQL instance:
-```bash
-mysql -u root -p < schema.sql
-```
-
 ---
 
 
@@ -36,11 +29,11 @@ Student (Browser)
 Express API (Railway)
     ├── Auth (JWT)
     ├── Vendors + Menu (S3 images)
-    ├── Orders → Paystack (split payments)
+    ├── Orders → Paystack 
     ├── Riders (live GPS via Socket.io)
-    └── Search (MySQL JSON_CONTAINS)
+    └── Search 
     │
-    ├── MySQL (Railway plugin)
+    ├── MySQL 
     ├── AWS S3 (food images)
     └── Paystack (payments)
 ```
