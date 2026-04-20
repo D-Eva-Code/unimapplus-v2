@@ -190,8 +190,14 @@ export default function StudentDashboard() {
     try {
       const {data} = await api.get('/student/orders');
       setOrders(data.orders||[]);
-      const active = data.orders?.find(o=>!['delivered','cancelled'].includes(o.status));
-      if (active) setTrackedOrder(active);
+      // Pick the most progressed active order as the tracked one
+      // Priority: further along the delivery pipeline wins
+      const STATUS_PRIORITY = ['on_the_way','picked_up','rider_assigned','ready','preparing','accepted','awaiting_payment','paid','pending_review','pending'];
+      const activeOrders = (data.orders||[]).filter(o=>!['delivered','cancelled'].includes(o.status));
+      if (activeOrders.length > 0) {
+        const best = activeOrders.sort((a,b) => STATUS_PRIORITY.indexOf(a.status) - STATUS_PRIORITY.indexOf(b.status))[0];
+        setTrackedOrder(best);
+      }
     } catch {}
   }
   async function loadFeaturedMenu() {
@@ -1087,16 +1093,16 @@ export default function StudentDashboard() {
             <>
               <h2 style={{margin:'0 0 20px',fontSize:20,fontWeight:800,color:DARK}}>Your Orders</h2>
 
-              {/* ── LIVE TRACKING CARD ── */}
-              {trackedOrder&&!['delivered','cancelled'].includes(trackedOrder.status)&&(
-                <div style={{background:'#fff',borderRadius:16,padding:20,marginBottom:20,boxShadow:'0 2px 12px rgba(0,0,0,.07)',border:`1px solid ${TEAL}33`}}>
+              {/* ── ACTIVE ORDERS — show ALL, not just one ── */}
+              {orders.filter(o=>!['delivered','cancelled'].includes(o.status)).map(activeOrder=>(
+                <div key={activeOrder.order_id} style={{background:'#fff',borderRadius:16,padding:20,marginBottom:20,boxShadow:'0 2px 12px rgba(0,0,0,.07)',border:`1px solid ${activeOrder.order_id===trackedOrder?.order_id?TEAL:'#e8ecf0'}33`}}>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
                     <div style={{display:'flex',alignItems:'center',gap:8}}>
                       <span style={{width:8,height:8,background:'#ef4444',borderRadius:'50%',display:'inline-block',animation:'pulse 1.5s ease-in-out infinite'}}/>
-                      <h3 style={{margin:0,fontSize:15,fontWeight:800,color:DARK}}>Live Tracking</h3>
+                      <h3 style={{margin:0,fontSize:15,fontWeight:800,color:DARK}}>Active Order</h3>
                     </div>
-                    <span style={{fontSize:11,fontWeight:700,padding:'4px 12px',borderRadius:20,background:`${statusColors[trackedOrder.status]}18`,color:statusColors[trackedOrder.status]}}>
-                      {statusLabels[trackedOrder.status]}
+                    <span style={{fontSize:11,fontWeight:700,padding:'4px 12px',borderRadius:20,background:`${statusColors[activeOrder.status]}18`,color:statusColors[activeOrder.status]}}>
+                      {statusLabels[activeOrder.status]}
                     </span>
                   </div>
 
@@ -1104,11 +1110,11 @@ export default function StudentDashboard() {
                   <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16,padding:'10px 12px',background:BG,borderRadius:12}}>
                     <div style={{width:38,height:38,borderRadius:10,background:TEAL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>🍽️</div>
                     <div style={{flex:1}}>
-                      <div style={{fontWeight:700,fontSize:13,color:DARK}}>{trackedOrder.vendor_name}</div>
-                      <div style={{fontSize:11,color:'#7a90a4'}}>Order #{String(trackedOrder.order_id).slice(-6)} · ₦{Number(trackedOrder.total_amount).toLocaleString()}</div>
+                      <div style={{fontWeight:700,fontSize:13,color:DARK}}>{activeOrder.vendor_name}</div>
+                      <div style={{fontSize:11,color:'#7a90a4'}}>Order #{String(activeOrder.order_id).slice(-6)} · ₦{Number(activeOrder.total_amount||0).toLocaleString()}</div>
                     </div>
-                    {trackedOrder.driver_phone&&(
-                      <a href={`tel:${trackedOrder.driver_phone}`} style={{background:TEAL,color:'#fff',borderRadius:10,padding:'7px 12px',textDecoration:'none',fontSize:12,fontWeight:700}}>📞 Rider</a>
+                    {activeOrder.driver_phone&&(
+                      <a href={`tel:${activeOrder.driver_phone}`} style={{background:TEAL,color:'#fff',borderRadius:10,padding:'7px 12px',textDecoration:'none',fontSize:12,fontWeight:700}}>Rider</a>
                     )}
                   </div>
 
@@ -1116,30 +1122,30 @@ export default function StudentDashboard() {
                   <div style={{marginBottom:16}}>
                     {(() => {
                       const steps = [
-                        {key:'pending_review', label:'Reviewing',  icon:'📋'},
-                        {key:'paid',           label:'Paid',        icon:'💳'},
-                        {key:'accepted',       label:'Accepted',    icon:'✅'},
-                        {key:'preparing',      label:'Preparing',   icon:'👨‍🍳'},
-                        {key:'ready',          label:'Ready',       icon:'🟢'},
-                        {key:'rider_assigned', label:'Rider',       icon:'🏍️'},
-                        {key:'on_the_way',     label:'On the way',  icon:'🚀'},
-                        {key:'delivered',      label:'Delivered',   icon:'🎉'},
+                        {key:'pending_review', label:'Reviewing'},
+                        {key:'paid',           label:'Paid'},
+                        {key:'accepted',       label:'Accepted'},
+                        {key:'preparing',      label:'Preparing'},
+                        {key:'ready',          label:'Ready'},
+                        {key:'rider_assigned', label:'Rider'},
+                        {key:'on_the_way',     label:'On the way'},
+                        {key:'delivered',      label:'Delivered'},
                       ];
-                      const currentIdx = steps.findIndex(s=>s.key===trackedOrder.status);
+                      const currentIdx = steps.findIndex(s=>s.key===activeOrder.status);
                       return (
                         <div style={{display:'flex',alignItems:'center'}}>
                           {steps.map((s,i)=>{
                             const done = i <= currentIdx;
-                            const active = i === currentIdx;
+                            const isCurrent = i === currentIdx;
                             return (
                               <div key={s.key} style={{display:'flex',alignItems:'center',flex:i<steps.length-1?1:'none'}}>
                                 <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
-                                  <div style={{width:32,height:32,borderRadius:'50%',background:done?TEAL:'#e8ecf0',display:'flex',alignItems:'center',justifyContent:'center',fontSize:done?14:12,fontWeight:700,color:done?'#fff':'#b0bec5',boxShadow:active?`0 0 0 3px ${TEAL}44`:'none',transition:'all .3s'}}>
-                                    {done?s.icon:i+1}
+                                  <div style={{width:28,height:28,borderRadius:'50%',background:done?TEAL:'#e8ecf0',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:done?'#fff':'#b0bec5',boxShadow:isCurrent?`0 0 0 3px ${TEAL}44`:'none',transition:'all .3s'}}>
+                                    {i+1}
                                   </div>
-                                  <span style={{fontSize:9,fontWeight:active?700:500,color:done?TEAL:'#b0bec5',textAlign:'center',whiteSpace:'nowrap'}}>{s.label}</span>
+                                  <span style={{fontSize:8,fontWeight:isCurrent?700:500,color:done?TEAL:'#b0bec5',textAlign:'center',whiteSpace:'nowrap'}}>{s.label}</span>
                                 </div>
-                                {i<steps.length-1&&<div style={{flex:1,height:3,background:done&&i<currentIdx?TEAL:'#e8ecf0',margin:'0 4px',marginBottom:14,borderRadius:2,transition:'background .3s'}}/>}
+                                {i<steps.length-1&&<div style={{flex:1,height:3,background:done&&i<currentIdx?TEAL:'#e8ecf0',margin:'0 2px',marginBottom:14,borderRadius:2,transition:'background .3s'}}/>}
                               </div>
                             );
                           })}
@@ -1148,69 +1154,47 @@ export default function StudentDashboard() {
                     })()}
                   </div>
 
-                  {trackedOrder.status === 'awaiting_payment' && (
-                    <button
-                      onClick={() => handleFinalPayment(trackedOrder)}
-                      disabled={checkoutLoading}
-                      style={{
-                        width: '100%',
-                        padding: '14px',
-                        background: TEAL,
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: 12,
-                        fontWeight: 800,
-                        fontSize: 14,
-                        cursor: 'pointer',
-                        boxShadow: `0 4px 12px ${TEAL}44`
-                      }}
-                    >
-                      {checkoutLoading ? 'Processing...' : `Pay ₦${Number(trackedOrder.total_amount).toLocaleString()} Now`}
+                  {activeOrder.status === 'awaiting_payment' && (
+                    <button onClick={() => handleFinalPayment(activeOrder)} disabled={checkoutLoading}
+                      style={{width:'100%',padding:'14px',background:TEAL,color:'#fff',border:'none',borderRadius:12,fontWeight:800,fontSize:14,cursor:'pointer',boxShadow:`0 4px 12px ${TEAL}44`,marginBottom:12}}>
+                      {checkoutLoading ? 'Processing...' : `Pay ₦${Number(activeOrder.total_amount).toLocaleString()} Now`}
                     </button>
                   )}
 
-                  {/* Rider info if assigned */}
-                  {trackedOrder.driver_name&&(
+                  {activeOrder.driver_name&&(
                     <div style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',background:'#f0fafa',borderRadius:12,marginBottom:12}}>
                       <div style={{width:36,height:36,borderRadius:'50%',background:TEAL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>🏍️</div>
                       <div>
-                        <div style={{fontWeight:700,fontSize:13,color:DARK}}>{trackedOrder.driver_name}</div>
+                        <div style={{fontWeight:700,fontSize:13,color:DARK}}>{activeOrder.driver_name}</div>
                         <div style={{fontSize:11,color:'#7a90a4'}}>Your rider · On the way to you</div>
                       </div>
-                      <div style={{marginLeft:'auto',display:'flex',gap:6}}>
-                        <div style={{textAlign:'center'}}>
-                          <div style={{fontWeight:800,fontSize:14,color:TEAL}}>~{trackedOrder.estimated_delivery_time||30}</div>
-                          <div style={{fontSize:9,color:'#7a90a4'}}>mins ETA</div>
-                        </div>
-                      </div>
+                      <div style={{marginLeft:'auto'}}><div style={{fontWeight:800,fontSize:14,color:TEAL}}>~{activeOrder.estimated_delivery_time||30}</div><div style={{fontSize:9,color:'#7a90a4'}}>mins ETA</div></div>
                     </div>
                   )}
 
-                  {/* Delete if stuck pending */}
-                  {trackedOrder.status==='pending'&&(
-                    <button onClick={()=>deleteOrder(trackedOrder.order_id)}
+                  {activeOrder.status==='pending'&&(
+                    <button onClick={()=>deleteOrder(activeOrder.order_id)}
                       style={{background:'#fff0f0',color:'#e74c3c',border:'none',borderRadius:10,padding:'8px 14px',fontSize:12,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:12,width:'100%'}}>
                       Cancel this order
                     </button>
                   )}
-                  {trackedOrder.status==='paid'&&(
+                  {activeOrder.status==='paid'&&(
                     <div style={{background:'#fff8e1',border:'1px solid #ffc107',borderRadius:10,padding:'10px 14px',marginBottom:12,fontSize:12,color:'#856404',textAlign:'center'}}>
                       Order cannot be cancelled after payment. Contact support if needed.
                     </div>
                   )}
 
-                  {/* Order items */}
                   <div style={{background:BG,borderRadius:12,padding:'10px 14px'}}>
                     <p style={{margin:'0 0 8px',fontSize:11,fontWeight:700,color:'#7a90a4',textTransform:'uppercase',letterSpacing:.5}}>Your Items</p>
-                    {trackedOrder.items?.map((item,i)=>(
-                      <div key={i} style={{display:'flex',justifyContent:'space-between',fontSize:13,marginBottom:i<trackedOrder.items.length-1?4:0}}>
+                    {activeOrder.items?.map((item,i)=>(
+                      <div key={i} style={{display:'flex',justifyContent:'space-between',fontSize:13,marginBottom:i<activeOrder.items.length-1?4:0}}>
                         <span style={{color:DARK}}>{item.item_name} ×{item.quantity}</span>
                         <span style={{fontWeight:600,color:'#7a90a4'}}>₦{(item.price*item.quantity).toLocaleString()}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
+              ))}
 
               {/* ── ORDER HISTORY grouped by vendor ── */}
               {orders.filter(o=>['delivered','cancelled'].includes(o.status)).length > 0 && (
