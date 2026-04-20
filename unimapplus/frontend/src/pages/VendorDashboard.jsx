@@ -133,16 +133,14 @@ export default function VendorDashboard() {
 
   async function approveCustomOrder(orderId, price) {
   try {
-    //update order status to 'awaiting_payment' 
-    //and set the total_amount in database.
-    await api.put(`/vendor/orders/${orderId}/approve-design`, { 
-      total_amount: parseFloat(price) 
+    // POST /vendor/update-price expects { order_id, total }
+    await api.post('/vendor/update-price', {
+      order_id: orderId,
+      total: parseFloat(price)
     });
-    
-    // Update local state to show it's now waiting for payment
-    setOrders(prev => prev.map(o => 
-      o.order_id === orderId 
-        ? { ...o, status: 'awaiting_payment', total_amount: price, vendor_amount: price } 
+    setOrders(prev => prev.map(o =>
+      o.order_id === orderId
+        ? { ...o, status: 'awaiting_payment', total_amount: price, vendor_amount: price }
         : o
     ));
   } catch (e) {

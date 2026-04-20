@@ -448,8 +448,8 @@ async function requestReview(req, res) {
     const orderId = uuidv4();
 
     await connection.query(
-      `INSERT INTO orders (order_id, student_id, vendor_id, delivery_address, status, payment_status)
-       VALUES (?, ?, ?, ?, 'pending_review', 'pending')`,
+      `INSERT INTO orders (order_id, student_id, vendor_id, total_amount, delivery_fee, vendor_amount, rider_amount, delivery_address, status, payment_status)
+       VALUES (?, ?, ?, 0, 0, 0, 0, ?, 'pending_review', 'pending')`,
       [orderId, studentId, vendor_id, delivery_address]
     );
 
