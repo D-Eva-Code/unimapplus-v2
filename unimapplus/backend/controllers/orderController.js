@@ -570,9 +570,9 @@ async function updatePrice(req, res) {
 
     await pool.query(
       `UPDATE orders 
-       SET total_amount = ?, status = 'awaiting_payment'
+       SET total_amount = ?, vendor_amount = ?, status = 'awaiting_payment'
        WHERE order_id = ?`,
-      [total, order_id]
+      [total, total, order_id]
     );
 
     // notify student
