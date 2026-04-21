@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import useCartStore from '../store/cartStore';
 import { useOrderTracking } from '../hooks/useSocket';
-import { Store, Home, GraduationCap, MapPin, Bike, Football, Lock, Package, Map, House, Door, Utensils } from "lucide-react";
+import { Store, Home, GraduationCap, MapPin, Bike, Football, Lock, Package, Map, House, DoorClosed, Utensils } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 
 const TEAL = '#0BBFBF';
@@ -1308,7 +1308,7 @@ export default function StudentDashboard() {
                   </button>
                 ))}
                 <button onClick={logout} style={{width:'100%',display:'flex',alignItems:'center',gap:14,padding:'16px 18px',border:'none',borderTop:'1px solid #f0f0f0',background:'#fff',cursor:'pointer',fontFamily:'inherit'}}>
-                  <Door size={20} style={{ color: "#5C3A21" }} />
+                  <DoorClosed size={20} style={{ color: "#5C3A21" }} />
                   <span style={{fontWeight:600,fontSize:14,color:'#dc2626'}}>Logout</span>
                 </button>
               </div>
