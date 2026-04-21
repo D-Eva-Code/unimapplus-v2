@@ -465,9 +465,13 @@ export default function VendorDashboard() {
               fontSize: 13,
               cursor: "pointer",
               fontFamily: "inherit",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6
             }}
           >
-            <DoorClosed size={16} /> Logout
+            <DoorClosed size={18} /> Logout
           </button>
         </div>
       </div>
@@ -496,9 +500,9 @@ export default function VendorDashboard() {
           >
             <div style={{ display: "flex", maxWidth: 480, margin: "0 auto" }}>
               {[
-                ["orders", <ClipboardList size={16} />, "Orders"],
-                ["menu", <Utensils size={16} />, "Menu"],
-                ["history", <History size={16} />, "History"],
+                ["orders", <ClipboardList size={18} />, "Orders"],
+                ["menu", <Utensils size={18} />, "Menu"],
+                ["history", <History size={18} />, "History"],
               ].map(([id, icon, label]) => {
                 const active = activeSection === id;
                 return (
