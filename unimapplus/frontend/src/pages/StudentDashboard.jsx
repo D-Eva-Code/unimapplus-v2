@@ -3623,17 +3623,17 @@ export default function StudentDashboard() {
               >
                 {[
                   [
-                    <Package size={30} style={{ color: "#FF6B6B" }} />,
+                    <Package size={30} style={{ color: "#7a90a4" }} />,
                     "My Orders",
                     "orders",
                   ],
                   [
-                    <Map size={30} style={{ color: "#4D96FF" }} />,
+                    <Map size={30} style={{ color: "#7a90a4" }} />,
                     "Campus Map",
                     "map",
                   ],
                   [
-                    <House size={30} style={{ color: "#6BCB77" }} />,
+                    <House size={30} style={{ color: "#7a90a4" }} />,
                     "Home",
                     "home",
                   ],
