@@ -1,8 +1,34 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { GraduationCap, Store, Bike } from "lucide-react";
 import api from "../services/api";
 
+// const ROLES = [
+//   {
+//     id: "student",
+//     label: "Student",
+//     desc: "Order food from campus vendors",
+//     color: "#0BBFBF",
+//     bg: "#e6fafa",
+//     emoji: "🎓",
+//   },
+//   {
+//     id: "vendor",
+//     label: "Vendor",
+//     desc: "Manage your food business",
+//     color: "#E87C2A",
+//     bg: "#fef3e8",
+//     emoji: "🍽️",
+//   },
+//   {
+//     id: "driver",
+//     label: "Rider",
+//     desc: "Deliver orders on campus",
+//     color: "#5B4FCF",
+//     bg: "#eeecfa",
+//     emoji: "🏍️",
+//   },
 const ROLES = [
   {
     id: "student",
@@ -10,7 +36,7 @@ const ROLES = [
     desc: "Order food from campus vendors",
     color: "#0BBFBF",
     bg: "#e6fafa",
-    emoji: "🎓",
+    icon: GraduationCap,
   },
   {
     id: "vendor",
@@ -18,7 +44,7 @@ const ROLES = [
     desc: "Manage your food business",
     color: "#E87C2A",
     bg: "#fef3e8",
-    emoji: "🍽️",
+    icon: Store,
   },
   {
     id: "driver",
@@ -26,9 +52,10 @@ const ROLES = [
     desc: "Deliver orders on campus",
     color: "#5B4FCF",
     bg: "#eeecfa",
-    emoji: "🏍️",
+    icon: Bike,
   },
 ];
+
 
 export default function Login() {
   const { login } = useAuth();
@@ -143,60 +170,64 @@ export default function Login() {
             >
               Select your role to continue
             </p>
-            {ROLES.map((r) => (
-              <button
-                key={r.id}
-                onClick={() => selectRole(r.id)}
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 14,
-                  padding: "16px 18px",
-                  marginBottom: 12,
-                  border: `2px solid ${r.color}`,
-                  borderRadius: 16,
-                  background: "#fff",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  textAlign: "left",
-                  transition: "background .15s",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = r.bg)}
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "#fff")
-                }
-              >
-                <div
+            {ROLES.map((r) => {
+              const Icon = r.icon;
+
+              return (
+                <button
+                  key={r.id}
+                  onClick={() => selectRole(r.id)}
                   style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 12,
-                    background: r.bg,
+                    width: "100%",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 22,
-                    flexShrink: 0,
+                    gap: 14,
+                    padding: "16px 18px",
+                    marginBottom: 12,
+                    border: `2px solid ${r.color}`,
+                    borderRadius: 16,
+                    background: "#fff",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    textAlign: "left",
+                    transition: "background .15s",
                   }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = r.bg)}
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = "#fff")
+                  }
                 >
-                  {r.emoji}
-                </div>
-                <div style={{ flex: 1 }}>
                   <div
-                    style={{ fontWeight: 800, fontSize: 15, color: "#1a1a2e" }}
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 12,
+                      background: r.bg,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
                   >
-                    {r.label}
+                    {/* {r.emoji} */}
+                    <Icon size={22} style={{ color: r.color }} />
                   </div>
-                  <div style={{ fontSize: 12, color: "#7a7a9a", marginTop: 2 }}>
-                    {r.desc}
+
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 800, fontSize: 15, color: "#1a1a2e" }}>
+                      {r.label}
+                    </div>
+                    <div style={{ fontSize: 12, color: "#7a7a9a", marginTop: 2 }}>
+                      {r.desc}
+                    </div>
                   </div>
-                </div>
-                <span style={{ color: r.color, fontSize: 20, fontWeight: 700 }}>
-                  ›
-                </span>
-              </button>
-            ))}
+
+                  <span style={{ color: r.color, fontSize: 20, fontWeight: 700 }}>
+                    ›
+                  </span>
+                </button>
+              );
+            })}
             <p
               style={{
                 textAlign: "center",
