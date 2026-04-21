@@ -2,6 +2,21 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { getSocket } from '../hooks/useSocket';
+import {
+  Store,
+  Home,
+  GraduationCap,
+  MapPin,
+  Bike,
+  Trophy,
+  Lock,
+  Package,
+  Map,
+  House,
+  DoorClosed,
+  Utensils,
+  ClipboardList, Wallet
+} from "lucide-react";
 
 const TEAL = '#0BBFBF';
 const BG   = '#f0f5f5';
@@ -159,7 +174,20 @@ export default function RiderDashboard() {
   const avail  = dashboard?.availableOrders || [];
 
   const nextStatus = { rider_assigned:'picked_up', picked_up:'on_the_way' };
-  const nextLabel  = { rider_assigned:'📦 Picked Up from Vendor', picked_up:'🏍️ I\'m On the Way' };
+const nextLabel = {
+  rider_assigned: (
+    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <Package size={12} />
+      Picked Up from Vendor
+    </span>
+  ),
+  picked_up: (
+    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <Bike size={12} />
+      I'm On the Way
+    </span>
+  )
+};
 
   return (
     <div style={{minHeight:'100vh',fontFamily:"'Plus Jakarta Sans',sans-serif",background:BG}}>
@@ -207,11 +235,52 @@ export default function RiderDashboard() {
 
       {/* ── TABS ── */}
       <div style={{background:'#fff',padding:'0 16px',borderBottom:'1px solid #e0eeee',display:'flex',gap:0}}>
-        {[['active',`🏍️ Active${active.length>0?` (${active.length})`:''}` ],['available',`📋 Available${avail.length>0?` (${avail.length})`:''}` ],['earnings','💰 Earnings']].map(([id,label])=>(
-          <button key={id} onClick={()=>setTab(id)}
-            style={{flex:1,padding:'13px 8px',border:'none',borderBottom:`2.5px solid ${tab===id?TEAL:'transparent'}`,background:'none',fontWeight:tab===id?700:500,fontSize:12,color:tab===id?TEAL:'#7a90a4',cursor:'pointer',fontFamily:'inherit',transition:'all .15s'}}>
-            {label}
-          </button>
+  {[
+    [
+      'active',
+      <>
+        <Bike size={14} />
+        Active{active.length > 0 ? ` (${active.length})` : ''}
+      </>
+    ],
+    [
+      'available',
+      <>
+        <ClipboardList size={14} />
+        Available{avail.length > 0 ? ` (${avail.length})` : ''}
+      </>
+    ],
+    [
+      'earnings',
+      <>
+        <Wallet size={14} />
+        Earnings
+      </>
+    ]
+  ].map(([id, label]) => (
+          <button
+  key={id}
+  onClick={() => setTab(id)}
+  style={{
+    flex: 1,
+    padding: '13px 8px',
+    border: 'none',
+    borderBottom: `2.5px solid ${tab === id ? TEAL : 'transparent'}`,
+    background: 'none',
+    fontWeight: tab === id ? 700 : 500,
+    fontSize: 12,
+    color: tab === id ? TEAL : '#7a90a4',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    transition: 'all .15s',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6
+  }}
+>
+  {label}
+</button>
         ))}
       </div>
 
@@ -221,7 +290,7 @@ export default function RiderDashboard() {
         {tab==='active' && (
           active.length===0 ? (
             <div style={{textAlign:'center',padding:'52px 20px',color:'#7a90a4'}}>
-              <div style={{fontSize:52,marginBottom:12}}>🏍️</div>
+              <div style={{fontSize:52,marginBottom:12}}><Bike size={52} style={{ color: TEAL }} /></div>
               <p style={{fontSize:14,marginBottom:16}}>No active deliveries. Check available orders to accept one.</p>
               <button onClick={()=>setTab('available')} style={{background:TEAL,color:'#fff',border:'none',borderRadius:20,padding:'10px 24px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>View Available</button>
             </div>
@@ -340,15 +409,15 @@ export default function RiderDashboard() {
                 </div>
                 <div style={{padding:'14px 16px'}}>
                   <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
-                    <span style={{fontSize:13}}>🏪</span>
+                    <span style={{fontSize:13}}><Store size={13} /></span>
                     <div><div style={{fontSize:10,color:'#7a90a4',fontWeight:600}}>Pick up from</div><div style={{fontWeight:700,fontSize:13,color:DARK}}>{order.vendor_name}</div></div>
                   </div>
                   <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
-                    <span style={{fontSize:13}}>📍</span>
+                    <span style={{fontSize:13}}><MapPin size={13} /></span>
                     <div><div style={{fontSize:10,color:'#7a90a4',fontWeight:600}}>Deliver to</div><div style={{fontWeight:700,fontSize:13,color:DARK}}>{order.delivery_address||'Campus'}</div></div>
                   </div>
                   <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14,padding:'8px 12px',background:BG,borderRadius:10}}>
-                    <span style={{fontSize:14}}>💰</span>
+                    <span style={{fontSize:14}}><Wallet size={14} /></span>
                     <span style={{fontWeight:800,fontSize:14,color:TEAL}}>₦{Number(order.rider_amount||200).toLocaleString()}</span>
                     <span style={{fontSize:11,color:'#7a90a4'}}>· your earnings</span>
                   </div>
@@ -379,7 +448,7 @@ export default function RiderDashboard() {
       {proximityError && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)',zIndex:700,display:'flex',alignItems:'center',justifyContent:'center',padding:24}}>
           <div style={{background:'#fff',borderRadius:20,width:'100%',maxWidth:340,padding:28,boxShadow:'0 20px 60px rgba(0,0,0,.3)',textAlign:'center'}}>
-            <div style={{fontSize:48,marginBottom:12}}>📍</div>
+            <div style={{fontSize:48,marginBottom:12}}><MapPin size={48} style={{ color: '#0BBFBF' }} /></div>
             <h3 style={{margin:'0 0 10px',fontWeight:800,color:'#1a1a2e',fontSize:17}}>Too Far From Delivery Location</h3>
             <p style={{margin:'0 0 20px',fontSize:14,color:'#7a90a4',lineHeight:1.6}}>{proximityError.message}</p>
             <div style={{background:'#fff3cd',borderRadius:12,padding:'10px 14px',marginBottom:20,fontSize:12,color:'#856404'}}>
@@ -422,7 +491,7 @@ function EarningsHistory() {
       {orders.length>0&&(
         <div style={{background:'#fff',borderRadius:14,padding:'16px 18px',marginBottom:14,display:'flex',justifyContent:'space-between',alignItems:'center',border:'1px solid #e0f5f5'}}>
           <div><div style={{fontSize:11,color:'#7a90a4',fontWeight:600,textTransform:'uppercase',letterSpacing:.5}}>Total Earned</div><div style={{fontWeight:900,fontSize:22,color:'#0BBFBF'}}>₦{totalEarned.toLocaleString()}</div></div>
-          <span style={{fontSize:32}}>💰</span>
+          <span style={{fontSize:32}}><Wallet size={32} style={{ color: '#0BBFBF' }} /></span>
         </div>
       )}
       <h3 style={{margin:'0 0 12px',fontSize:14,fontWeight:700,color:'#7a90a4',textTransform:'uppercase',letterSpacing:.5}}>Delivery History</h3>
