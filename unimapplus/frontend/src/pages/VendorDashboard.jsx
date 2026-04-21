@@ -1,6 +1,17 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
+import {
+  Store,
+  Home,
+  MapPin,
+  Coffee,
+  Lock,
+  Package,
+  DoorClosed,
+  Utensils,
+  ClipboardList, Wallet, History
+} from "lucide-react";
 import { getSocket } from "../hooks/useSocket";
 
 const TEAL = "#0BBFBF";
@@ -346,9 +357,9 @@ export default function VendorDashboard() {
         {/* Nav */}
         <div style={{ padding: "12px 12px", flex: 1 }}>
           {[
-            ["orders", "📋", "Orders"],
-            ["menu", "🍽️", "Menu"],
-            ["history", "📊", "History"],
+            ["orders", <ClipboardList size={16} />, "Orders"],
+            ["menu", <Utensils size={16} />, "Menu"],
+            ["history", <History size={16} />, "History"],
           ].map(([id, icon, label]) => {
             const active = activeSection === id;
             return (
@@ -456,7 +467,7 @@ export default function VendorDashboard() {
               fontFamily: "inherit",
             }}
           >
-            🚪 Logout
+            <DoorClosed size={16} /> Logout
           </button>
         </div>
       </div>
@@ -485,9 +496,9 @@ export default function VendorDashboard() {
           >
             <div style={{ display: "flex", maxWidth: 480, margin: "0 auto" }}>
               {[
-                ["orders", "📋", "Orders"],
-                ["menu", "🍽️", "Menu"],
-                ["history", "📊", "History"],
+                ["orders", <ClipboardList size={16} />, "Orders"],
+                ["menu", <Utensils size={16} />, "Menu"],
+                ["history", <History size={16} />, "History"],
               ].map(([id, icon, label]) => {
                 const active = activeSection === id;
                 return (
@@ -709,12 +720,12 @@ export default function VendorDashboard() {
             {
               label: "Orders Today",
               value: stats?.today_orders ?? 0,
-              icon: "📦",
+              icon: <Package size={20} />,
             },
             {
               label: "Revenue Today",
               value: `₦${Number(stats?.today_earnings || 0).toLocaleString()}`,
-              icon: "💰",
+              icon: <Wallet size={20} />,
             },
             { label: "Pending", value: activeOrders.length, icon: "⏳" },
             {
@@ -779,7 +790,7 @@ export default function VendorDashboard() {
                   border: "1px solid #e8f0f0",
                 }}
               >
-                <div style={{ fontSize: 40, marginBottom: 10 }}>🍽️</div>
+                <div style={{ fontSize: 40, marginBottom: 10 }}><Utensils size={40} /></div>
                 <p style={{ fontSize: 14, margin: 0 }}>
                   No active orders right now. Orders will appear here in
                   real-time.
@@ -846,7 +857,7 @@ export default function VendorDashboard() {
                                 marginTop: 2,
                               }}
                             >
-                              📍 {order.delivery_address}
+                              <MapPin size={16} style={{ color: '#0BBFBF' }} /> {order.delivery_address}
                             </div>
                           )}
                         </div>
@@ -880,7 +891,7 @@ export default function VendorDashboard() {
                         </div>
                       </div>
 
-                      {/* 🎨 SHOW DESIGN NOTES HERE */}
+                      {/* SHOW DESIGN NOTES HERE */}
                       {order.items?.some((i) => i.design_note) && (
                         <div
                           style={{
@@ -1071,7 +1082,7 @@ export default function VendorDashboard() {
                               fontFamily: "inherit",
                             }}
                           >
-                            👨‍🍳 Start Preparing
+                            Start Preparing
                           </button>
                         )}
                         {order.status === "preparing" && (
@@ -1273,7 +1284,7 @@ export default function VendorDashboard() {
                             fontSize: 42,
                           }}
                         >
-                          🍽️
+                          <Utensils size={42} color={TEAL} />
                         </div>
                       )}
                       <div style={{ padding: "12px 14px" }}>
@@ -1587,8 +1598,8 @@ export default function VendorDashboard() {
 
                   <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
                     {[
-                      ["food", "🍽️ Food", "Packing fee applies"],
-                      ["drink", "🥤 Drink", "No packing fee"],
+                      ["food", <Utensils size={16} />, "Packing fee applies"],
+                      ["drink", <Coffee size={16} />, "No packing fee"],
                     ].map(([type, label, hint]) => (
                       <div
                         key={type}
