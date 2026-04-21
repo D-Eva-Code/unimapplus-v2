@@ -647,7 +647,7 @@ export default function StudentDashboard() {
               <div key={i} onClick={r.action} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 8px',borderRadius:10,cursor:'pointer',marginBottom:4}}
                 onMouseEnter={e=>e.currentTarget.style.background='#f5f6fa'}
                 onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
-                {r.img?<img src={r.img} alt="" style={{width:36,height:36,borderRadius:8,objectFit:'cover'}}/>:<span style={{fontSize:22}}>{r.emoji||(<Utensils size={22} />)}</span>}
+                {r.img?<img src={r.img} alt="" style={{width:36,height:36,borderRadius:8,objectFit:'cover'}}/>:<span style={{fontSize:22}}>{r.emoji}</span>}
                 <div><div style={{fontWeight:700,fontSize:14}}>{r.name}</div><div style={{fontSize:11,color:'#7a90a4'}}>{r.sub}</div></div>
                 <span style={{marginLeft:'auto',color:'#7a90a4'}}><IcChevron/></span>
               </div>
@@ -810,7 +810,7 @@ export default function StudentDashboard() {
              <Utensils size={12} />{CAT_LABELS[v.category] || ' Food'}
           </div>
           <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>
-            <Bike size={12} /> {getDeliveryFeeLabel(v.category)}
+            <Bike size={12} />  {getDeliveryFeeLabel(v.category)}
           </div>
         </div>
       </div>
