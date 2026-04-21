@@ -738,14 +738,14 @@ export default function VendorDashboard() {
                 vendor?.rating > 0 ? (
                 <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
                   {Number(vendor.rating).toFixed(1)}
-                  <Star size={12} color="#facc15"/>
+                  <Star size={18} color="#facc15"/>
                 </span>
               ) : (
                 <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  — <Star size={12} color="#facc15"/>
+                  — <Star size={18} color="#facc15"/>
                 </span>
               ),
-              icon: <Star size={12} color="#facc15" />,
+              icon: <Star size={18} color="#facc15" />,
             },
           ].map((s) => (
             <div
