@@ -807,7 +807,7 @@ export default function StudentDashboard() {
             {v.vendor_name}
           </div>
           <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.9)', background: 'rgba(0,0,0,0.3)', padding: '2px 6px', borderRadius: 10, display: 'inline-block' }}>
-             <Utensils size={12} />{CAT_LABELS[v.category] || ' Food'}
+             {CAT_LABELS[v.category] || ' Food'}
           </div>
           <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>
             <Bike size={12} />  {getDeliveryFeeLabel(v.category)}
@@ -1299,7 +1299,7 @@ export default function StudentDashboard() {
                 <span style={{display:'inline-block',marginTop:8,background:'#e6fafa',color:TEAL,fontSize:11,fontWeight:700,padding:'4px 12px',borderRadius:20}}>Student</span>
               </div>
               <div style={{background:'#fff',borderRadius:16,overflow:'hidden',boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
-                {[[(<Package size={52} style={{ color: "#7a90a4" }} />),'My Orders','orders'],[(<Map size={52} style={{ color: "#7a90a4" }} />),'Campus Map','map'],[(<House size={52} style={{ color: "#7a90a4" }} />),'Home','home']].map(([icon,label,target],i,arr)=>(
+                {[[(<Package size={30} style={{ color: "#FF6B6B" }} />),'My Orders','orders'],[(<Map size={30} style={{ color: "#4D96FF" }} />),'Campus Map','map'],[(<House size={30} style={{ color: "#6BCB77" }} />),'Home','home']].map(([icon,label,target],i,arr)=>(
                   <button key={target} onClick={()=>setTab(target)}
                     style={{width:'100%',display:'flex',alignItems:'center',gap:14,padding:'16px 18px',border:'none',borderBottom:i<arr.length-1?'1px solid #f0f0f0':'none',background:'#fff',cursor:'pointer',fontFamily:'inherit'}}>
                     <span style={{fontSize:20}}>{icon}</span>
@@ -1308,7 +1308,7 @@ export default function StudentDashboard() {
                   </button>
                 ))}
                 <button onClick={logout} style={{width:'100%',display:'flex',alignItems:'center',gap:14,padding:'16px 18px',border:'none',borderTop:'1px solid #f0f0f0',background:'#fff',cursor:'pointer',fontFamily:'inherit'}}>
-                  <DoorClosed size={20} style={{ color: "#5C3A21" }} />
+                  <DoorClosed size={30} style={{ color: "#5C3A21" }} />
                   <span style={{fontWeight:600,fontSize:14,color:'#dc2626'}}>Logout</span>
                 </button>
               </div>
