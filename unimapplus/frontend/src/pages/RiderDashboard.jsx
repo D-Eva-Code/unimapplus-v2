@@ -196,7 +196,7 @@ const nextLabel = {
       <div style={{background:`linear-gradient(135deg,${TEAL},#089898)`,padding:'20px 20px 28px',position:'relative'}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:20}}>
           <div style={{display:'flex',alignItems:'center',gap:12}}>
-            <div style={{width:44,height:44,borderRadius:'50%',background:'rgba(255,255,255,.2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22}}>🏍️</div>
+            <div style={{width:44,height:44,borderRadius:'50%',background:'rgba(255,255,255,.2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22}}><Bike size={22} style={{ color: '#fff' }} /></div>
             <div>
               <div style={{fontWeight:900,fontSize:17,color:'#fff'}}>{rider?.fullname}</div>
               <div style={{fontSize:11,color:'rgba(255,255,255,.75)',display:'flex',alignItems:'center',gap:5}}>
