@@ -792,23 +792,19 @@ export default function Signup() {
           >
             <div
               style={{
-                width: 34,
-                height: 34,
-                background: "#fff",
-                borderRadius: 5,
+                width: 30,
+                height: 30,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: "0 4px 16px rgba(11,191,191,0.3)",
               }}
             >
               <img
-                src="/logo.png"
+                src="/logo_white.png"
                 alt="Unimap+ Logo"
                 style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: 5,
+                  width: 30,
+                  height: 30,
                   display: "block",
                   objectFit: "contain",
                 }}
