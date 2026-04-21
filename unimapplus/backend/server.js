@@ -16,7 +16,6 @@ const allowedOrigin = (origin, callback) => {
   if (
     !origin ||
     origin === production ||
-    origin.endsWith('.vercel.app') ||
     origin === 'http://localhost:3000')
  {
     callback(null, true);

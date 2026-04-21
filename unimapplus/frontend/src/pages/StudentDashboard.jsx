@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import useCartStore from '../store/cartStore';
 import { useOrderTracking } from '../hooks/useSocket';
+import { Store, Home, GraduationCap, MapPin, Bike, Football, Lock, Package, Map, House, Door } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 
 const TEAL = '#0BBFBF';
@@ -460,7 +461,7 @@ export default function StudentDashboard() {
         setNearbyLocations(locs);
         locs.forEach(loc=>{
           const isEatery = loc.category === 'eatery';
-          const catEmoji = loc.category==='eatery'?'🍽️':loc.category==='hostel'?'🏠':loc.category==='sports'?'⚽':loc.category==='faculty'?'🎓':'📍';
+          const catEmoji = loc.category==='eatery'?<Store size={16} />:loc.category==='hostel'?<Home size={16} />:loc.category==='sports'?<Football size={16} />:loc.category==='faculty'?<GraduationCap size={16} />:<MapPin size={16} />;
           const icon = L.divIcon({
             html:`<div style="background:${isEatery?TEAL:'#0d2137'};width:30px;height:30px;border-radius:50%;border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.3)">${catEmoji}</div>`,
             iconSize:[30,30], iconAnchor:[15,15], className:''
@@ -640,7 +641,7 @@ export default function StudentDashboard() {
               <span style={{fontSize:13,fontWeight:700}}>Results for "{searchQ}"</span>
               <button onClick={()=>{setSearchResults(null);setSearchQ('');}} style={{background:'none',border:'none',cursor:'pointer',fontSize:18,color:'#7a90a4'}}>×</button>
             </div>
-            {[...(searchResults.vendors||[]).map(v=>({name:v.vendor_name,sub:v.is_open?'✅ Open':'❌ Closed',emoji:'🏪',action:()=>{openVendor(v);setSearchResults(null);setSearchQ('');}})),
+            {[...(searchResults.vendors||[]).map(v=>({name:v.vendor_name,sub:v.is_open?'✅ Open':'❌ Closed',emoji:<Store size={16}/>,action:()=>{openVendor(v);setSearchResults(null);setSearchQ('');}})),
               ...(searchResults.foods||[]).map(f=>({name:f.item_name,sub:`${f.vendor_name} · ₦${f.price}`,img:f.image_url,action:()=>{openVendor({vendor_id:f.vendor_id,vendor_name:f.vendor_name});setSearchResults(null);setSearchQ('');}})),
             ].map((r,i)=>(
               <div key={i} onClick={r.action} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 8px',borderRadius:10,cursor:'pointer',marginBottom:4}}
@@ -664,7 +665,7 @@ export default function StudentDashboard() {
               {/* Active order banner */}
               {trackedOrder&&!['delivered','cancelled'].includes(trackedOrder.status)&&(
                 <div onClick={()=>setTab('orders')} style={{background:'linear-gradient(135deg,#0BBFBF,#089898)',borderRadius:14,padding:'12px 16px',marginBottom:16,cursor:'pointer',display:'flex',alignItems:'center',gap:12}}>
-                  <span style={{fontSize:22}}>🏍️</span>
+                  <Bike size={18} style={{ color: "#fff" }} />
                   <div style={{flex:1}}>
                     <p style={{margin:0,color:'#fff',fontWeight:700,fontSize:13}}>Order in progress!</p>
                     <p style={{margin:'2px 0 0',color:'rgba(255,255,255,.8)',fontSize:11}}>{statusLabels[trackedOrder.status]} · Tap to track</p>
@@ -834,7 +835,7 @@ export default function StudentDashboard() {
                       {item.image_url
                         ? <img src={item.image_url} alt={item.item_name} style={{width:'100%',height:110,objectFit:'cover'}}/>
                         : <div style={{height:110,background:`linear-gradient(135deg,${['#1a4a3a','#2d1a4a','#4a2a0a','#1a2a4a','#3a1a1a','#1a3a2a'][i%6]},#0d2137)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:36}}>
-                            {CAT_LABELS[item.category]?.split(' ')[0] || '🍽️'}
+                            {CAT_LABELS[item.category]?.split(' ')[0] || <Store size={18} style={{ color: "#fff" }} />}
                           </div>
                       }
                       <div style={{padding:'10px 12px'}}>
@@ -881,7 +882,7 @@ export default function StudentDashboard() {
 
               {!selectedVendor.is_open && (
                 <div style={{background:'#fff3cd',border:'1px solid #ffc107',borderRadius:12,padding:'12px 16px',marginBottom:16,display:'flex',alignItems:'center',gap:10}}>
-                  <span style={{fontSize:20}}>🔒</span>
+                  <Lock size={20} style={{ color: "#856404" }} />
                   <div>
                     <div style={{fontWeight:700,fontSize:14,color:'#856404'}}>This eatery is currently closed</div>
                     <div style={{fontSize:12,color:'#856404',marginTop:2}}>You can browse the menu but ordering is disabled until they open.</div>
@@ -1093,7 +1094,7 @@ export default function StudentDashboard() {
                     onMouseEnter={e=>e.currentTarget.style.boxShadow='0 4px 12px rgba(0,0,0,.1)'}
                     onMouseLeave={e=>e.currentTarget.style.boxShadow='0 1px 3px rgba(0,0,0,.05)'}>
                     <div style={{width:32,height:32,borderRadius:8,background:'#f0fafa',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:14}}>
-                      {loc.category==='eatery'?'🍽️':loc.category==='hostel'?'🏠':loc.category==='sports'?'⚽':'📍'}
+                      {loc.category==='eatery'?(<Store size={16} />):loc.category==='hostel'?(<Home size={16} />):loc.category==='sports'?(<Football size={16} />):(<MapPin size={16} />)}
                     </div>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{fontWeight:700,fontSize:13,color:DARK,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{loc.name}</div>
@@ -1111,7 +1112,7 @@ export default function StudentDashboard() {
             <>
               <h2 style={{margin:'0 0 20px',fontSize:20,fontWeight:800,color:DARK}}>Your Orders</h2>
 
-              {/* ── ACTIVE ORDERS — show ALL, not just one ── */}
+              {/* ── show all ACTIVE ORDERS */}
               {orders.filter(o=>!['delivered','cancelled'].includes(o.status)).map(activeOrder=>(
                 <div key={activeOrder.order_id} style={{background:'#fff',borderRadius:16,padding:20,marginBottom:20,boxShadow:'0 2px 12px rgba(0,0,0,.07)',border:`1px solid ${activeOrder.order_id===trackedOrder?.order_id?TEAL:'#e8ecf0'}33`}}>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
@@ -1126,7 +1127,7 @@ export default function StudentDashboard() {
 
                   {/* Vendor info */}
                   <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16,padding:'10px 12px',background:BG,borderRadius:12}}>
-                    <div style={{width:38,height:38,borderRadius:10,background:TEAL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>🍽️</div>
+                    <div style={{width:38,height:38,borderRadius:10,background:TEAL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}><Store size={18} style={{ color: "#fff" }} /></div>
                     <div style={{flex:1}}>
                       <div style={{fontWeight:700,fontSize:13,color:DARK}}>{activeOrder.vendor_name}</div>
                       <div style={{fontSize:11,color:'#7a90a4'}}>Order #{String(activeOrder.order_id).slice(-6)} · ₦{Number(activeOrder.total_amount||0).toLocaleString()}</div>
@@ -1193,7 +1194,7 @@ export default function StudentDashboard() {
 
                   {activeOrder.driver_name&&(
                     <div style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',background:'#f0fafa',borderRadius:12,marginBottom:12}}>
-                      <div style={{width:36,height:36,borderRadius:'50%',background:TEAL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>🏍️</div>
+                      <div style={{width:36,height:36,borderRadius:'50%',background:TEAL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}><Bike size={18} style={{ color: "#fff" }} /></div>
                       <div>
                         <div style={{fontWeight:700,fontSize:13,color:DARK}}>{activeOrder.driver_name}</div>
                         <div style={{fontSize:11,color:'#7a90a4'}}>Your rider · On the way to you</div>
@@ -1244,7 +1245,7 @@ export default function StudentDashboard() {
                       {/* Vendor header */}
                       <div style={{display:'flex',alignItems:'center',gap:10,padding:'12px 16px',borderBottom:'1px solid #f0f0f0',background:'#fafafa'}}>
                         <div style={{width:36,height:36,borderRadius:10,background:TEAL,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,overflow:'hidden',flexShrink:0}}>
-                          {group.logo_url?<img src={group.logo_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:'🍽️'}
+                          {group.logo_url?<img src={group.logo_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:(<Store size={18} style={{ color: "#fff" }} />)}
                         </div>
                         <span style={{fontWeight:800,fontSize:14,color:DARK}}>{vendorName}</span>
                         <span style={{marginLeft:'auto',fontSize:11,color:'#7a90a4'}}>{group.orders.length} order{group.orders.length>1?'s':''}</span>
@@ -1278,7 +1279,7 @@ export default function StudentDashboard() {
 
               {orders.length===0&&(
                 <div style={{textAlign:'center',padding:'60px 20px',color:'#7a90a4'}}>
-                  <div style={{fontSize:52,marginBottom:12}}>📦</div>
+                  <div style={{fontSize:52,marginBottom:12}}><Package size={52} style={{ color: "#7a90a4" }} /></div>
                   <p style={{fontSize:14,marginBottom:16}}>No orders yet. Start ordering!</p>
                   <button onClick={()=>setTab('home')} style={{background:TEAL,color:'#fff',border:'none',borderRadius:20,padding:'10px 24px',fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>Browse Eateries</button>
                 </div>
@@ -1298,7 +1299,7 @@ export default function StudentDashboard() {
                 <span style={{display:'inline-block',marginTop:8,background:'#e6fafa',color:TEAL,fontSize:11,fontWeight:700,padding:'4px 12px',borderRadius:20}}>Student</span>
               </div>
               <div style={{background:'#fff',borderRadius:16,overflow:'hidden',boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
-                {[['📦','My Orders','orders'],['🗺️','Campus Map','map'],['🏠','Home','home']].map(([icon,label,target],i,arr)=>(
+                {[[(<Package size={52} style={{ color: "#7a90a4" }} />),'My Orders','orders'],[(<Map size={52} style={{ color: "#7a90a4" }} />),'Campus Map','map'],[(<House size={52} style={{ color: "#7a90a4" }} />),'Home','home']].map(([icon,label,target],i,arr)=>(
                   <button key={target} onClick={()=>setTab(target)}
                     style={{width:'100%',display:'flex',alignItems:'center',gap:14,padding:'16px 18px',border:'none',borderBottom:i<arr.length-1?'1px solid #f0f0f0':'none',background:'#fff',cursor:'pointer',fontFamily:'inherit'}}>
                     <span style={{fontSize:20}}>{icon}</span>
@@ -1307,7 +1308,7 @@ export default function StudentDashboard() {
                   </button>
                 ))}
                 <button onClick={logout} style={{width:'100%',display:'flex',alignItems:'center',gap:14,padding:'16px 18px',border:'none',borderTop:'1px solid #f0f0f0',background:'#fff',cursor:'pointer',fontFamily:'inherit'}}>
-                  <span style={{fontSize:20}}>🚪</span>
+                  <Door size={20} style={{ color: "#5C3A21" }} />
                   <span style={{fontWeight:600,fontSize:14,color:'#dc2626'}}>Logout</span>
                 </button>
               </div>
@@ -1377,7 +1378,7 @@ export default function StudentDashboard() {
                     <div key={v.vendorId} style={{marginBottom:vendorList.length>1&&!checkoutVendorId?24:0}}>
                       {vendorList.length>1&&!checkoutVendorId&&(
                         <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10,paddingBottom:8,borderBottom:'2px solid #f0fafa'}}>
-                          <span style={{fontSize:16}}>🍽️</span>
+                          <Store size={18} style={{ color: "#fff" }} />
                           <span style={{fontWeight:800,fontSize:14,color:DARK}}>{v.vendorName}</span>
                           <button onClick={()=>clearVendorCart(v.vendorId)} style={{marginLeft:'auto',background:'none',border:'none',color:'#ccc',cursor:'pointer',fontSize:11,fontFamily:'inherit'}}>✕ Clear</button>
                         </div>
@@ -1466,7 +1467,7 @@ export default function StudentDashboard() {
                     style={{padding:'10px 14px',cursor:'pointer',display:'flex',alignItems:'center',gap:10,borderBottom:i<locationSuggestions.length-1?'1px solid #f5f5f5':'none'}}
                     onMouseEnter={e=>e.currentTarget.style.background='#f0fafa'}
                     onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
-                      <span style={{fontSize:16}}>{loc.category==='eatery'?'🍽️':loc.category==='hostel'?'🏠':loc.category==='faculty'?'🎓':'📍'}</span>
+                      <span style={{fontSize:16}}>{loc.category==='eatery'?(<Store size={18} style={{ color: "#fff" }} />):loc.category==='hostel'?(<House size={18} style={{ color: "#fff" }} />):loc.category==='faculty'?(<GraduationCap size={18} style={{ color: "#fff" }} />):(<MapPin size={18} style={{ color: "#fff" }} />)}</span>
                       <div>
                         <div style={{fontWeight:700,fontSize:13,color:DARK}}>{loc.name}</div>
                         {loc.description && <div style={{fontSize:11,color:'#7a90a4'}}>{loc.description}</div>}
