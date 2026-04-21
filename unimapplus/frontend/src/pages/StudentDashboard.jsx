@@ -2149,7 +2149,7 @@ export default function StudentDashboard() {
                               flexShrink: 0,
                             }}
                           >
-                            🍽️
+                            <Utensils size={30} style={{ color: "#7a90a4" }} />
                           </div>
                         )}
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -2382,23 +2382,29 @@ export default function StudentDashboard() {
                                   ? selectedVariant
                                     ? Number(selectedVariant.price)
                                     : null
-                                  : Number(item.price);
+                                  : null;
                               const extras = (custom.toppings || []).reduce(
                                 (s, t) => s + Number(t.price || 0),
                                 0,
                               );
+                              // HANDLE price_label FIRST (bakery range case)
+                              if (!parsedVars.length && item.price_label && item.price_label.includes("-")) {
+                                const [min, max] = item.price_label.split("-").map(Number);
+                                return `₦${min.toLocaleString()} – ₦${max.toLocaleString()}`;
+                              }
+
+                              // existing variant range logic
                               if (parsedVars.length > 0 && base === null) {
-                                // No variant selected yet — show range
-                                const prices = parsedVars.map((v) =>
-                                  Number(v.price),
-                                );
+                                const prices = parsedVars.map((v) => Number(v.price));
                                 const minP = Math.min(...prices);
                                 const maxP = Math.max(...prices);
                                 return minP === maxP
                                   ? `₦${minP.toLocaleString()}`
                                   : `₦${minP.toLocaleString()} – ₦${maxP.toLocaleString()}`;
                               }
-                              return `₦${Number((base || 0) + extras).toLocaleString()}`;
+
+                              // fallback to normal price
+                              return `₦${Number((Number(item.price) || 0) + extras).toLocaleString()}`;
                             })()}
                           </div>
                         </div>
