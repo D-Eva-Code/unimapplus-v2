@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import useCartStore from '../store/cartStore';
 import { useOrderTracking } from '../hooks/useSocket';
-import { Store, Home, GraduationCap, MapPin, Bike, Football, Lock, Package, Map, House, Door } from "lucide-react";
+import { Store, Home, GraduationCap, MapPin, Bike, Football, Lock, Package, Map, House, Door, Utensils } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 
 const TEAL = '#0BBFBF';
@@ -647,7 +647,7 @@ export default function StudentDashboard() {
               <div key={i} onClick={r.action} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 8px',borderRadius:10,cursor:'pointer',marginBottom:4}}
                 onMouseEnter={e=>e.currentTarget.style.background='#f5f6fa'}
                 onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
-                {r.img?<img src={r.img} alt="" style={{width:36,height:36,borderRadius:8,objectFit:'cover'}}/>:<span style={{fontSize:22}}>{r.emoji||'🍽️'}</span>}
+                {r.img?<img src={r.img} alt="" style={{width:36,height:36,borderRadius:8,objectFit:'cover'}}/>:<span style={{fontSize:22}}>{r.emoji||(<Utensils size={22} />)}</span>}
                 <div><div style={{fontWeight:700,fontSize:14}}>{r.name}</div><div style={{fontSize:11,color:'#7a90a4'}}>{r.sub}</div></div>
                 <span style={{marginLeft:'auto',color:'#7a90a4'}}><IcChevron/></span>
               </div>
@@ -807,10 +807,10 @@ export default function StudentDashboard() {
             {v.vendor_name}
           </div>
           <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.9)', background: 'rgba(0,0,0,0.3)', padding: '2px 6px', borderRadius: 10, display: 'inline-block' }}>
-            {CAT_LABELS[v.category] || '🍽️ Food'}
+             <Utensils size={12} />{CAT_LABELS[v.category] || ' Food'}
           </div>
           <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>
-            🛵 {getDeliveryFeeLabel(v.category)}
+            <Bike size={12} /> {getDeliveryFeeLabel(v.category)}
           </div>
         </div>
       </div>
@@ -822,7 +822,7 @@ export default function StudentDashboard() {
               <h3 style={{margin:'0 0 12px',fontSize:15,fontWeight:800,color:DARK}}>Featured Menu</h3>
               {featuredMenu.length === 0 ? (
                 <div style={{background:'#fff',borderRadius:14,padding:'32px 20px',textAlign:'center',color:'#7a90a4',boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
-                  <div style={{fontSize:36,marginBottom:8}}>🍽️</div>
+                  <div style={{fontSize:36,marginBottom:8}}><Utensils size={36} style={{ color: "#7a90a4" }} /></div>
                   <p style={{fontSize:13,margin:0}}>No menu items yet. Vendors will add items soon!</p>
                 </div>
               ) : (
