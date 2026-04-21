@@ -1195,14 +1195,31 @@ export default function VendorDashboard() {
                 </span>
               </h2>
               <button
+                // onClick={() => {
+                //   setEditItem(null);
+                //   setNewItem({
+                //     item_name: "",
+                //     description: "",
+                //     price: "",
+                //     image: null,
+                //     tags: "",
+                //   });
+                //   setAddMenuOpen(true);
+                // }}
                 onClick={() => {
                   setEditItem(null);
                   setNewItem({
                     item_name: "",
                     description: "",
                     price: "",
+                    prep_time: "",
+                    prep_time_unit: "mins",
                     image: null,
                     tags: "",
+                    item_type: "food",
+                    variants: [],
+                    toppings: [],
+                    allow_design_notes: false,
                   });
                   setAddMenuOpen(true);
                 }}
