@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import useCartStore from '../store/cartStore';
 import { useOrderTracking } from '../hooks/useSocket';
-import { Store, Home, GraduationCap, MapPin, Bike, Football, Lock, Package, Map, House, DoorClosed, Utensils } from "lucide-react";
+import { Store, Home, GraduationCap, MapPin, Bike, Trophy, Lock, Package, Map, House, DoorClosed, Utensils } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 
 const TEAL = '#0BBFBF';
@@ -461,7 +461,7 @@ export default function StudentDashboard() {
         setNearbyLocations(locs);
         locs.forEach(loc=>{
           const isEatery = loc.category === 'eatery';
-          const catEmoji = loc.category==='eatery'?<Store size={16} />:loc.category==='hostel'?<Home size={16} />:loc.category==='sports'?<Football size={16} />:loc.category==='faculty'?<GraduationCap size={16} />:<MapPin size={16} />;
+          const catEmoji = loc.category==='eatery'?<Store size={16} />:loc.category==='hostel'?<Home size={16} />:loc.category==='sports'?<Trophy size={16} />:loc.category==='faculty'?<GraduationCap size={16} />:<MapPin size={16} />;
           const icon = L.divIcon({
             html:`<div style="background:${isEatery?TEAL:'#0d2137'};width:30px;height:30px;border-radius:50%;border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.3)">${catEmoji}</div>`,
             iconSize:[30,30], iconAnchor:[15,15], className:''
