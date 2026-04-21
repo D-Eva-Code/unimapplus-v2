@@ -10,7 +10,7 @@ import {
   Package,
   DoorClosed,
   Utensils,
-  ClipboardList, Wallet, History, Star
+  ClipboardList, Wallet, History, Star, Phone
 } from "lucide-react";
 import { getSocket } from "../hooks/useSocket";
 
@@ -122,12 +122,17 @@ export default function VendorDashboard() {
       fd.append("item_name", newItem.item_name);
       fd.append("description", newItem.description);
       if (vendor?.category === "foodstuff") {
-        // If they have variants, use the first variant price as the base price. Otherwise, default to 0.
         const basePrice =
           newItem.variants.length > 0 ? newItem.variants[0].price : 0;
         fd.append("price", basePrice);
+      } else if (vendor?.category === "bakery" && newItem.allow_design_notes && String(newItem.price).includes("-")) {
+        // Price range entered e.g. "2000-5000" — store minimum as numeric price, full string as label
+        const minPrice = parseFloat(String(newItem.price).split("-")[0].trim()) || 0;
+        fd.append("price", minPrice);
+        fd.append("price_label", String(newItem.price).trim());
       } else {
         fd.append("price", newItem.price);
+        fd.append("price_label", ""); // clear any previous label
       }
       if (newItem.image) fd.append("image", newItem.image);
       fd.append(
@@ -1147,10 +1152,11 @@ export default function VendorDashboard() {
                               fontSize: 13,
                               display: "flex",
                               alignItems: "center",
+                              justifyContent: "center",
                               border: "1px solid #e0eeee",
                             }}
                           >
-                            📞
+                            <Phone size={16} />
                           </a>
                         )}
                       </div>
@@ -1350,7 +1356,7 @@ export default function VendorDashboard() {
                               color: TEAL,
                             }}
                           >
-                            ₦{Number(item.price).toLocaleString()}
+                            {item.price_label && item.price_label.trim() ? `₦${item.price_label}` : `₦${Number(item.price).toLocaleString()}`}
                           </span>
                           {item.prep_time && (
                             <span
@@ -1389,7 +1395,9 @@ export default function VendorDashboard() {
                               setNewItem({
                                 item_name: item.item_name,
                                 description: item.description || "",
-                                price: item.price,
+                                price: item.price_label && item.price_label.trim()
+                                  ? item.price_label
+                                  : item.price,
                                 prep_time:
                                   item.prep_time_unit === "days"
                                     ? Math.round(item.prep_time / (60 * 24))
@@ -1508,11 +1516,17 @@ export default function VendorDashboard() {
                 ...(vendor?.category !== "foodstuff"
                   ? [
                       {
-                        label: "Price (₦)",
+                        label: vendor?.category === "bakery" && newItem.allow_design_notes
+                          ? "Starting Price / Price Range (₦)"
+                          : "Price (₦)",
                         key: "price",
-                        type: "number",
+                        type: vendor?.category === "bakery" && newItem.allow_design_notes
+                          ? "text"
+                          : "number",
                         required: true,
-                        placeholder: "1200",
+                        placeholder: vendor?.category === "bakery" && newItem.allow_design_notes
+                          ? "e.g. 2000-5000"
+                          : "1200",
                       },
                     ]
                   : []),
