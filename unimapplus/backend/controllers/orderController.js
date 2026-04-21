@@ -448,8 +448,8 @@ async function requestReview(req, res) {
     const orderId = uuidv4();
 
     await connection.query(
-      `INSERT INTO orders (order_id, student_id, vendor_id, total_amount, delivery_fee, vendor_amount, rider_amount, delivery_address, status, payment_status)
-       VALUES (?, ?, ?, 0, 0, 0, 0, ?, 'pending_review', 'pending')`,
+      `INSERT INTO orders (order_id, student_id, vendor_id, delivery_address, status, payment_status)
+       VALUES (?, ?, ?, ?, 'pending_review', 'pending')`,
       [orderId, studentId, vendor_id, delivery_address]
     );
 
@@ -681,4 +681,115 @@ async function updatePrice(req, res) {
 //   }
 // }
 
-module.exports = { checkout, verifyPayment, paystackWebhook, confirmDelivery, getStudentOrders, getOrder, autoAssignRider, deleteOrder, requestReview, updatePrice };
+
+// Initialize Paystack payment for an existing awaiting_payment order (bakery review flow)
+async function initializePayment(req, res) {
+  try {
+    const studentId = req.user.id;
+    const { order_id, delivery_fee, delivery_address } = req.body;
+
+    if (!order_id) {
+      return res.status(400).json({ success: false, message: 'order_id required' });
+    }
+
+    // Fetch the order
+    const [orderRows] = await pool.query(
+      `SELECT o.*, v.paystack_subaccount_code as vendor_sub, v.category as vendor_category,
+              s.email as student_email
+       FROM orders o
+       JOIN vendors_tb v ON o.vendor_id = v.vendor_id
+       JOIN students_tb s ON o.student_id = s.st_id
+       WHERE o.order_id = ? AND o.student_id = ? AND o.status = 'awaiting_payment'`,
+      [order_id, studentId]
+    );
+
+    if (!orderRows[0]) {
+      return res.status(404).json({ success: false, message: 'Order not found or not ready for payment' });
+    }
+
+    const order = orderRows[0];
+    const vendorAmount = Number(order.total_amount); // vendor-set price is the subtotal
+    const platformFee = Math.round(vendorAmount * PLATFORM_FEE_PCT * 100) / 100;
+
+    // Use dynamic delivery fee from request, fallback to saved or default
+    const effectiveDeliveryFee = delivery_fee && Number(delivery_fee) >= 600
+      ? Number(delivery_fee)
+      : (Number(order.delivery_fee) > 0 ? Number(order.delivery_fee) : DELIVERY_FEE);
+
+    const totalAmount = vendorAmount + effectiveDeliveryFee + platformFee;
+
+    const paystackKey = process.env.PAYSTACK_SECRET_KEY;
+    if (!paystackKey || !paystackKey.startsWith('sk_')) {
+      return res.status(500).json({ success: false, message: 'Paystack not configured' });
+    }
+
+    const paymentRef = `UNIMAP-${order_id.slice(0, 8).toUpperCase()}-R`;
+
+    // Get available rider subaccount
+    const [riderRows] = await pool.query(
+      'SELECT paystack_subaccount_code FROM drivers_tb WHERE is_available = TRUE AND school_id = (SELECT school_id FROM vendors_tb WHERE vendor_id = ?) AND paystack_subaccount_code IS NOT NULL LIMIT 1',
+      [order.vendor_id]
+    );
+
+    const splits = [];
+    if (order.vendor_sub) {
+      splits.push({ subaccount: order.vendor_sub, share: Math.round(vendorAmount * 100) });
+    }
+    if (riderRows[0]?.paystack_subaccount_code) {
+      splits.push({ subaccount: riderRows[0].paystack_subaccount_code, share: Math.round(effectiveDeliveryFee * 100) });
+    }
+
+    const paystackBody = {
+      email: order.student_email,
+      amount: Math.round(totalAmount * 100),
+      reference: paymentRef,
+      callback_url: `${process.env.FRONTEND_URL}/payment/verify`,
+      metadata: {
+        order_id,
+        student_id: studentId,
+        vendor_id: order.vendor_id,
+        vendor_amount: vendorAmount,
+        rider_amount: effectiveDeliveryFee,
+        platform_fee: platformFee,
+      },
+    };
+
+    if (splits.length > 0) {
+      paystackBody.split = { type: 'flat', bearer_type: 'account', subaccounts: splits };
+    }
+
+    const paystackRes = await axios.post(
+      `${PAYSTACK_BASE}/transaction/initialize`,
+      paystackBody,
+      { headers: { Authorization: `Bearer ${paystackKey}` }, httpsAgent: paystackAgent }
+    );
+
+    // Update order with final totals and delivery info
+    await pool.query(
+      `UPDATE orders SET total_amount = ?, delivery_fee = ?, rider_amount = ?, payment_reference = ?
+       ${delivery_address ? ', delivery_address = ?' : ''}
+       WHERE order_id = ?`,
+      delivery_address
+        ? [totalAmount, effectiveDeliveryFee, effectiveDeliveryFee, paymentRef, delivery_address, order_id]
+        : [totalAmount, effectiveDeliveryFee, effectiveDeliveryFee, paymentRef, order_id]
+    );
+
+    return res.json({
+      success: true,
+      payment_url: paystackRes.data.data.authorization_url,
+      reference: paymentRef,
+      breakdown: {
+        subtotal: vendorAmount,
+        delivery: effectiveDeliveryFee,
+        platform: platformFee,
+        total: totalAmount,
+      },
+    });
+
+  } catch (err) {
+    console.error('initializePayment error:', err.response?.data || err);
+    return res.status(500).json({ success: false, message: 'Failed to initialize payment' });
+  }
+}
+
+module.exports = { checkout, verifyPayment, paystackWebhook, confirmDelivery, getStudentOrders, getOrder, autoAssignRider, deleteOrder, requestReview, updatePrice, initializePayment };

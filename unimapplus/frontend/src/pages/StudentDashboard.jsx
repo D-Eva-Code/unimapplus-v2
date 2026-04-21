@@ -53,6 +53,7 @@ export default function StudentDashboard() {
   const navigate = useNavigate();
   const { carts, addItem, removeItem, clearVendorCart, setPortions, getCartArray, getVendorTotal, getVendorList, getTotalCount, setDesignNote } = useCartStore();
   const [checkoutVendorId, setCheckoutVendorId] = useState(null);
+  const [finalPaymentOrder, setFinalPaymentOrder] = useState(null);
   const vendorList = getVendorList(); // recomputes on every render when carts changes
 
   const [tab, setTab]                     = useState('home');
@@ -145,7 +146,11 @@ export default function StudentDashboard() {
 
   useOrderTracking(
     trackedOrder?.order_id,
-    ({ status }) => setTrackedOrder(o => o ? { ...o, status } : null),
+    ({ status, order_id }) => {
+      // Update both trackedOrder and the orders[] array so all cards re-render
+      setTrackedOrder(o => o ? { ...o, status } : null);
+      setOrders(prev => prev.map(o => o.order_id === (order_id || trackedOrder?.order_id) ? { ...o, status } : o));
+    },
     ({ latitude, longitude }) => setTrackedOrder(o => o ? { ...o, rider_lat:latitude, rider_lng:longitude } : null)
   );
 
@@ -319,23 +324,36 @@ export default function StudentDashboard() {
     });
   }
 
-  async function handleFinalPayment(order) {
-  setCheckoutLoading(true);
-  try {
-    // This calls existing Paystack initialization route
-    const { data } = await api.post('/orders/initialize-payment', {
-      order_id: order.order_id
-    });
-    
-    if (data.payment_url) {
-      window.location.href = data.payment_url;
-    }
-  } catch (err) {
-    alert("Failed to initialize payment. Please try again.");
-  } finally {
-    setCheckoutLoading(false);
+  function handleFinalPayment(order) {
+    // Open delivery modal so student picks location (needed for delivery fee calculation)
+    setFinalPaymentOrder(order);
+    setDeliveryAddr('');
+    setDeliveryModal({ vendorId: order.vendor_id, vendorName: order.vendor_name, isFinalPayment: true });
   }
-}
+
+  async function processFinalPayment() {
+    if (!finalPaymentOrder) return;
+    if (!deliveryAddr.trim()) return;
+    setDeliveryModal(null);
+    setCheckoutLoading(true);
+    try {
+      const vendorCat = vendors.find(v => v.vendor_id === finalPaymentOrder.vendor_id)?.category;
+      const computedFee = calcDeliveryFee(vendorCat, deliveryAddr);
+      const { data } = await api.post('/orders/initialize-payment', {
+        order_id: finalPaymentOrder.order_id,
+        delivery_fee: computedFee,
+        delivery_address: deliveryAddr.trim(),
+      });
+      if (data.payment_url) {
+        window.location.href = data.payment_url;
+      }
+    } catch (err) {
+      alert('Failed to initialize payment. Please try again.');
+    } finally {
+      setCheckoutLoading(false);
+      setFinalPaymentOrder(null);
+    }
+  }
 
   async function handleCheckout(vendorId) {
   const cartArr = getCartArray(vendorId);
@@ -1155,10 +1173,22 @@ export default function StudentDashboard() {
                   </div>
 
                   {activeOrder.status === 'awaiting_payment' && (
-                    <button onClick={() => handleFinalPayment(activeOrder)} disabled={checkoutLoading}
-                      style={{width:'100%',padding:'14px',background:TEAL,color:'#fff',border:'none',borderRadius:12,fontWeight:800,fontSize:14,cursor:'pointer',boxShadow:`0 4px 12px ${TEAL}44`,marginBottom:12}}>
-                      {checkoutLoading ? 'Processing...' : `Pay ₦${Number(activeOrder.total_amount).toLocaleString()} Now`}
-                    </button>
+                    <div style={{marginBottom:12}}>
+                      <div style={{background:BG,borderRadius:10,padding:'10px 14px',marginBottom:10,fontSize:12}}>
+                        <div style={{display:'flex',justifyContent:'space-between',color:'#7a90a4',marginBottom:4}}><span>Item price (set by vendor)</span><span>₦{Number(activeOrder.total_amount).toLocaleString()}</span></div>
+                        <div style={{display:'flex',justifyContent:'space-between',color:'#f59e0b',marginBottom:4}}><span>Delivery fee</span><span>Added at payment</span></div>
+                        <div style={{display:'flex',justifyContent:'space-between',color:'#f59e0b',marginBottom:4}}><span>Service fee (7%)</span><span>Added at payment</span></div>
+                        <div style={{fontSize:11,color:'#7a90a4',marginTop:4}}>Select your location when you click Pay to calculate final total.</div>
+                      </div>
+                      <button onClick={() => handleFinalPayment(activeOrder)} disabled={checkoutLoading}
+                        style={{width:'100%',padding:'14px',background:TEAL,color:'#fff',border:'none',borderRadius:12,fontWeight:800,fontSize:14,cursor:'pointer',boxShadow:`0 4px 12px ${TEAL}44`,marginBottom:8}}>
+                        {checkoutLoading ? 'Processing...' : `Pay — ₦${Number(activeOrder.total_amount).toLocaleString()} + fees`}
+                      </button>
+                      <button onClick={()=>deleteOrder(activeOrder.order_id)}
+                        style={{width:'100%',padding:'10px',background:'#fff0f0',color:'#e74c3c',border:'1px solid #fecdd3',borderRadius:12,fontWeight:600,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>
+                        Cancel Order
+                      </button>
+                    </div>
                   )}
 
                   {activeOrder.driver_name&&(
@@ -1451,7 +1481,7 @@ export default function StudentDashboard() {
             </div>
             <div style={{display:'flex',gap:10}}>
               <button onClick={()=>{setDeliveryModal(null);setShowLocSuggestions(false);}} style={{flex:1,padding:12,border:'1px solid #e8ecf0',borderRadius:12,background:'#fff',cursor:'pointer',fontFamily:'inherit',fontWeight:600,color:'#7a90a4'}}>Cancel</button>
-              <button onClick={()=>{setShowLocSuggestions(false);handleCheckout(deliveryModal.vendorId);}} disabled={!deliveryAddr.trim()||checkoutLoading}
+              <button onClick={()=>{setShowLocSuggestions(false); deliveryModal.isFinalPayment ? processFinalPayment() : handleCheckout(deliveryModal.vendorId);}} disabled={!deliveryAddr.trim()||checkoutLoading}
                 style={{flex:2,padding:12,background:deliveryAddr.trim()?TEAL:'#ccc',color:'#fff',border:'none',borderRadius:12,fontWeight:700,fontSize:14,cursor:deliveryAddr.trim()?'pointer':'not-allowed',fontFamily:'inherit'}}>
                 {checkoutLoading?'Processing...':'Confirm & Pay'}
               </button>
