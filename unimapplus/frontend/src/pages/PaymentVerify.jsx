@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { CheckCircle, XCircle } from "lucide-react";
 import api from '../services/api';
 
 export default function PaymentVerify() {
@@ -33,15 +34,44 @@ export default function PaymentVerify() {
 
         {status === 'success' && (
           <>
-            <div style={{ width: 70, height: 70, background: '#dcfce7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 34 }}>✅</div>
-            <h2 style={{ margin: '0 0 8px', fontWeight: 800, color: '#16a34a' }}>Payment Confirmed!</h2>
+            <div
+              style={{
+                width: 70,
+                height: 70,
+                background: '#dcfce7',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 20px',
+              }}
+            >
+              <CheckCircle size={34} color="#16a34a" />
+            </div>
+
+            <h2 style={{ margin: '0 0 8px', fontWeight: 800, color: '#16a34a' }}>
+              Payment Confirmed!
+            </h2>
             <p style={{ color: '#7a7a9a', fontSize: 14 }}>Your order is being prepared. Redirecting to tracking...</p>
           </>
         )}
 
         {status === 'failed' && (
           <>
-            <div style={{ width: 70, height: 70, background: '#fee2e2', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: 34 }}>❌</div>
+            <div
+              style={{
+                width: 70,
+                height: 70,
+                background: '#fee2e2',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 20px',
+              }}
+            >
+              <XCircle size={34} color="#dc2626" />
+            </div>
             <h2 style={{ margin: '0 0 8px', fontWeight: 800, color: '#dc2626' }}>Payment Failed</h2>
             <p style={{ color: '#7a7a9a', fontSize: 14, marginBottom: 20 }}>Something went wrong verifying your payment.</p>
             <button onClick={() => navigate('/student')}
