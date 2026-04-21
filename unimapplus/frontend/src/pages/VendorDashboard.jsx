@@ -357,9 +357,9 @@ export default function VendorDashboard() {
         {/* Nav */}
         <div style={{ padding: "12px 12px", flex: 1 }}>
           {[
-            ["orders", <ClipboardList size={16} />, "Orders"],
-            ["menu", <Utensils size={16} />, "Menu"],
-            ["history", <History size={16} />, "History"],
+            ["orders", <ClipboardList size={18} />, "Orders"],
+            ["menu", <Utensils size={18} />, "Menu"],
+            ["history", <History size={18} />, "History"],
           ].map(([id, icon, label]) => {
             const active = activeSection === id;
             return (
@@ -385,7 +385,7 @@ export default function VendorDashboard() {
                   textAlign: "left",
                 }}
               >
-                <span>{icon}</span>
+                <span style={{ display: "flex", alignItems: "center" }}>{icon}</span>
                 {label}
               </button>
             );
