@@ -6,7 +6,7 @@ const { upload } = require('../config/s3');
 const { register, login, sendSchoolEmailOTP, verifySchoolEmailOTP } = require('../controllers/authController');
 const { getVendors, getVendorMenu, getFeaturedMenu, addMenuItem, updateMenuItem, deleteMenuItem, getVendorDashboard, toggleOpen, getOrderHistory, updateOrderStatus } = require('../controllers/vendorController');
 const { getRecommendations, getUserPreferenceStats } = require('../controllers/recommendationController');
-const { checkout, verifyPayment, paystackWebhook, confirmDelivery, getStudentOrders, getOrder, deleteOrder, requestReview, updatePrice } = require('../controllers/orderController');
+const { checkout, verifyPayment, paystackWebhook, confirmDelivery, getStudentOrders, getOrder, deleteOrder, requestReview, updatePrice, initializePayment } = require('../controllers/orderController');
 const { getRiderDashboard, toggleAvailability, acceptOrder, updateDeliveryStatus, updateLocation, getEarningsHistory } = require('../controllers/riderController');
 const { getAllLocations, globalSearch, getSchools, addLocation } = require('../controllers/locationController');
 const { submitRating } = require('../controllers/ratingController');
@@ -39,6 +39,7 @@ router.post('/checkout', auth, requireRole('student'), checkout);
 router.get('/payment/verify', verifyPayment);
 router.post('/paystack/webhook', paystackWebhook);
 router.post('/orders/request-review', auth, requireRole('student'), requestReview);
+router.post('/orders/initialize-payment', auth, requireRole('student'), initializePayment);
 
 // STUDENT ORDERS
 router.get('/student/orders', auth, requireRole('student'), getStudentOrders);
