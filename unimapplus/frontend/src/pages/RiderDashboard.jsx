@@ -4,8 +4,6 @@ import api from '../services/api';
 import { getSocket } from '../hooks/useSocket';
 import {
   Store,
-  Home,
-  GraduationCap,
   MapPin,
   Bike,
   Trophy,
@@ -14,7 +12,6 @@ import {
   Map,
   House,
   DoorClosed,
-  Utensils,
   ClipboardList, Wallet
 } from "lucide-react";
 
