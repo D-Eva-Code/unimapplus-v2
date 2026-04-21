@@ -1996,9 +1996,14 @@ export default function StudentDashboard() {
                           color: "#089898",
                         }}
                       >
-                        🛵 {getDeliveryFeeLabel(selectedVendor.category)}
+                        {getDeliveryFeeLabel(selectedVendor.category)}
                       </span>
                     </div>
+                    {selectedVendor.location_name && (
+                      <p style={{ margin: "4px 0 0", fontSize: 12, color: "#7a90a4" }}>
+                        {selectedVendor.location_name}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

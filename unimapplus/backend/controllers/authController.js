@@ -386,15 +386,15 @@ async function register(req, res) {
     } else if (role === 'vendor') {
       const [existing] = await pool.query('SELECT vendor_id FROM vendors_tb WHERE email = ?', [email]);
       if (existing.length > 0) return res.status(409).json({ success: false, message: 'Email already registered' });
-      const { category, description: vendorDesc } = req.body;
+      const { category, description: vendorDesc, location_name } = req.body;
       let logo_url = null;
       if (logoFile) {
         try { logo_url = await uploadToCloudinary(logoFile.buffer, 'unimapplus/logos'); }
         catch (e) { console.log('Logo upload failed:', e.message); }
       }
       const [result] = await pool.query(
-        'INSERT INTO vendors_tb (vendor_name, email, passwd, school_id, phone, bank_name, account_number, account_name, category, description, logo_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [fullName, email, hash, school_id || null, phone || null, bank_name || null, account_number || null, account_name || null, category || null, vendorDesc || null, logo_url]
+        'INSERT INTO vendors_tb (vendor_name, email, passwd, school_id, phone, bank_name, account_number, account_name, category, description, logo_url, location_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [fullName, email, hash, school_id || null, phone || null, bank_name || null, account_number || null, account_name || null, category || null, vendorDesc || null, logo_url, location_name || null]
       );
       userId = result.insertId;
       if (bank_name && account_number && account_name) {

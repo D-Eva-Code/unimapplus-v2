@@ -21,6 +21,7 @@ async function getRiderDashboard(req, res) {
     const [activeOrders] = await pool.query(`
       SELECT o.*, v.vendor_name, v.location_name as vendor_location,
              v.latitude as vendor_lat, v.longitude as vendor_lng,
+             v.phone as vendor_phone,
              s.fullname as student_name, s.phone as student_phone
       FROM orders o
       JOIN vendors_tb v ON o.vendor_id = v.vendor_id
@@ -37,6 +38,7 @@ async function getRiderDashboard(req, res) {
     // Available new orders to accept (from same school, unassigned)
     const [availableOrders] = await pool.query(`
       SELECT o.*, v.vendor_name, v.location_name as vendor_location,
+             v.phone as vendor_phone,
              s.fullname as student_name
       FROM orders o
       JOIN vendors_tb v ON o.vendor_id = v.vendor_id

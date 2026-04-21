@@ -641,8 +641,14 @@ export default function RiderDashboard() {
                         <div
                           style={{ fontWeight: 700, fontSize: 13, color: DARK }}
                         >
-                          {order.vendor_name}
+                          {order.vendor_name}{order.vendor_location ? ` (${order.vendor_location})` : ''}
                         </div>
+                        {order.vendor_phone && (
+                          <a href={`tel:${order.vendor_phone}`}
+                            style={{ fontSize: 11, color: TEAL, fontWeight: 600, textDecoration: 'none' }}>
+                            {order.vendor_phone}
+                          </a>
+                        )}
                       </div>
                     </div>
                     {/* Route line */}
@@ -989,8 +995,14 @@ export default function RiderDashboard() {
                         <div
                           style={{ fontWeight: 700, fontSize: 13, color: DARK }}
                         >
-                          {order.vendor_name}
+                          {order.vendor_name}{order.vendor_location ? ` (${order.vendor_location})` : ''}
                         </div>
+                        {order.vendor_phone && (
+                          <a href={`tel:${order.vendor_phone}`}
+                            style={{ fontSize: 11, color: TEAL, fontWeight: 600, textDecoration: 'none' }}>
+                            {order.vendor_phone}
+                          </a>
+                        )}
                       </div>
                     </div>
                     <div

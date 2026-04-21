@@ -155,6 +155,7 @@ export default function Signup() {
     category: "",
     description: "",
     vendor_type: "student", // 'student' | 'business'
+    location_name: "",
     rider_type: "student", // 'student' | 'independent'
   });
 
@@ -293,6 +294,7 @@ export default function Signup() {
       if (form.account_name) fd.append("account_name", form.account_name);
       if (form.category) fd.append("category", form.category);
       if (form.description) fd.append("description", form.description);
+      if (form.location_name) fd.append("location_name", form.location_name);
       if (isVendor) fd.append("vendor_type", form.vendor_type);
       if (isDriver) fd.append("rider_type", form.rider_type);
       if (schoolEmailToken) fd.append("school_email_token", schoolEmailToken);
@@ -1240,6 +1242,23 @@ export default function Signup() {
                   style={{ margin: "4px 0 0", fontSize: 11, color: "#7a7a9a" }}
                 >
                   {form.description.length}/100
+                </p>
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={lbl}>
+                  Vendor Address / Location <span style={{ color: "#e74c3c" }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Hall 1, Food Court, Ekosodin"
+                  value={form.location_name}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, location_name: e.target.value }))
+                  }
+                  style={inp}
+                />
+                <p style={{ margin: "4px 0 0", fontSize: 11, color: "#7a7a9a" }}>
+                  This helps riders find you for pickup.
                 </p>
               </div>
             </>
