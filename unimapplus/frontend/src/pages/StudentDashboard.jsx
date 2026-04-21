@@ -1467,7 +1467,7 @@ export default function StudentDashboard() {
                     style={{padding:'10px 14px',cursor:'pointer',display:'flex',alignItems:'center',gap:10,borderBottom:i<locationSuggestions.length-1?'1px solid #f5f5f5':'none'}}
                     onMouseEnter={e=>e.currentTarget.style.background='#f0fafa'}
                     onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
-                      <span style={{fontSize:16}}>{loc.category==='eatery'?(<Store size={18} style={{ color: "#fff" }} />):loc.category==='hostel'?(<House size={18} style={{ color: "#fff" }} />):loc.category==='faculty'?(<GraduationCap size={18} style={{ color: "#fff" }} />):(<MapPin size={18} style={{ color: "#fff" }} />)}</span>
+                      <span style={{fontSize:16}}>{loc.category==='eatery'?(<Store size={18} style={{ color: "#0F172A" }} />):loc.category==='hostel'?(<House size={18} style={{ color: "#0F172A" }} />):loc.category==='faculty'?(<GraduationCap size={18} style={{ color: "#0F172A" }} />):(<MapPin size={18} style={{ color: "#0F172A" }} />)}</span>
                       <div>
                         <div style={{fontWeight:700,fontSize:13,color:DARK}}>{loc.name}</div>
                         {loc.description && <div style={{fontSize:11,color:'#7a90a4'}}>{loc.description}</div>}
