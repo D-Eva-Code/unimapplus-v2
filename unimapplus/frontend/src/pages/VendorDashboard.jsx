@@ -10,7 +10,11 @@ import {
   Package,
   DoorClosed,
   Utensils,
-  ClipboardList, Wallet, History, Star, Phone
+  ClipboardList,
+  Wallet,
+  History,
+  Star,
+  Phone,
 } from "lucide-react";
 import { getSocket } from "../hooks/useSocket";
 
@@ -125,9 +129,14 @@ export default function VendorDashboard() {
         const basePrice =
           newItem.variants.length > 0 ? newItem.variants[0].price : 0;
         fd.append("price", basePrice);
-      } else if (vendor?.category === "bakery" && newItem.allow_design_notes && String(newItem.price).includes("-")) {
+      } else if (
+        vendor?.category === "bakery" &&
+        newItem.allow_design_notes &&
+        String(newItem.price).includes("-")
+      ) {
         // Price range entered e.g. "2000-5000" — store minimum as numeric price, full string as label
-        const minPrice = parseFloat(String(newItem.price).split("-")[0].trim()) || 0;
+        const minPrice =
+          parseFloat(String(newItem.price).split("-")[0].trim()) || 0;
         fd.append("price", minPrice);
         fd.append("price_label", String(newItem.price).trim());
       } else {
@@ -390,7 +399,9 @@ export default function VendorDashboard() {
                   textAlign: "left",
                 }}
               >
-                <span style={{ display: "flex", alignItems: "center" }}>{icon}</span>
+                <span style={{ display: "flex", alignItems: "center" }}>
+                  {icon}
+                </span>
                 {label}
               </button>
             );
@@ -473,7 +484,7 @@ export default function VendorDashboard() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: 6
+              gap: 6,
             }}
           >
             <DoorClosed size={18} /> Logout
@@ -579,73 +590,88 @@ export default function VendorDashboard() {
               boxShadow: "0 1px 4px rgba(0,0,0,.05)",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div
+            {/* LEFT: Logo + Unimap+ */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                flexShrink: 0,
+              }}
+            >
+              <img
+                src="/logo.png"
+                alt="Unimap+ Logo"
                 style={{
-                  width: 32,
-                  height: 32,
-                  background: TEAL,
-                  borderRadius: 9,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#fff",
+                  width: 28,
+                  height: 28,
+                  objectFit: "contain",
+                  flexShrink: 0,
+                }}
+              />
+              <span
+                style={{
                   fontWeight: 900,
                   fontSize: 14,
+                  color: DARK,
+                  whiteSpace: "nowrap",
                 }}
               >
-                U
-              </div>
-              <div>
-                <div
-                  style={{
-                    fontWeight: 800,
-                    fontSize: 14,
-                    color: DARK,
-                    lineHeight: 1,
-                  }}
-                >
-                  {vendor?.vendor_name}
-                </div>
-                <div style={{ fontSize: 10, color: "#7a90a4" }}>
-                  Vendor Dashboard
-                </div>
-              </div>
+                Unimap<span style={{ color: TEAL }}>+</span>
+              </span>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+
+            {/* RIGHT: Toggle → Logout → Vendor name */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                flexShrink: 0,
+              }}
+            >
+              {/* Toggle — dot only on very small, dot+text on larger */}
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 6,
+                  gap: 4,
                   background: vendor?.is_open ? "#e6fafa" : "#f5f5f5",
                   borderRadius: 20,
-                  padding: "5px 10px",
+                  padding: "4px 8px 4px 6px",
                   cursor: "pointer",
+                  flexShrink: 0,
+                  border: vendor?.is_open
+                    ? "1px solid #bbf0d0"
+                    : "1px solid #e2e8f0",
                 }}
                 onClick={toggleOpen}
               >
                 <div
                   style={{
-                    width: 8,
-                    height: 8,
+                    width: 7,
+                    height: 7,
                     borderRadius: "50%",
+                    flexShrink: 0,
                     background: vendor?.is_open ? "#16a34a" : "#9ca3af",
+                    marginRight: 2,
                   }}
                 />
                 <span
                   style={{
-                    fontSize: 11,
+                    fontSize: 10,
                     fontWeight: 700,
-                    color: vendor?.is_open ? "#16a34a" : "#7a90a4",
+                    color: vendor?.is_open ? "#16a34a" : "#9ca3af",
+                    whiteSpace: "nowrap",
+                    marginRight: 4,
                   }}
                 >
                   {vendor?.is_open ? "Open" : "Closed"}
                 </span>
                 <div
                   style={{
-                    width: 28,
-                    height: 16,
+                    width: 26,
+                    height: 15,
                     background: vendor?.is_open ? TEAL : "#dde8e8",
                     borderRadius: 10,
                     position: "relative",
@@ -655,35 +681,71 @@ export default function VendorDashboard() {
                 >
                   <div
                     style={{
-                      width: 12,
-                      height: 12,
+                      width: 11,
+                      height: 11,
                       background: "#fff",
                       borderRadius: "50%",
                       position: "absolute",
                       top: 2,
-                      left: vendor?.is_open ? 14 : 2,
+                      left: vendor?.is_open ? 13 : 2,
                       transition: "left .25s",
                       boxShadow: "0 1px 3px rgba(0,0,0,.2)",
                     }}
                   />
                 </div>
               </div>
+
+              {/* Logout */}
               <button
                 onClick={logout}
                 style={{
                   background: "#fff0f0",
                   border: "none",
                   borderRadius: 20,
-                  padding: "6px 10px",
+                  padding: "5px 9px",
                   cursor: "pointer",
                   fontFamily: "inherit",
                   color: "#e74c3c",
-                  fontSize: 12,
-                  fontWeight: 600,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  flexShrink: 0,
                 }}
               >
                 Out
               </button>
+
+              {/* Vendor name */}
+              <div
+                style={{
+                  textAlign: "right",
+                  minWidth: 0,
+                  maxWidth: 80,
+                }}
+              >
+                <div
+                  style={{
+                    fontWeight: 800,
+                    fontSize: 11,
+                    color: DARK,
+                    lineHeight: 1,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {vendor?.vendor_name}
+                </div>
+                <div
+                  style={{
+                    fontSize: 9,
+                    color: "#7a90a4",
+                    marginTop: 2,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Vendor Dashboard
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -741,15 +803,19 @@ export default function VendorDashboard() {
               label: "Rating",
               value:
                 vendor?.rating > 0 ? (
-                <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  {Number(vendor.rating).toFixed(1)}
-                  <Star size={18} color="#facc15"/>
-                </span>
-              ) : (
-                <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  — <Star size={18} color="#facc15"/>
-                </span>
-              ),
+                  <span
+                    style={{ display: "flex", alignItems: "center", gap: 4 }}
+                  >
+                    {Number(vendor.rating).toFixed(1)}
+                    <Star size={18} color="#facc15" />
+                  </span>
+                ) : (
+                  <span
+                    style={{ display: "flex", alignItems: "center", gap: 4 }}
+                  >
+                    — <Star size={18} color="#facc15" />
+                  </span>
+                ),
               icon: <Star size={18} color="#facc15" />,
             },
           ].map((s) => (
@@ -806,7 +872,9 @@ export default function VendorDashboard() {
                   border: "1px solid #e8f0f0",
                 }}
               >
-                <div style={{ fontSize: 40, marginBottom: 10 }}><Utensils size={40} /></div>
+                <div style={{ fontSize: 40, marginBottom: 10 }}>
+                  <Utensils size={40} />
+                </div>
                 <p style={{ fontSize: 14, margin: 0 }}>
                   No active orders right now. Orders will appear here in
                   real-time.
@@ -873,7 +941,8 @@ export default function VendorDashboard() {
                                 marginTop: 2,
                               }}
                             >
-                              <MapPin size={16} style={{ color: '#0BBFBF' }} /> {order.delivery_address}
+                              <MapPin size={16} style={{ color: "#0BBFBF" }} />{" "}
+                              {order.delivery_address}
                             </div>
                           )}
                         </div>
@@ -1373,7 +1442,9 @@ export default function VendorDashboard() {
                               color: TEAL,
                             }}
                           >
-                            {item.price_label && item.price_label.trim() ? `₦${item.price_label}` : `₦${Number(item.price).toLocaleString()}`}
+                            {item.price_label && item.price_label.trim()
+                              ? `₦${item.price_label}`
+                              : `₦${Number(item.price).toLocaleString()}`}
                           </span>
                           {item.prep_time && (
                             <span
@@ -1412,9 +1483,10 @@ export default function VendorDashboard() {
                               setNewItem({
                                 item_name: item.item_name,
                                 description: item.description || "",
-                                price: item.price_label && item.price_label.trim()
-                                  ? item.price_label
-                                  : item.price,
+                                price:
+                                  item.price_label && item.price_label.trim()
+                                    ? item.price_label
+                                    : item.price,
                                 prep_time:
                                   item.prep_time_unit === "days"
                                     ? Math.round(item.prep_time / (60 * 24))
@@ -1533,17 +1605,23 @@ export default function VendorDashboard() {
                 ...(vendor?.category !== "foodstuff"
                   ? [
                       {
-                        label: vendor?.category === "bakery" && newItem.allow_design_notes
-                          ? "Starting Price / Price Range (₦)"
-                          : "Price (₦)",
+                        label:
+                          vendor?.category === "bakery" &&
+                          newItem.allow_design_notes
+                            ? "Starting Price / Price Range (₦)"
+                            : "Price (₦)",
                         key: "price",
-                        type: vendor?.category === "bakery" && newItem.allow_design_notes
-                          ? "text"
-                          : "number",
+                        type:
+                          vendor?.category === "bakery" &&
+                          newItem.allow_design_notes
+                            ? "text"
+                            : "number",
                         required: true,
-                        placeholder: vendor?.category === "bakery" && newItem.allow_design_notes
-                          ? "e.g. 2000-5000"
-                          : "1200",
+                        placeholder:
+                          vendor?.category === "bakery" &&
+                          newItem.allow_design_notes
+                            ? "e.g. 2000-5000"
+                            : "1200",
                       },
                     ]
                   : []),
