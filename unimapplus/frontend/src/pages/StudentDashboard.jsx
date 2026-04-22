@@ -106,7 +106,6 @@ const VENDOR_COLORS = [
   "#0BBFBF",
   "#d35400",
   "#2c3e50",
-  "#8e44ad",
 ];
 
 const getVendorColor = (name = "") => {
@@ -661,20 +660,18 @@ export default function StudentDashboard() {
           setNearbyLocations(locs);
           locs.forEach((loc) => {
             const isEatery = loc.category === "eatery";
-            const catEmoji =
-              loc.category === "eatery" ? (
-                <Store size={16} />
-              ) : loc.category === "hostel" ? (
-                <Home size={16} />
-              ) : loc.category === "sports" ? (
-                <Trophy size={16} />
-              ) : loc.category === "faculty" ? (
-                <GraduationCap size={16} />
-              ) : (
-                <MapPin size={16} />
-              );
+            const catSvg =
+              loc.category === "eatery"
+                ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'
+                : loc.category === "hostel"
+                ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'
+                : loc.category === "faculty"
+                ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>'
+                : loc.category === "sports"
+                ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>'
+                : '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
             const icon = L.divIcon({
-              html: `<div style="background:${isEatery ? TEAL : "#0d2137"};width:30px;height:30px;border-radius:50%;border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.3)">${catEmoji}</div>`,
+              html: `<div style="background:${isEatery ? TEAL : "#0d2137"};width:30px;height:30px;border-radius:50%;border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3)">${catSvg}</div>`,
               iconSize: [30, 30],
               iconAnchor: [15, 15],
               className: "",
