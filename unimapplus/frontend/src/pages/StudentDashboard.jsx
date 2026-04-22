@@ -168,6 +168,7 @@ export default function StudentDashboard() {
   const [allCampusLocations, setAllCampusLocations] = useState([]);
   const [itemCustomizations, setItemCustomizations] = useState({}); // {menu_id: {variant, toppings[], designNote}}
   const [recommendations, setRecommendations] = useState(null);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const mapRef = useRef(null);
   const leafletMap = useRef(null);
@@ -664,12 +665,12 @@ export default function StudentDashboard() {
               loc.category === "eatery"
                 ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'
                 : loc.category === "hostel"
-                ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'
-                : loc.category === "faculty"
-                ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>'
-                : loc.category === "sports"
-                ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>'
-                : '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+                  ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'
+                  : loc.category === "faculty"
+                    ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>'
+                    : loc.category === "sports"
+                      ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>'
+                      : '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
             const icon = L.divIcon({
               html: `<div style="background:${isEatery ? TEAL : "#0d2137"};width:30px;height:30px;border-radius:50%;border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3)">${catSvg}</div>`,
               iconSize: [30, 30],
@@ -1005,42 +1006,69 @@ export default function StudentDashboard() {
             boxShadow: "0 1px 4px rgba(0,0,0,.05)",
           }}
         >
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              background: BG,
-              border: "1.5px solid #e8ecf0",
-              borderRadius: 30,
-              padding: "7px 14px",
-              maxWidth: 420,
-              minWidth: 0,
-            }}
-          >
-            <span style={{ color: "#7a90a4" }}>
-              <IcSearch />
-            </span>
-            <input
-              value={searchQ}
-              onChange={(e) => {
-                setSearchQ(e.target.value);
-                doSearch(e.target.value);
-              }}
-              placeholder="Search restaurants, food..."
+          {/* Mobile: Unimap+ logo left */}
+          {isMobile && (
+            <div
               style={{
-                border: "none",
-                outline: "none",
-                background: "none",
-                fontFamily: "inherit",
-                fontSize: 13,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                cursor: "pointer",
+                flexShrink: 0,
+              }}
+              onClick={() => setTab("profile")}
+            >
+              <img
+                src="/logo.png"
+                alt="Unimap+"
+                style={{ width: 28, height: 28, objectFit: "contain" }}
+              />
+              <span style={{ fontSize: 13, fontWeight: 900, color: DARK }}>
+                Unimap<span style={{ color: TEAL }}>+</span>
+              </span>
+            </div>
+          )}
+          {/* Desktop: full search bar */}
+          {!isMobile && (
+            <div
+              style={{
                 flex: 1,
-                color: DARK,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                background: BG,
+                border: "1.5px solid #e8ecf0",
+                borderRadius: 30,
+                padding: "7px 14px",
+                maxWidth: 420,
                 minWidth: 0,
               }}
-            />
-          </div>
+            >
+              <span style={{ color: "#7a90a4" }}>
+                <IcSearch />
+              </span>
+              <input
+                value={searchQ}
+                onChange={(e) => {
+                  setSearchQ(e.target.value);
+                  doSearch(e.target.value);
+                }}
+                placeholder="Search restaurants, food..."
+                style={{
+                  border: "none",
+                  outline: "none",
+                  background: "none",
+                  fontFamily: "inherit",
+                  fontSize: 13,
+                  flex: 1,
+                  color: DARK,
+                  minWidth: 0,
+                }}
+              />
+            </div>
+          )}
+
+          {/* Right icons */}
           <div
             style={{
               marginLeft: "auto",
@@ -1049,6 +1077,62 @@ export default function StudentDashboard() {
               gap: 10,
             }}
           >
+            {/* Mobile: always-visible search bar */}
+            {isMobile && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: BG,
+                  border: "1.5px solid #e8ecf0",
+                  borderRadius: 30,
+                  padding: "6px 12px",
+                  flex: 1,
+                }}
+              >
+                <IcSearch />
+                <input
+                  value={searchQ}
+                  onChange={(e) => {
+                    setSearchQ(e.target.value);
+                    doSearch(e.target.value);
+                  }}
+                  placeholder="Search food..."
+                  style={{
+                    border: "none",
+                    outline: "none",
+                    background: "none",
+                    fontFamily: "inherit",
+                    fontSize: 13,
+                    flex: 1,
+                    color: DARK,
+                    minWidth: 0,
+                  }}
+                />
+                {searchQ.length > 0 && (
+                  <button
+                    onClick={() => {
+                      setSearchQ("");
+                      setSearchResults(null);
+                    }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: "#7a90a4",
+                      fontSize: 16,
+                      padding: 0,
+                      lineHeight: 1,
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Cart */}
             <button
               onClick={() => setCartOpen(true)}
               style={{
@@ -1083,57 +1167,61 @@ export default function StudentDashboard() {
                 </span>
               )}
             </button>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                background: BG,
-                border: "1.5px solid #e8ecf0",
-                borderRadius: 30,
-                padding: "5px 12px 5px 6px",
-                cursor: "pointer",
-              }}
-              onClick={() => setTab("profile")}
-            >
-              <div
-                style={{
-                  width: 26,
-                  height: 26,
-                  borderRadius: "50%",
-                  background: TEAL,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#fff",
-                  fontSize: 11,
-                  fontWeight: 800,
-                }}
-              >
-                {user?.fullname?.[0]?.toUpperCase() || "S"}
-              </div>
-              <span style={{ fontSize: 12, fontWeight: 700, color: DARK }}>
-                {user?.fullname?.split(" ")[0] || "Student"}
-              </span>
-              <span style={{ fontSize: 10, color: "#7a90a4" }}>▾</span>
-            </div>
+
+            {/* Desktop: profile pill + logout */}
             {!isMobile && (
-              <button
-                onClick={logout}
-                style={{
-                  background: "#fff0f0",
-                  color: "#e74c3c",
-                  border: "none",
-                  borderRadius: 20,
-                  padding: "6px 14px",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                }}
-              >
-                Logout
-              </button>
+              <>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    background: BG,
+                    border: "1.5px solid #e8ecf0",
+                    borderRadius: 30,
+                    padding: "5px 12px 5px 6px",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setTab("profile")}
+                >
+                  <div
+                    style={{
+                      width: 26,
+                      height: 26,
+                      borderRadius: "50%",
+                      background: TEAL,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#fff",
+                      fontSize: 11,
+                      fontWeight: 800,
+                    }}
+                  >
+                    {user?.fullname?.[0]?.toUpperCase() || "S"}
+                  </div>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: DARK }}>
+                    {user?.fullname?.split(" ")[0] || "Student"}
+                  </span>
+                  <span style={{ fontSize: 10, color: "#7a90a4" }}>▾</span>
+                </div>
+                <button
+                  onClick={logout}
+                  style={{
+                    background: "#fff0f0",
+                    color: "#e74c3c",
+                    border: "none",
+                    borderRadius: 20,
+                    padding: "6px 14px",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  Logout
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -1997,7 +2085,13 @@ export default function StudentDashboard() {
                       </span>
                     </div>
                     {selectedVendor.location_name && (
-                      <p style={{ margin: "4px 0 0", fontSize: 12, color: "#7a90a4" }}>
+                      <p
+                        style={{
+                          margin: "4px 0 0",
+                          fontSize: 12,
+                          color: "#7a90a4",
+                        }}
+                      >
                         {selectedVendor.location_name}
                       </p>
                     )}
@@ -2385,14 +2479,22 @@ export default function StudentDashboard() {
                                 0,
                               );
                               // HANDLE price_label FIRST (bakery range case)
-                              if (!parsedVars.length && item.price_label && item.price_label.includes("-")) {
-                                const [min, max] = item.price_label.split("-").map(Number);
+                              if (
+                                !parsedVars.length &&
+                                item.price_label &&
+                                item.price_label.includes("-")
+                              ) {
+                                const [min, max] = item.price_label
+                                  .split("-")
+                                  .map(Number);
                                 return `₦${min.toLocaleString()} – ₦${max.toLocaleString()}`;
                               }
 
                               // existing variant range logic
                               if (parsedVars.length > 0 && base === null) {
-                                const prices = parsedVars.map((v) => Number(v.price));
+                                const prices = parsedVars.map((v) =>
+                                  Number(v.price),
+                                );
                                 const minP = Math.min(...prices);
                                 const maxP = Math.max(...prices);
                                 return minP === maxP

@@ -13,7 +13,8 @@ import {
   House,
   DoorClosed,
   Utensils,
-  ClipboardList, Wallet
+  ClipboardList,
+  Wallet,
 } from "lucide-react";
 
 const TEAL = "#0BBFBF";
@@ -266,7 +267,7 @@ export default function RiderDashboard() {
       <div
         style={{
           background: `linear-gradient(135deg,${TEAL},#089898)`,
-          padding: "20px 20px 28px",
+          padding: "16px 16px 24px",
           position: "relative",
         }}
       >
@@ -279,96 +280,122 @@ export default function RiderDashboard() {
           }}
         >
           {/* LEFT — Logo + Unimap+ */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              flexShrink: 0,
+            }}
+          >
             <img
               src="/logo_white.png"
               alt="Unimap+"
-              style={{ width: 36, height: 36, objectFit: "contain" }}
+              style={{
+                width: 30,
+                height: 30,
+                objectFit: "contain",
+                flexShrink: 0,
+              }}
             />
             <span
               style={{
                 fontWeight: 900,
-                fontSize: 18,
+                fontSize: 16,
                 color: "#fff",
                 letterSpacing: 0.5,
+                whiteSpace: "nowrap",
               }}
             >
               Unimap+
             </span>
           </div>
 
-          {/* RIGHT — Logout + Rider name + bike icon horizontally */}
+          {/* RIGHT — Logout + Rider name + bike icon */}
           <div
             style={{
               display: "flex",
-              flexDirection: "column",
-              alignItems: "flex-end",
+              alignItems: "center",
               gap: 8,
+              flexShrink: 0,
+              minWidth: 0,
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <button
-                onClick={logout}
+            <button
+              onClick={logout}
+              style={{
+                background: "rgba(255,255,255,.15)",
+                border: "none",
+                borderRadius: 20,
+                padding: "6px 11px",
+                color: "#fff",
+                fontWeight: 600,
+                fontSize: 11,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                flexShrink: 0,
+              }}
+            >
+              Logout
+            </button>
+            <div style={{ textAlign: "right", minWidth: 0 }}>
+              <div
                 style={{
-                  background: "rgba(255,255,255,.15)",
-                  border: "none",
-                  borderRadius: 20,
-                  padding: "7px 13px",
+                  fontWeight: 900,
+                  fontSize: 14,
                   color: "#fff",
-                  fontWeight: 600,
-                  fontSize: 12,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  maxWidth: 110,
                 }}
               >
-                Logout
-              </button>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontWeight: 900, fontSize: 17, color: "#fff" }}>
-                  {rider?.fullname}
-                </div>
-                <div
-                  style={{
-                    fontSize: 11,
-                    color: "rgba(255,255,255,.75)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "flex-end",
-                    gap: 5,
-                  }}
-                >
-                  {broadcasting ? (
-                    <>
-                      <span
-                        style={{
-                          width: 6,
-                          height: 6,
-                          background: "#a7f3d0",
-                          borderRadius: "50%",
-                          display: "inline-block",
-                          animation: "pulse 1.5s infinite",
-                        }}
-                      />
-                      Broadcasting location
-                    </>
-                  ) : (
-                    "○ Location off"
-                  )}
-                </div>
+                {rider?.fullname}
               </div>
               <div
                 style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: "50%",
-                  background: "rgba(255,255,255,.2)",
+                  fontSize: 10,
+                  color: "rgba(255,255,255,.75)",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
+                  justifyContent: "flex-end",
+                  gap: 4,
+                  whiteSpace: "nowrap",
                 }}
               >
-                <Bike size={22} style={{ color: "#fff" }} />
+                {broadcasting ? (
+                  <>
+                    <span
+                      style={{
+                        width: 5,
+                        height: 5,
+                        background: "#a7f3d0",
+                        borderRadius: "50%",
+                        display: "inline-block",
+                        flexShrink: 0,
+                        animation: "pulse 1.5s infinite",
+                      }}
+                    />
+                    Broadcasting
+                  </>
+                ) : (
+                  "○ Offline"
+                )}
               </div>
+            </div>
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: "50%",
+                background: "rgba(255,255,255,.2)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <Bike size={19} style={{ color: "#fff" }} />
             </div>
           </div>
         </div>
@@ -377,7 +404,7 @@ export default function RiderDashboard() {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(3,1fr)",
-            gap: 10,
+            gap: 8,
           }}
         >
           {[
@@ -396,18 +423,28 @@ export default function RiderDashboard() {
               style={{
                 background: "rgba(255,255,255,.15)",
                 borderRadius: 12,
-                padding: "12px 14px",
+                padding: "10px 8px",
                 textAlign: "center",
               }}
             >
-              <div style={{ fontWeight: 900, fontSize: 18, color: "#fff" }}>
+              <div
+                style={{
+                  fontWeight: 900,
+                  fontSize: 15,
+                  color: "#fff",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
                 {s.value}
               </div>
               <div
                 style={{
-                  fontSize: 10,
+                  fontSize: 9,
                   color: "rgba(255,255,255,.75)",
                   marginTop: 2,
+                  whiteSpace: "nowrap",
                 }}
               >
                 {s.label}
@@ -641,11 +678,21 @@ export default function RiderDashboard() {
                         <div
                           style={{ fontWeight: 700, fontSize: 13, color: DARK }}
                         >
-                          {order.vendor_name}{order.vendor_location ? ` (${order.vendor_location})` : ''}
+                          {order.vendor_name}
+                          {order.vendor_location
+                            ? ` (${order.vendor_location})`
+                            : ""}
                         </div>
                         {order.vendor_phone && (
-                          <a href={`tel:${order.vendor_phone}`}
-                            style={{ fontSize: 11, color: TEAL, fontWeight: 600, textDecoration: 'none' }}>
+                          <a
+                            href={`tel:${order.vendor_phone}`}
+                            style={{
+                              fontSize: 11,
+                              color: TEAL,
+                              fontWeight: 600,
+                              textDecoration: "none",
+                            }}
+                          >
                             {order.vendor_phone}
                           </a>
                         )}
@@ -995,11 +1042,21 @@ export default function RiderDashboard() {
                         <div
                           style={{ fontWeight: 700, fontSize: 13, color: DARK }}
                         >
-                          {order.vendor_name}{order.vendor_location ? ` (${order.vendor_location})` : ''}
+                          {order.vendor_name}
+                          {order.vendor_location
+                            ? ` (${order.vendor_location})`
+                            : ""}
                         </div>
                         {order.vendor_phone && (
-                          <a href={`tel:${order.vendor_phone}`}
-                            style={{ fontSize: 11, color: TEAL, fontWeight: 600, textDecoration: 'none' }}>
+                          <a
+                            href={`tel:${order.vendor_phone}`}
+                            style={{
+                              fontSize: 11,
+                              color: TEAL,
+                              fontWeight: 600,
+                              textDecoration: "none",
+                            }}
+                          >
                             {order.vendor_phone}
                           </a>
                         )}
