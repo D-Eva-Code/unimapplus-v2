@@ -169,6 +169,7 @@ export default function StudentDashboard() {
   const [itemCustomizations, setItemCustomizations] = useState({}); // {menu_id: {variant, toppings[], designNote}}
   const [recommendations, setRecommendations] = useState(null);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [showAllVendors, setShowAllVendors] = useState(false);
 
   const mapRef = useRef(null);
   const leafletMap = useRef(null);
@@ -1361,6 +1362,7 @@ export default function StudentDashboard() {
             boxSizing: "border-box",
             overflowX: "hidden",
             minWidth: 0,
+            margin: "0 auto",
           }}
         >
           {/* HOME */}
@@ -1709,39 +1711,165 @@ export default function StudentDashboard() {
               </div>
 
               {/* POPULAR VENDORS */}
-              <h3
-                style={{
-                  margin: "0 0 12px",
-                  fontSize: 15,
-                  fontWeight: 800,
-                  color: DARK,
-                }}
-              >
-                Popular Vendors
-              </h3>
               <div
                 style={{
                   display: "flex",
-                  gap: 12,
-                  overflowX: "auto",
-                  paddingBottom: 8,
-                  marginBottom: 24,
-                  scrollbarWidth: "none",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 12,
                 }}
               >
-                {vendors.length === 0 ? (
-                  <p style={{ fontSize: 13, color: "#7a90a4" }}>
-                    No vendors yet for your school.
-                  </p>
-                ) : (
-                  vendors.map((v) => (
+                <h3
+                  style={{
+                    margin: 0,
+                    fontSize: 15,
+                    fontWeight: 800,
+                    color: DARK,
+                  }}
+                >
+                  Popular Vendors
+                </h3>
+                {vendors.length > 7 && (
+                  <button
+                    onClick={() => setShowAllVendors((v) => !v)}
+                    style={{
+                      background: showAllVendors ? TEAL : "none",
+                      border: `1.5px solid ${TEAL}`,
+                      borderRadius: 20,
+                      padding: "4px 14px",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: showAllVendors ? "#fff" : TEAL,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      transition: "all .2s",
+                    }}
+                  >
+                    {showAllVendors
+                      ? "Show less ↑"
+                      : `+${vendors.length - 7} more ↓`}
+                  </button>
+                )}
+              </div>
+
+              {vendors.length === 0 ? (
+                <p style={{ fontSize: 13, color: "#7a90a4", marginBottom: 24 }}>
+                  No vendors yet for your school.
+                </p>
+              ) : showAllVendors ? (
+                // EXPANDED: responsive grid
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: isMobile
+                      ? window.innerWidth < 400
+                        ? "repeat(2, 1fr)"
+                        : "repeat(3, 1fr)"
+                      : "repeat(auto-fill, minmax(140px, 1fr))",
+                    gap: 12,
+                    marginBottom: 24,
+                  }}
+                >
+                  {vendors.map((v) => (
+                    <div
+                      key={v.vendor_id}
+                      onClick={() => openVendor(v)}
+                      style={{
+                        height: isMobile ? 110 : 140,
+                        borderRadius: 16,
+                        cursor: "pointer",
+                        position: "relative",
+                        overflow: "hidden",
+                        background: v.logo_url
+                          ? "#fff"
+                          : getVendorColor(v.vendor_name),
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "flex-end",
+                        padding: "10px",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                        transition: "transform .15s",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.transform = "translateY(-2px)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.transform = "translateY(0)")
+                      }
+                    >
+                      {v.logo_url && (
+                        <img
+                          src={v.logo_url}
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            opacity: 0.9,
+                          }}
+                          alt=""
+                        />
+                      )}
+                      <div
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          background:
+                            "linear-gradient(to top, rgba(0,0,0,0.7), transparent)",
+                          zIndex: 1,
+                        }}
+                      />
+                      <div style={{ position: "relative", zIndex: 2 }}>
+                        <div
+                          style={{
+                            fontWeight: 800,
+                            fontSize: isMobile ? 11 : 13,
+                            color: "#fff",
+                            marginBottom: 3,
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {v.vendor_name}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 9,
+                            color: "rgba(255,255,255,0.9)",
+                            background: "rgba(0,0,0,0.3)",
+                            padding: "2px 5px",
+                            borderRadius: 10,
+                            display: "inline-block",
+                          }}
+                        >
+                          {CAT_LABELS[v.category] || "🍽️ Food"}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                // COLLAPSED: horizontal scroll, max 7
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 12,
+                    overflowX: "auto",
+                    paddingBottom: 8,
+                    marginBottom: 24,
+                    scrollbarWidth: "none",
+                  }}
+                >
+                  {vendors.slice(0, 7).map((v) => (
                     <div
                       key={v.vendor_id}
                       onClick={() => openVendor(v)}
                       style={{
                         flexShrink: 0,
-                        width: 140,
-                        height: 140,
+                        width: isMobile ? 120 : 140,
+                        height: isMobile ? 120 : 140,
                         borderRadius: 16,
                         cursor: "pointer",
                         position: "relative",
@@ -1810,7 +1938,7 @@ export default function StudentDashboard() {
                             display: "inline-block",
                           }}
                         >
-                          {CAT_LABELS[v.category] || " Food"}
+                          {CAT_LABELS[v.category] || "🍽️ Food"}
                         </div>
                         <div
                           style={{
@@ -1823,9 +1951,9 @@ export default function StudentDashboard() {
                         </div>
                       </div>
                     </div>
-                  ))
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
 
               {/* FEATURED MENU - real data */}
               <h3
