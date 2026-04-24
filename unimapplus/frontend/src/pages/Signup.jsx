@@ -377,7 +377,7 @@ export default function Signup() {
         }}
       >
         Enter your official school email (e.g.{" "}
-        <strong>yourname@uniben.edu</strong>). We'll send a one-time code to
+        <strong>ends with uniben.edu</strong>). We'll send a one-time code to
         confirm you're a registered student.
       </p>
 
@@ -386,7 +386,7 @@ export default function Signup() {
           <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
             <input
               type="email"
-              placeholder="yourname@uniben.edu"
+              placeholder="yourdetails.uniben.edu"
               value={schoolEmail}
               onChange={(e) => {
                 setSchoolEmail(e.target.value);
