@@ -64,7 +64,7 @@ async function getVendorMenu(req, res) {
     const { tag, search } = req.query;
 
     let query = `
-      SELECT * FROM menu_items WHERE vendor_id = ? AND is_available = TRUE
+      SELECT * FROM menu_items WHERE vendor_id = ?
     `;
     const params = [vendor_id];
 
