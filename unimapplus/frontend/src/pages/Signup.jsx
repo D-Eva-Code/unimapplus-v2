@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { CheckCircle, XCircle } from "lucide-react";
 import api from "../services/api";
 
 const TEAL = "#0BBFBF";
@@ -490,7 +491,7 @@ export default function Signup() {
             padding: "10px 14px",
           }}
         >
-          <span style={{ fontSize: 20 }}>✅</span>
+          <span style={{ fontSize: 20 }}><CheckCircle /></span>
           <div>
             <div style={{ fontWeight: 700, fontSize: 13, color: "#16a34a" }}>
               School email verified!
@@ -713,7 +714,7 @@ export default function Signup() {
             color: verifyFile ? TEAL : "#3a5abf",
           }}
         >
-          <span style={{ fontSize: 18 }}>{verifyFile ? "✅" : "📤"}</span>
+          <span style={{ fontSize: 18 }}>{verifyFile ? (<CheckCircle />) : "📤"}</span>
           {verifyFile ? verifyFile.name : `Upload ${docCfg.label}`}
         </label>
         {verifyFile && (

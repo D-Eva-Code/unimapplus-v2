@@ -296,30 +296,33 @@ async function register(req, res) {
 
     // ── VERIFICATION ──────────────────────────────────────────
     if (role === 'driver' || role === 'vendor') {
-      const isStudentPath =
-        (role === 'driver' && riderType === 'student') ||
-        (role === 'vendor' && vendorType === 'student');
+      const isStudentRider =
+      role === 'driver' && riderType === 'student';
+
+      const isStudentVendor =
+      role === 'vendor' && vendorType === 'student';
       const isNINPath =
         role === 'driver' && riderType === 'independent';
       const isCACPath =
         role === 'vendor' && vendorType === 'business';
 
-      if (isStudentPath) {
-        // 1. Verify school email OTP token
+      if (isStudentRider) {
+        // OTP required
         if (!schoolEmailToken) {
-          return res.status(400).json({ success: false, message: 'Please verify your school email with OTP before registering.' });
-        }
-        try {
-          const decoded = jwt.verify(schoolEmailToken, process.env.JWT_SECRET);
-          if (decoded.purpose !== 'school_email_verified') throw new Error('Invalid token');
-        } catch {
-          return res.status(400).json({ success: false, message: 'Your school email OTP has expired or is invalid. Please verify again.' });
+          return res.status(400).json({
+            success: false,
+            message: 'Please verify your school email with OTP before registering.'
+          });
         }
 
-        // 2. Claude vision: verify student ID / admission letter
+        // Document REQUIRED
         if (!verifyFile) {
-          return res.status(400).json({ success: false, message: 'Please upload your student ID card or admission letter.' });
+          return res.status(400).json({
+            success: false,
+            message: 'Please upload your student ID card or admission letter.'
+          });
         }
+
         console.log(`🔍 Verifying student_id document for: ${fullName}`);
         const docResult = await verifyDocument({
           imageBuffer: verifyFile.buffer,
@@ -333,6 +336,19 @@ async function register(req, res) {
             : `The name on your document does not match "${fullName}". Please ensure your name matches your document exactly.`;
           return res.status(400).json({ success: false, message: msg });
         }
+
+      } else if (isStudentVendor) {
+        // OTP required
+        if (!schoolEmailToken) {
+          return res.status(400).json({
+            success: false,
+            message: 'Please verify your school email with OTP before registering.'
+          });
+        }
+
+        // no document check 
+     
+       
 
       } else if (isNINPath) {
         // NIN_DISABLED: Prembly API not yet activated. Uncomment block below when ready.
