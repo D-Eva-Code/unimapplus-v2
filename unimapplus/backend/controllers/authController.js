@@ -493,4 +493,98 @@ async function createPaystackSubaccount(userId, type, businessName, bankName, ac
   console.log(`✅ Paystack subaccount: ${businessName} → ${code}`);
 }
 
-module.exports = { register, login, sendSchoolEmailOTP, verifySchoolEmailOTP };
+
+// ─────────────────────────────────────────────────────────────
+// FORGOT PASSWORD — Send OTP to any registered email
+// ─────────────────────────────────────────────────────────────
+async function sendResetOTP(req, res) {
+  try {
+    const { email, role } = req.body;
+    if (!email || !role) return res.status(400).json({ success: false, message: 'Email and role required' });
+
+    // Check the user exists for the given role
+    const tableMap = { student: 'students_tb', vendor: 'vendors_tb', driver: 'drivers_tb' };
+    const table = tableMap[role];
+    if (!table) return res.status(400).json({ success: false, message: 'Invalid role' });
+
+    const [rows] = await pool.query(`SELECT * FROM ${table} WHERE email = ?`, [email]);
+    if (!rows.length) return res.status(404).json({ success: false, message: 'No account found with this email.' });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await pool.query('DELETE FROM email_otps WHERE email = ? AND purpose = ?', [email, 'reset_password']);
+    await pool.query(
+      'INSERT INTO email_otps (email, otp, purpose, expires_at) VALUES (?, ?, ?, ?)',
+      [email, otp, 'reset_password', expiresAt]
+    );
+
+    await sendEmail({
+      to: email,
+      subject: 'UnimapPlus — Password reset code',
+      html: `
+        <div style="font-family: sans-serif; max-width: 400px; margin: 0 auto; padding: 24px;">
+          <h2 style="color: #0BBFBF; margin-bottom: 8px;">UnimapPlus Password Reset</h2>
+          <p style="color: #555; margin-bottom: 20px;">Enter this code to reset your password:</p>
+          <div style="background: #f0fafa; border: 2px solid #0BBFBF; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px;">
+            <span style="font-size: 36px; font-weight: 900; letter-spacing: 8px; color: #0d2137;">${otp}</span>
+          </div>
+          <p style="color: #888; font-size: 13px;">This code expires in <strong>10 minutes</strong>. If you did not request this, ignore this email.</p>
+        </div>
+      `,
+    });
+
+    return res.json({ success: true, message: `Reset code sent to ${email}` });
+  } catch (err) {
+    console.error('sendResetOTP error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to send reset code. Please try again.' });
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// FORGOT PASSWORD — Verify OTP and reset password
+// ─────────────────────────────────────────────────────────────
+async function resetPassword(req, res) {
+  try {
+    const { email, role, otp, new_password } = req.body;
+    if (!email || !role || !otp || !new_password) {
+      return res.status(400).json({ success: false, message: 'All fields required' });
+    }
+    if (new_password.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+    }
+
+    // Verify OTP
+    const [rows] = await pool.query(
+      'SELECT * FROM email_otps WHERE email = ? AND purpose = ? AND verified = FALSE ORDER BY created_at DESC LIMIT 1',
+      [email, 'reset_password']
+    );
+
+    if (!rows.length) {
+      return res.status(400).json({ success: false, message: 'No reset code found. Please request a new one.' });
+    }
+    const record = rows[0];
+    if (new Date() > new Date(record.expires_at)) {
+      return res.status(400).json({ success: false, message: 'Reset code has expired. Please request a new one.' });
+    }
+    if (record.otp !== otp.trim()) {
+      return res.status(400).json({ success: false, message: 'Incorrect code. Please try again.' });
+    }
+
+    // Mark OTP used
+    await pool.query('UPDATE email_otps SET verified = TRUE WHERE id = ?', [record.id]);
+
+    // Update password
+    const hash = await bcrypt.hash(new_password, 10);
+    const tableMap = { student: 'students_tb', vendor: 'vendors_tb', driver: 'drivers_tb' };
+    const table = tableMap[role];
+    await pool.query(`UPDATE ${table} SET passwd = ? WHERE email = ?`, [hash, email]);
+
+    return res.json({ success: true, message: 'Password reset successfully.' });
+  } catch (err) {
+    console.error('resetPassword error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to reset password. Please try again.' });
+  }
+}
+
+module.exports = { register, login, sendSchoolEmailOTP, verifySchoolEmailOTP, sendResetOTP, resetPassword };

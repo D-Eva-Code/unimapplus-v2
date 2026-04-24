@@ -269,7 +269,8 @@ export default function Signup() {
       return setError("Please select your eatery category");
     if (isStudentPath && !otpVerified)
       return setError("Please verify your school email with OTP first");
-    if (isStudentPath && !verifyFile)
+    // File upload only required for student RIDERS, not student vendors
+    if (isDriver && form.rider_type === "student" && !verifyFile)
       return setError("Please upload your student ID card or admission letter");
     if (isNINPath && ninNumber.replace(/\s/g, "").length !== 11)
       return setError("Please enter a valid 11-digit NIN number");
@@ -1337,7 +1338,8 @@ export default function Signup() {
               </div>
               {isStudentPath && <SchoolEmailBlock />}
               {isNINPath && <NINBlock />}
-              {(isStudentPath || isCACPath) && <DocumentUploadBlock />}
+              {/* File upload: only for student riders and business vendors, not student vendors */}
+              {(isDriver && form.rider_type === "student" || isCACPath) && <DocumentUploadBlock />}
             </div>
           )}
 

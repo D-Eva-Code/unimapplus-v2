@@ -3,7 +3,7 @@ const router = express.Router();
 const { auth, requireRole } = require('../middleware/auth');
 const { upload } = require('../config/s3');
 
-const { register, login, sendSchoolEmailOTP, verifySchoolEmailOTP } = require('../controllers/authController');
+const { register, login, sendSchoolEmailOTP, verifySchoolEmailOTP, sendResetOTP, resetPassword } = require('../controllers/authController');
 const { getVendors, getVendorMenu, getFeaturedMenu, addMenuItem, updateMenuItem, deleteMenuItem, getVendorDashboard, toggleOpen, getOrderHistory, updateOrderStatus } = require('../controllers/vendorController');
 const { getRecommendations, getUserPreferenceStats } = require('../controllers/recommendationController');
 const { checkout, verifyPayment, paystackWebhook, confirmDelivery, getStudentOrders, getOrder, deleteOrder, requestReview, updatePrice, initializePayment } = require('../controllers/orderController');
@@ -16,6 +16,8 @@ router.post('/auth/register', upload.fields([{ name: 'logo', maxCount: 1 }, { na
 router.post('/auth/login', login);
 router.post('/auth/send-otp', sendSchoolEmailOTP);
 router.post('/auth/verify-otp', verifySchoolEmailOTP);
+router.post('/auth/send-reset-otp', sendResetOTP);
+router.post('/auth/reset-password', resetPassword);
 
 // SCHOOLS
 router.get('/schools', getSchools);
