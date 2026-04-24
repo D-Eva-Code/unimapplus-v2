@@ -131,9 +131,9 @@ async function sendSchoolEmailOTP(req, res) {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
+
 // SCHOOL EMAIL OTP — Verify
-// ─────────────────────────────────────────────────────────────
+
 async function verifySchoolEmailOTP(req, res) {
   try {
     const { email, otp } = req.body;
@@ -170,9 +170,9 @@ async function verifySchoolEmailOTP(req, res) {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
+
 // DOCUMENT VERIFICATION via Claude Vision (student ID / CAC)
-// ─────────────────────────────────────────────────────────────
+
 async function verifyDocument({ imageBuffer, mimeType, docType, expectedName }) {
   const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
   if (!ANTHROPIC_API_KEY) {
@@ -252,9 +252,9 @@ Respond ONLY with valid JSON, no other text:
   }
 }
 
-// ─────────────────────────────────────────────────────────────
+
 // EMAIL HELPER (nodemailer)
-// ─────────────────────────────────────────────────────────────
+
 async function sendEmail({ to, subject, html }) {
   const nodemailer = require('nodemailer');
   const transporter = nodemailer.createTransport({
@@ -269,9 +269,9 @@ async function sendEmail({ to, subject, html }) {
   await transporter.sendMail({ from: `"UnimapPlus" <${process.env.SMTP_USER}>`, to, subject, html });
 }
 
-// ─────────────────────────────────────────────────────────────
+
 // REGISTER
-// ─────────────────────────────────────────────────────────────
+
 async function register(req, res) {
   try {
     const { fullName, email, password, role, school_id, phone, bank_name, account_number, account_name } = req.body;
