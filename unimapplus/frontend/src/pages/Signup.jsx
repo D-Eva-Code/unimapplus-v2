@@ -345,7 +345,7 @@ export default function Signup() {
   const accentColor = cfg.color;
 
   // ─── SCHOOL EMAIL OTP BLOCK ───────────────────────────────
-  const SchoolEmailBlock = () => (
+  const schoolEmailBlock = (
     <div
       style={{
         marginBottom: 16,
@@ -525,7 +525,7 @@ export default function Signup() {
   );
 
   // ─── NIN INPUT BLOCK ──────────────────────────────────────
-  const NINBlock = () => (
+  const ninBlock = (
     <div
       style={{
         marginBottom: 16,
@@ -630,8 +630,7 @@ export default function Signup() {
   const activeDocType = isStudentPath ? "student_id" : isCACPath ? "cac" : null;
   const docCfg = activeDocType ? docConfigs[activeDocType] : null;
 
-  const DocumentUploadBlock = () =>
-    !docCfg ? null : (
+  const documentUploadBlock = !docCfg ? null : (
       <div
         style={{
           marginBottom: 16,
@@ -1337,10 +1336,10 @@ export default function Signup() {
               >
                 🔐 Identity Verification
               </div>
-              {isStudentPath && <SchoolEmailBlock />}
-              {isNINPath && <NINBlock />}
+              {isStudentPath && schoolEmailBlock}
+              {isNINPath && ninBlock}
               {/* File upload: only for student riders and business vendors, not student vendors */}
-              {(isDriver && form.rider_type === "student" || isCACPath) && <DocumentUploadBlock />}
+              {(isDriver && form.rider_type === "student" || isCACPath) && documentUploadBlock}
             </div>
           )}
 
