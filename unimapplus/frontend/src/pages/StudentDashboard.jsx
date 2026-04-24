@@ -2656,6 +2656,19 @@ export default function StudentDashboard() {
                             >
                               Closed
                             </span>
+                          ) : !item.is_available ? (
+                            <span
+                              style={{
+                                fontSize: 10,
+                                color: "#c0392b",
+                                background: "#fff0f0",
+                                padding: "4px 8px",
+                                borderRadius: 8,
+                                fontWeight: 600,
+                              }}
+                            >
+                              Out of Stock
+                            </span>
                           ) : qty > 0 ? (
                             <div
                               style={{

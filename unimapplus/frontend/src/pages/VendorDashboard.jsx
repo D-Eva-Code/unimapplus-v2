@@ -211,6 +211,19 @@ export default function VendorDashboard() {
     } catch {}
   }
 
+  async function toggleStock(menu_id, currentStatus) {
+    try {
+      const { data } = await api.put(`/vendor/menu/${menu_id}/stock`);
+      setMenuItems((prev) =>
+        prev.map((i) =>
+          i.menu_id === menu_id ? { ...i, is_available: data.is_available } : i,
+        ),
+      );
+    } catch (e) {
+      alert(e.response?.data?.message || "Failed to update stock status");
+    }
+  }
+
   async function approveCustomOrder(orderId, price) {
     try {
       // POST /vendor/update-price expects { order_id, total }
@@ -1361,10 +1374,12 @@ export default function VendorDashboard() {
                         background: "#fff",
                         borderRadius: 14,
                         overflow: "hidden",
-                        border: "1px solid #e8f0f0",
+                        border: item.is_available ? "1px solid #e8f0f0" : "1px solid #fecdd3",
                         boxShadow: "0 1px 3px rgba(0,0,0,.04)",
+                        opacity: item.is_available ? 1 : 0.75,
                       }}
                     >
+                      <div style={{ position: "relative" }}>
                       {item.image_url ? (
                         <img
                           src={item.image_url}
@@ -1390,6 +1405,25 @@ export default function VendorDashboard() {
                           <Utensils size={42} color={TEAL} />
                         </div>
                       )}
+                      {!item.is_available && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: 8,
+                            left: 8,
+                            background: "#c0392b",
+                            color: "#fff",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            padding: "3px 8px",
+                            borderRadius: 6,
+                            letterSpacing: 0.3,
+                          }}
+                        >
+                          OUT OF STOCK
+                        </div>
+                      )}
+                      </div>
                       <div style={{ padding: "12px 14px" }}>
                         <div
                           style={{
@@ -1516,6 +1550,23 @@ export default function VendorDashboard() {
                             }}
                           >
                             Edit
+                          </button>
+                          <button
+                            onClick={() => toggleStock(item.menu_id, item.is_available)}
+                            style={{
+                              flex: 1,
+                              padding: "7px",
+                              background: item.is_available ? "#fff8e1" : "#e6fafa",
+                              color: item.is_available ? "#92400e" : TEAL,
+                              border: item.is_available ? "1px solid #f5c518" : `1px solid ${TEAL}44`,
+                              borderRadius: 9,
+                              fontWeight: 600,
+                              fontSize: 11,
+                              cursor: "pointer",
+                              fontFamily: "inherit",
+                            }}
+                          >
+                            {item.is_available ? "Stock Off" : "In Stock"}
                           </button>
                           <button
                             onClick={() => deleteItem(item.menu_id)}

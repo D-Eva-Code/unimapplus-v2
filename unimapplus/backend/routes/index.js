@@ -4,7 +4,7 @@ const { auth, requireRole } = require('../middleware/auth');
 const { upload } = require('../config/s3');
 
 const { register, login, sendSchoolEmailOTP, verifySchoolEmailOTP, sendResetOTP, resetPassword } = require('../controllers/authController');
-const { getVendors, getVendorMenu, getFeaturedMenu, addMenuItem, updateMenuItem, deleteMenuItem, getVendorDashboard, toggleOpen, getOrderHistory, updateOrderStatus } = require('../controllers/vendorController');
+const { getVendors, getVendorMenu, getFeaturedMenu, addMenuItem, updateMenuItem, deleteMenuItem, getVendorDashboard, toggleOpen, getOrderHistory, updateOrderStatus, toggleStockStatus } = require('../controllers/vendorController');
 const { getRecommendations, getUserPreferenceStats } = require('../controllers/recommendationController');
 const { checkout, verifyPayment, paystackWebhook, confirmDelivery, getStudentOrders, getOrder, deleteOrder, requestReview, updatePrice, initializePayment } = require('../controllers/orderController');
 const { getRiderDashboard, toggleAvailability, acceptOrder, updateDeliveryStatus, updateLocation, getEarningsHistory } = require('../controllers/riderController');
@@ -32,6 +32,7 @@ router.get('/vendor/orders/history', auth, requireRole('vendor'), getOrderHistor
 router.post('/vendor/toggle-open', auth, requireRole('vendor'), toggleOpen);
 router.post('/vendor/menu', auth, requireRole('vendor'), upload.single('image'), addMenuItem);
 router.put('/vendor/menu/:menu_id', auth, requireRole('vendor'), upload.single('image'), updateMenuItem);
+router.put('/vendor/menu/:menu_id/stock', auth, requireRole('vendor'), toggleStockStatus);
 router.delete('/vendor/menu/:menu_id', auth, requireRole('vendor'), deleteMenuItem);
 router.put('/vendor/orders/:order_id/status', auth, requireRole('vendor'), updateOrderStatus);
 router.post('/vendor/update-price', auth, requireRole('vendor'), updatePrice);

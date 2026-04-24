@@ -74,12 +74,49 @@ async function verifyNIN(ninNumber) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// SCHOOL EMAIL DOMAIN MAP
+// Maps school_id → required email domain suffix.
+// Add entries here as more universities are onboarded.
+// ─────────────────────────────────────────────────────────────
+// Values are the required domain SUFFIX (checked with endsWith).
+// e.g. 'uniben.edu' matches john@student.uniben.edu, jane@pg.uniben.edu, etc.
+const SCHOOL_EMAIL_DOMAINS = {
+  1: 'uniben.edu', // University of Benin — all student emails end in .uniben.edu
+};
+
+// Returns the required domain suffix for a school_id, or null if not yet configured.
+function getRequiredDomainForSchool(schoolId) {
+  return SCHOOL_EMAIL_DOMAINS[Number(schoolId)] || null;
+}
+
+// Returns true if the email domain ends with the required suffix.
+function schoolEmailMatchesDomain(email, requiredSuffix) {
+  const domain = email.split('@')[1]?.toLowerCase();
+  return domain ? domain.endsWith('.' + requiredSuffix) : false;
+}
+
+// ─────────────────────────────────────────────────────────────
 // SCHOOL EMAIL OTP — Send
 // ─────────────────────────────────────────────────────────────
 async function sendSchoolEmailOTP(req, res) {
   try {
-    const { email } = req.body;
+    const { email, school_id } = req.body;
     if (!email) return res.status(400).json({ success: false, message: 'Email is required' });
+
+    const domain = email.split('@')[1]?.toLowerCase();
+
+    // If a school_id is provided, enforce that school's required domain
+    if (school_id) {
+      const requiredDomain = getRequiredDomainForSchool(school_id);
+      if (requiredDomain) {
+        if (!schoolEmailMatchesDomain(email, requiredDomain)) {
+          return res.status(400).json({
+            success: false,
+            message: `Your school requires a student email ending in .${requiredDomain} (e.g. name@student.${requiredDomain}). Please use your official student email.`,
+          });
+        }
+      }
+    }
 
     // Must be a .edu.ng or known school domain
     const schoolDomains = [
@@ -87,7 +124,6 @@ async function sendSchoolEmailOTP(req, res) {
       'ui.edu.ng', 'abu.edu.ng', 'wellspringuniversity.edu.ng',
       'iuokada.edu.ng',
     ];
-    const domain = email.split('@')[1]?.toLowerCase();
     if (!domain || !schoolDomains.some(d => domain === d || domain.endsWith('.' + d))) {
       return res.status(400).json({
         success: false,
@@ -315,6 +351,24 @@ async function register(req, res) {
           });
         }
 
+        // Verify the token is valid and the email domain matches the school
+        try {
+          const decoded = jwt.verify(schoolEmailToken, process.env.JWT_SECRET);
+          if (decoded.purpose !== 'school_email_verified') {
+            return res.status(400).json({ success: false, message: 'Invalid school email verification token.' });
+          }
+          const verifiedEmail = decoded.email;
+          const requiredDomain = getRequiredDomainForSchool(school_id);
+          if (requiredDomain && !schoolEmailMatchesDomain(verifiedEmail, requiredDomain)) {
+            return res.status(400).json({
+              success: false,
+              message: `Your school requires a student email ending in .${requiredDomain}. The verified email does not match.`,
+            });
+          }
+        } catch (e) {
+          return res.status(400).json({ success: false, message: 'School email verification token is invalid or expired. Please verify again.' });
+        }
+
         // Document REQUIRED
         if (!verifyFile) {
           return res.status(400).json({
@@ -346,7 +400,25 @@ async function register(req, res) {
           });
         }
 
-        // no document check 
+        // Verify the token is valid and the email domain matches the school
+        try {
+          const decoded = jwt.verify(schoolEmailToken, process.env.JWT_SECRET);
+          if (decoded.purpose !== 'school_email_verified') {
+            return res.status(400).json({ success: false, message: 'Invalid school email verification token.' });
+          }
+          const verifiedEmail = decoded.email;
+          const requiredDomain = getRequiredDomainForSchool(school_id);
+          if (requiredDomain && !schoolEmailMatchesDomain(verifiedEmail, requiredDomain)) {
+            return res.status(400).json({
+              success: false,
+              message: `Your school requires a student email ending in .${requiredDomain}. The verified email does not match.`,
+            });
+          }
+        } catch (e) {
+          return res.status(400).json({ success: false, message: 'School email verification token is invalid or expired. Please verify again.' });
+        }
+
+        // no document check
      
        
 

@@ -356,4 +356,20 @@ async function getFeaturedMenu(req, res) {
   }
 }
 
-module.exports = { getVendors, getVendorMenu, getFeaturedMenu, addMenuItem, updateMenuItem, deleteMenuItem, getVendorDashboard, toggleOpen, getOrderHistory, updateOrderStatus };
+// Toggle menu item in-stock / out-of-stock
+async function toggleStockStatus(req, res) {
+  try {
+    const vendorId = req.user.id;
+    const { menu_id } = req.params;
+    const [check] = await pool.query('SELECT * FROM menu_items WHERE menu_id = ? AND vendor_id = ?', [menu_id, vendorId]);
+    if (check.length === 0) return res.status(403).json({ success: false, message: 'Not authorized' });
+    const newStatus = !check[0].is_available;
+    await pool.query('UPDATE menu_items SET is_available = ? WHERE menu_id = ?', [newStatus, menu_id]);
+    return res.json({ success: true, menu_id: Number(menu_id), is_available: newStatus });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, message: 'Error updating stock status' });
+  }
+}
+
+module.exports = { getVendors, getVendorMenu, getFeaturedMenu, addMenuItem, updateMenuItem, deleteMenuItem, getVendorDashboard, toggleOpen, getOrderHistory, updateOrderStatus, toggleStockStatus };
