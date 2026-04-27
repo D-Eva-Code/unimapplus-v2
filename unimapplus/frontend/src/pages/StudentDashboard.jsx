@@ -1423,18 +1423,26 @@ export default function StudentDashboard() {
                   position: "relative",
                   height: isMobile ? 80 : 90,
                   background: heroIdx === 1
-                    ? "linear-gradient(135deg, #0BBFBF 0%, #089898 100%)"
+                    ? "linear-gradient(135deg, #0BBFBF 0%, #055a5a 100%)"
                     : slide.bg,
                   display: "flex",
-                  alignItems: "center",
-                  padding: "0 24px",
+                  alignItems: "flex-start",
+                  padding: "10px 24px",
                   transition: "background .4s",
                   boxShadow: heroIdx === 0 ? "0 2px 12px rgba(230,126,34,0.15)" : heroIdx === 1 ? "0 2px 12px rgba(11,191,191,0.25)" : "0 2px 8px rgba(0,0,0,0.06)",
                   border: heroIdx === 0 ? "1px solid #fde8d0" : "none",
                 }}
               >
                 {/* Text content — capped width so it never overlaps decorations */}
-                <div style={{ zIndex: 2, flex: 1, maxWidth: "60%" }}>
+                <div style={{ 
+                  zIndex: 2, 
+                  flex: 1, 
+                  maxWidth: "60%",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  gap: 2
+                }}>
                   <span
                     style={{
                       fontSize: 9,
@@ -1456,7 +1464,7 @@ export default function StudentDashboard() {
                   </span>
                   <h2
                     style={{
-                      margin: "5px 0 2px",
+                      margin: "3px 0 1px",
                       color: heroIdx === 0 ? "#E67E22" : heroIdx === 2 ? "#0d2137" : "#fff",
                       fontSize: isMobile ? 13 : 16,
                       fontWeight: 900,
@@ -1468,7 +1476,8 @@ export default function StudentDashboard() {
                   </h2>
                   <p
                     style={{
-                      margin: "0 0 6px",
+                      margin: "0 0 4px",
+                      lineHeight: 1.2,
                       color:
                         heroIdx === 0
                           ? "rgba(230,126,34,0.75)"
@@ -1486,9 +1495,10 @@ export default function StudentDashboard() {
                       color: heroIdx === 2 ? "#fff" : heroIdx === 0 ? "#fff" : "#fff",
                       border: heroIdx === 1 ? "1px solid rgba(255,255,255,0.35)" : "none",
                       borderRadius: 20,
-                      padding: "4px 12px",
+                      padding: "3px 10px",
+                      lineHeight: 1,
                       fontWeight: 700,
-                      fontSize: 10,
+                      fontSize: 9,
                       cursor: "pointer",
                       fontFamily: "inherit",
                       backdropFilter: heroIdx === 1 ? "blur(4px)" : "none",
