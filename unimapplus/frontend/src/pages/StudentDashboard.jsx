@@ -82,16 +82,16 @@ const SLIDES = [
     cta: "Claim Offer",
   },
   {
-    bg: "#1a4a3a",
-    accent: "#0BBFBF",
-    tag: "TODAY ONLY",
-    title: "Free\nDelivery 🎉",
-    sub: "Campus Bite · Today only",
-    cta: "Claim Offer",
+    bg: "#0BBFBF",
+    accent: "#064e4e",
+    tag: "TRENDING NOW",
+    title: "Jollof Rice\nis hot right now",
+    sub: "Ordered 43× this hour · Buka 1",
+    cta: "Order now",
   },
   {
-    bg: "#2d1a4a",
-    accent: "#a78bfa",
+    bg: "#c8f0ee",
+    accent: "#0a7a7a",
     tag: "NEW ON CAMPUS",
     title: "New on\nCampus 🔥",
     sub: "Ofada Rice now available",
@@ -1425,18 +1425,22 @@ export default function StudentDashboard() {
                   background: slide.bg,
                   display: "flex",
                   alignItems: "center",
-                  padding: "0 28px",
+                  padding: "0 24px",
                   transition: "background .4s",
                 }}
               >
-                <div style={{ zIndex: 2, flex: 1 }}>
+                {/* Text content — capped width so it never overlaps decorations */}
+                <div style={{ zIndex: 2, flex: 1, maxWidth: "60%" }}>
                   <span
                     style={{
                       fontSize: 10,
                       fontWeight: 800,
                       letterSpacing: 1,
                       color: slide.accent,
-                      background: `${slide.accent}33`,
+                      background:
+                        heroIdx === 2
+                          ? `${slide.accent}22`
+                          : `${slide.accent}33`,
                       padding: "3px 10px",
                       borderRadius: 20,
                       textTransform: "uppercase",
@@ -1447,8 +1451,8 @@ export default function StudentDashboard() {
                   <h2
                     style={{
                       margin: "10px 0 6px",
-                      color: "#fff",
-                      fontSize: isMobile ? 22 : 28,
+                      color: heroIdx === 2 ? "#0d2137" : "#fff",
+                      fontSize: isMobile ? 20 : 26,
                       fontWeight: 900,
                       lineHeight: 1.15,
                       whiteSpace: "pre-line",
@@ -1459,16 +1463,19 @@ export default function StudentDashboard() {
                   <p
                     style={{
                       margin: "0 0 14px",
-                      color: "rgba(255,255,255,.85)",
-                      fontSize: 12,
+                      color:
+                        heroIdx === 2
+                          ? "rgba(13,33,55,0.7)"
+                          : "rgba(255,255,255,.85)",
+                      fontSize: 11,
                     }}
                   >
                     {slide.sub}
                   </p>
                   <button
                     style={{
-                      background: "#fff",
-                      color: slide.bg,
+                      background: heroIdx === 2 ? "#0d2137" : "#fff",
+                      color: heroIdx === 2 ? "#fff" : slide.bg,
                       border: "none",
                       borderRadius: 20,
                       padding: "8px 18px",
@@ -1481,6 +1488,8 @@ export default function StudentDashboard() {
                     {slide.cta}
                   </button>
                 </div>
+
+                {/* Right-side decoration */}
                 {heroIdx === 0 ? (
                   <img
                     src="/burger.png"
@@ -1495,16 +1504,54 @@ export default function StudentDashboard() {
                       filter: "drop-shadow(-4px 0 8px rgba(0,0,0,0.15))",
                     }}
                   />
+                ) : heroIdx === 1 ? (
+                  /* Slide 2 teal: two overlapping circles */
+                  <>
+                    <div
+                      style={{
+                        position: "absolute",
+                        right: isMobile ? 10 : 20,
+                        top: "-10%",
+                        right: "-2%",
+                        width: isMobile ? 90 : 130,
+                        height: isMobile ? 90 : 138,
+                        borderRadius: "50%",
+                        background: "rgba(255,255,255,0.13)",
+                        zIndex: 1,
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        right: isMobile ? 10 : 20,
+                        bottom: "-15%",
+                        right: "15%",
+                        width: isMobile ? 60 : 72,
+                        height: isMobile ? 60 : 72,
+                        borderRadius: "50%",
+                        background: "rgba(255,255,255,0.09)",
+                        zIndex: 1,
+                      }}
+                    />
+                  </>
                 ) : (
+                  /* Slide 3 mint: circle fully inside, no edge clipping */
                   <div
                     style={{
-                      width: isMobile ? 80 : 120,
-                      height: isMobile ? 80 : 120,
+                      position: "absolute",
+                      right: isMobile ? 14 : 24,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: isMobile ? 100 : 124,
+                      height: isMobile ? 100 : 124,
                       borderRadius: "50%",
-                      background: `${slide.accent}33`,
+                      background: "rgba(10,122,122,0.15)",
+                      zIndex: 1,
                     }}
                   />
                 )}
+
+                {/* Slide dots */}
                 <div
                   style={{
                     position: "absolute",
@@ -1513,6 +1560,7 @@ export default function StudentDashboard() {
                     transform: "translateX(-50%)",
                     display: "flex",
                     gap: 6,
+                    zIndex: 3,
                   }}
                 >
                   {SLIDES.map((_, i) => (
@@ -1524,7 +1572,13 @@ export default function StudentDashboard() {
                         height: 6,
                         borderRadius: 3,
                         background:
-                          i === heroIdx ? "#fff" : "rgba(255,255,255,.4)",
+                          i === heroIdx
+                            ? heroIdx === 2
+                              ? "#0d2137"
+                              : "#fff"
+                            : heroIdx === 2
+                              ? "rgba(13,33,55,0.3)"
+                              : "rgba(255,255,255,.4)",
                         cursor: "pointer",
                         transition: "all .3s",
                       }}
@@ -2655,19 +2709,6 @@ export default function StudentDashboard() {
                               }}
                             >
                               Closed
-                            </span>
-                          ) : !item.is_available ? (
-                            <span
-                              style={{
-                                fontSize: 10,
-                                color: "#c0392b",
-                                background: "#fff0f0",
-                                padding: "4px 8px",
-                                borderRadius: 8,
-                                fontWeight: 600,
-                              }}
-                            >
-                              Out of Stock
                             </span>
                           ) : qty > 0 ? (
                             <div
