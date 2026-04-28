@@ -1434,7 +1434,10 @@ export default function StudentDashboard() {
                     : slide.bg,
                   display: "flex",
                   alignItems: "flex-start",
-                  padding: "10px 24px",
+                  padding:
+                  heroIdx === 0 || heroIdx === 1
+                    ? "16px 24px"
+                    : "10px 24px",
                   transition: "background .4s",
                   boxShadow: heroIdx === 0 ? "0 2px 12px rgba(230,126,34,0.15)" : heroIdx === 1 ? "0 2px 12px rgba(11,191,191,0.25)" : "0 2px 8px rgba(0,0,0,0.06)",
                   border: "none",
