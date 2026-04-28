@@ -97,7 +97,7 @@ const SLIDES = [
     accent: "#0a7a7a",
     tag: "NEW ON CAMPUS",
     highlight: "New",
-    headline: "on Campus 🔥",
+    headline: "On Campus 🔥",
     sub: "Ofada Rice now available",
     cta: "Order Now",
   },
