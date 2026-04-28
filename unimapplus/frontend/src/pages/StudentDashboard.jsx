@@ -1416,7 +1416,9 @@ export default function StudentDashboard() {
 
               {/* HERO */}
               <div
-                style={{
+                onClick={() => handleHeroClick(slide)} // 
+                  style={{
+                  cursor: "pointer", 
                   borderRadius: 18,
                   overflow: "hidden",
                   marginBottom: 20,
@@ -1502,6 +1504,7 @@ export default function StudentDashboard() {
                       cursor: "pointer",
                       fontFamily: "inherit",
                       backdropFilter: heroIdx === 1 ? "blur(4px)" : "none",
+                      display: "none"
                     }}
                   >
                     {slide.cta}
@@ -1585,6 +1588,29 @@ export default function StudentDashboard() {
                     />
                   </>
                 )}
+
+                {/* Arrow CTA */}
+                <div
+                  style={{
+                    position: "absolute",
+                    right: isMobile ? 10 : 16,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    zIndex: 4,
+                    width: 28,
+                    height: 28,
+                    borderRadius: "50%",
+                    background: "rgba(255,255,255,0.25)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backdropFilter: "blur(6px)",
+                  }}
+                >
+                  <span style={{ fontSize: 14, color: "#fff", fontWeight: 800 }}>
+                    ›
+                  </span>
+                </div>
 
                 {/* Slide dots */}
                 <div
