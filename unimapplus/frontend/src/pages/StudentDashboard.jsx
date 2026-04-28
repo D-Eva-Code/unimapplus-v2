@@ -1490,7 +1490,7 @@ export default function StudentDashboard() {
                       margin: "3px 0 1px",
                       color:
                         heroIdx === 0
-                          ? "#E67E22"
+                          ? "#000000"
                           : heroIdx === 2
                           ? "#0d2137"
                           : "#fff",
