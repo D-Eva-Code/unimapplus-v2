@@ -1672,7 +1672,7 @@ export default function StudentDashboard() {
               {/* AI PICK - with real weather */}
               <div
                 style={{
-                  background: "rgba(255, 255, 255, 0.6)",
+                  background: "rgba(255,255,255,0.6)",
                   backdropFilter: "blur(12px)",
                   borderRadius: 16,
                   padding: "14px 18px",

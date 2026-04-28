@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const { uploadToCloudinary } = require('../config/s3');
 
 // Get all vendors for a school
 async function getVendors(req, res) {
@@ -101,7 +102,6 @@ async function getVendorMenu(req, res) {
 async function addMenuItem(req, res) {
   try {
     const vendorId = req.user.id;
-    const { uploadToCloudinary } = require('../config/s3');
     const { item_name, description, price, price_label, tags, prep_time, prep_time_unit, item_type, variants, toppings, allow_design_notes } = req.body;
     const image_url = req.file ? await uploadToCloudinary(req.file.buffer, 'unimapplus/menu') : null;
 
@@ -141,7 +141,8 @@ async function updateMenuItem(req, res) {
 
     const tagsArray = tags ? (Array.isArray(tags) ? tags : JSON.parse(tags)) : check[0].tags;
 
-    const updates = { item_name, description, price, price_label: price_label !== undefined ? (price_label || null) : check[0].price_label, tags: JSON.stringify(tagsArray), is_available };
+    const updates = { item_name, description, price, price_label: price_label !== undefined ? (price_label || null) : check[0].price_label, tags: JSON.stringify(tagsArray) };
+    if (is_available !== undefined) updates.is_available = is_available;
     if (prep_time !== undefined) updates.prep_time = prep_time;
     if (prep_time_unit !== undefined) updates.prep_time_unit = prep_time_unit;
     if (item_type !== undefined) updates.item_type = item_type;
