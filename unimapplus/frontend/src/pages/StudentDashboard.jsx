@@ -1432,7 +1432,7 @@ export default function StudentDashboard() {
                   padding: "10px 24px",
                   transition: "background .4s",
                   boxShadow: heroIdx === 0 ? "0 2px 12px rgba(230,126,34,0.15)" : heroIdx === 1 ? "0 2px 12px rgba(11,191,191,0.25)" : "0 2px 8px rgba(0,0,0,0.06)",
-                  border: heroIdx === 0 ? "1px solid #fde8d0" : "none",
+                  border: "none",
                 }}
               >
                 {/* Text content — capped width so it never overlaps decorations */}
