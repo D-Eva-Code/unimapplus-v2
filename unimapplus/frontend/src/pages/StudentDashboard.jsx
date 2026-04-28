@@ -873,6 +873,9 @@ export default function StudentDashboard() {
 
   function SideItem({ id, label, icon }) {
     const active = tab === id;
+    const activeOrderCount = id === "orders"
+      ? orders.filter(o => !["delivered", "cancelled"].includes(o.status)).length
+      : 0;
     return (
       <button
         onClick={() => {
@@ -895,9 +898,33 @@ export default function StudentDashboard() {
           fontSize: 14,
           marginBottom: 2,
           transition: "all .15s",
+          position: "relative",
         }}
       >
-        <span style={{ opacity: active ? 1 : 0.7 }}>{icon}</span>
+        <span style={{ opacity: active ? 1 : 0.7, position: "relative" }}>
+          {icon}
+          {activeOrderCount > 0 && (
+            <span style={{
+              position: "absolute",
+              top: -4,
+              right: -6,
+              background: "#e74c3c",
+              color: "#fff",
+              fontSize: 8,
+              fontWeight: 800,
+              borderRadius: 10,
+              minWidth: 14,
+              height: 14,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "0 3px",
+              lineHeight: 1,
+            }}>
+              {activeOrderCount}
+            </span>
+          )}
+        </span>
         {label}
       </button>
     );
@@ -1373,51 +1400,7 @@ export default function StudentDashboard() {
           {/* HOME */}
           {tab === "home" && !selectedVendor && (
             <>
-              {/* Active order banner */}
-              {trackedOrder &&
-                !["delivered", "cancelled"].includes(trackedOrder.status) && (
-                  <div
-                    onClick={() => setTab("orders")}
-                    style={{
-                      background: "linear-gradient(135deg,#0BBFBF,#089898)",
-                      borderRadius: 14,
-                      padding: "12px 16px",
-                      marginBottom: 16,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
-                    }}
-                  >
-                    <Bike size={18} style={{ color: "#fff" }} />
-                    <div style={{ flex: 1 }}>
-                      <p
-                        style={{
-                          margin: 0,
-                          color: "#fff",
-                          fontWeight: 700,
-                          fontSize: 13,
-                        }}
-                      >
-                        Order in progress!
-                      </p>
-                      <p
-                        style={{
-                          margin: "2px 0 0",
-                          color: "rgba(255,255,255,.8)",
-                          fontSize: 11,
-                        }}
-                      >
-                        {statusLabels[trackedOrder.status]} · Tap to track
-                      </p>
-                    </div>
-                    <span
-                      style={{ color: "#fff", fontSize: 12, fontWeight: 700 }}
-                    >
-                      Track →
-                    </span>
-                  </div>
-                )}
+
 
               {/* HERO */}
               <div
@@ -4109,6 +4092,9 @@ export default function StudentDashboard() {
           >
             {NAV.map((n) => {
               const active = tab === n.id;
+              const activeOrderCount = n.id === "orders"
+                ? orders.filter(o => !["delivered", "cancelled"].includes(o.status)).length
+                : 0;
               return (
                 <button
                   key={n.id}
@@ -4135,9 +4121,31 @@ export default function StudentDashboard() {
                       padding: "4px 16px",
                       borderRadius: 12,
                       background: active ? "#e6fafa" : "none",
+                      position: "relative",
                     }}
                   >
                     {n.icon}
+                    {activeOrderCount > 0 && (
+                      <span style={{
+                        position: "absolute",
+                        top: 0,
+                        right: 4,
+                        background: "#e74c3c",
+                        color: "#fff",
+                        fontSize: 8,
+                        fontWeight: 800,
+                        borderRadius: 10,
+                        minWidth: 14,
+                        height: 14,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: "0 3px",
+                        lineHeight: 1,
+                      }}>
+                        {activeOrderCount}
+                      </span>
+                    )}
                   </div>
                   <span style={{ fontSize: 9, fontWeight: active ? 700 : 500 }}>
                     {n.label}
