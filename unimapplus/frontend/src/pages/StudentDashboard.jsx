@@ -73,6 +73,16 @@ const CAT_LABELS = {
 };
 
 const SLIDES = [
+
+  {
+    bg: "#ffffff",
+    accent: "#E67E22",
+    tag: "FLASH DEAL",
+    highlight: "50%",
+    headline: "OFF Wednesdays",
+    sub: "Buka 1 · Every Wednesday",
+    cta: "Claim Offer",
+  },
   {
     bg: "#0BBFBF",
     accent: "#064e4e",
@@ -87,18 +97,9 @@ const SLIDES = [
     accent: "#0a7a7a",
     tag: "NEW ON CAMPUS",
     highlight: "New on Campus 🔥",
-    headline: "Ofada Rice now available",
+    headline: "",
     sub: "Ofada Rice now available",
     cta: "Order Now",
-  },
-  {
-    bg: "#ffffff",
-    accent: "#E67E22",
-    tag: "FLASH DEAL",
-    highlight: "50%",
-    headline: "OFF Wednesdays",
-    sub: "Buka 1 · Every Wednesday",
-    cta: "Claim Offer",
   },
 ];
 
@@ -1434,9 +1435,9 @@ export default function StudentDashboard() {
                   display: "flex",
                   alignItems: "flex-start",
                   padding:
-                  heroIdx === 0 || heroIdx === 2
+                  heroIdx === 0 || heroIdx === 1
                     ? "6px 24px 16px"
-                    : "10px 24px",
+                  : "10px 24px",
                   transition: "background .4s",
                   boxShadow: heroIdx === 0 ? "0 2px 12px rgba(230,126,34,0.15)" : heroIdx === 1 ? "0 2px 12px rgba(11,191,191,0.25)" : "0 2px 8px rgba(0,0,0,0.06)",
                   border: "none",
@@ -1457,7 +1458,7 @@ export default function StudentDashboard() {
                       fontSize: 9,
                       fontWeight: 800,
                       letterSpacing: 1,
-                      color: heroIdx === 0 ? "#E67E22" : heroIdx === 1 ? "rgba(255,255,255,0.95)" : slide.accent,
+                      color: heroIdx === 0 ? "#000000" : heroIdx === 1 ? "rgba(255,255,255,0.95)" : slide.accent,
                       background:
                         heroIdx === 0
                           ? "#fff3e8"
