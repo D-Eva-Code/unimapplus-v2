@@ -143,6 +143,7 @@ export default function StudentDashboard() {
   const vendorList = getVendorList(); // recomputes on every render when carts changes
 
   const [tab, setTab] = useState("home");
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem("unimap_dark") === "1");
   const [vendors, setVendors] = useState([]);
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [menu, setMenu] = useState([]);
@@ -892,8 +893,8 @@ export default function StudentDashboard() {
           borderRadius: 10,
           cursor: "pointer",
           fontFamily: "inherit",
-          background: active ? TEAL : "transparent",
-          color: active ? "#fff" : "#7a90a4",
+          background: active ? TEAL : dm ? "#21262d" : "transparent",
+          color: active ? "#fff" : textSecondary,
           fontWeight: active ? 700 : 500,
           fontSize: 14,
           marginBottom: 2,
@@ -930,13 +931,23 @@ export default function StudentDashboard() {
     );
   }
 
+  const dm = darkMode;
+  const bg = dm ? "#0d1117" : BG;
+  const cardBg = dm ? "#161b22" : "#fff";
+  const cardBorder = dm ? "rgba(255,255,255,0.07)" : "transparent";
+  const textPrimary = dm ? "#e6edf3" : DARK;
+  const textSecondary = dm ? "#8b949e" : "#7a90a4";
+  const dividerColor = dm ? "#30363d" : "#f0f0f0";
+  const inputBg = dm ? "#21262d" : "#fff";
+  const inputBorder = dm ? "#30363d" : "#e8ecf0";
+
   return (
     <div
       style={{
         display: "flex",
         minHeight: "100vh",
         fontFamily: "'Plus Jakarta Sans',sans-serif",
-        background: BG,
+        background: bg,
         position: "relative",
         overflowX: "hidden",
         maxWidth: "100%",
@@ -947,8 +958,8 @@ export default function StudentDashboard() {
         <div
           style={{
             width: 200,
-            background: "#fff",
-            borderRight: "1px solid #e8ecf0",
+            background: cardBg,
+            borderRight: `1px solid ${dividerColor}`,
             position: "fixed",
             top: 0,
             left: 0,
@@ -988,7 +999,7 @@ export default function StudentDashboard() {
                 }}
               />
             </div>
-            <span style={{ fontWeight: 900, fontSize: 17, color: DARK }}>
+            <span style={{ fontWeight: 900, fontSize: 17, color: textPrimary }}>
               Unimap<span style={{ color: TEAL }}>+</span>
             </span>
           </div>
@@ -1029,8 +1040,8 @@ export default function StudentDashboard() {
             position: "sticky",
             top: 0,
             zIndex: 200,
-            background: "#fff",
-            borderBottom: "1px solid #e8ecf0",
+            background: cardBg,
+            borderBottom: `1px solid ${dividerColor}`,
             display: "flex",
             alignItems: "center",
             gap: 12,
@@ -1056,7 +1067,7 @@ export default function StudentDashboard() {
                 alt="Unimap+"
                 style={{ width: 28, height: 28, objectFit: "contain" }}
               />
-              <span style={{ fontSize: 13, fontWeight: 900, color: DARK }}>
+              <span style={{ fontSize: 13, fontWeight: 900, color: textPrimary }}>
                 Unimap<span style={{ color: TEAL }}>+</span>
               </span>
             </div>
@@ -1069,8 +1080,8 @@ export default function StudentDashboard() {
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
-                background: BG,
-                border: "1.5px solid #e8ecf0",
+                background: inputBg,
+                border: `1.5px solid ${inputBorder}`,
                 borderRadius: 30,
                 padding: "7px 14px",
                 maxWidth: 420,
@@ -1094,7 +1105,7 @@ export default function StudentDashboard() {
                   fontFamily: "inherit",
                   fontSize: 13,
                   flex: 1,
-                  color: DARK,
+                  color: textPrimary,
                   minWidth: 0,
                 }}
               />
@@ -1117,8 +1128,8 @@ export default function StudentDashboard() {
                   display: "flex",
                   alignItems: "center",
                   gap: 6,
-                  background: BG,
-                  border: "1.5px solid #e8ecf0",
+                  background: inputBg,
+                  border: `1.5px solid ${inputBorder}`,
                   borderRadius: 30,
                   padding: "6px 12px",
                   flex: 1,
@@ -1139,7 +1150,7 @@ export default function StudentDashboard() {
                     fontFamily: "inherit",
                     fontSize: 13,
                     flex: 1,
-                    color: DARK,
+                    color: textPrimary,
                     minWidth: 0,
                   }}
                 />
@@ -1153,7 +1164,7 @@ export default function StudentDashboard() {
                       background: "none",
                       border: "none",
                       cursor: "pointer",
-                      color: "#7a90a4",
+                      color: textSecondary,
                       fontSize: 16,
                       padding: 0,
                       lineHeight: 1,
@@ -1173,7 +1184,7 @@ export default function StudentDashboard() {
                 background: "none",
                 border: "none",
                 cursor: "pointer",
-                color: DARK,
+                color: textPrimary,
                 padding: 4,
               }}
             >
@@ -1209,7 +1220,7 @@ export default function StudentDashboard() {
                     display: "flex",
                     alignItems: "center",
                     gap: 8,
-                    background: BG,
+                    background: bg,
                     border: "1.5px solid #e8ecf0",
                     borderRadius: 30,
                     padding: "5px 12px 5px 6px",
@@ -1267,9 +1278,9 @@ export default function StudentDashboard() {
               top: 58,
               left: isMobile ? 0 : 200,
               right: 0,
-              background: "#fff",
+              background: cardBg,
               zIndex: 300,
-              borderBottom: "1px solid #e8ecf0",
+              borderBottom: `1px solid ${dividerColor}`,
               boxShadow: "0 8px 24px rgba(0,0,0,.1)",
               maxHeight: 360,
               overflowY: "auto",
@@ -1296,7 +1307,7 @@ export default function StudentDashboard() {
                   border: "none",
                   cursor: "pointer",
                   fontSize: 18,
-                  color: "#7a90a4",
+                  color: textSecondary,
                 }}
               >
                 ×
@@ -1373,7 +1384,7 @@ export default function StudentDashboard() {
               <p
                 style={{
                   textAlign: "center",
-                  color: "#7a90a4",
+                  color: textSecondary,
                   padding: "20px 0",
                   fontSize: 13,
                 }}
@@ -1861,7 +1872,7 @@ export default function StudentDashboard() {
                     margin: 0,
                     fontSize: 15,
                     fontWeight: 800,
-                    color: DARK,
+                    color: textPrimary,
                   }}
                 >
                   Popular Vendors
@@ -1890,7 +1901,7 @@ export default function StudentDashboard() {
               </div>
 
               {vendors.length === 0 ? (
-                <p style={{ fontSize: 13, color: "#7a90a4", marginBottom: 24 }}>
+                <p style={{ fontSize: 13, color: textSecondary, marginBottom: 24 }}>
                   No vendors yet for your school.
                 </p>
               ) : showAllVendors ? (
@@ -2098,7 +2109,7 @@ export default function StudentDashboard() {
                   margin: "0 0 12px",
                   fontSize: 15,
                   fontWeight: 800,
-                  color: DARK,
+                  color: textPrimary,
                 }}
               >
                 Featured Menu
@@ -2106,11 +2117,11 @@ export default function StudentDashboard() {
               {featuredMenu.length === 0 ? (
                 <div
                   style={{
-                    background: "#fff",
+                    background: cardBg,
                     borderRadius: 14,
                     padding: "32px 20px",
                     textAlign: "center",
-                    color: "#7a90a4",
+                    color: textSecondary,
                     boxShadow: "0 1px 4px rgba(0,0,0,.05)",
                   }}
                 >
@@ -2133,7 +2144,7 @@ export default function StudentDashboard() {
                     <div
                       key={item.menu_id}
                       style={{
-                        background: "#fff",
+                        background: cardBg,
                         borderRadius: 14,
                         overflow: "hidden",
                         boxShadow: "0 1px 4px rgba(0,0,0,.05)",
@@ -2187,7 +2198,7 @@ export default function StudentDashboard() {
                           style={{
                             fontWeight: 700,
                             fontSize: 13,
-                            color: DARK,
+                            color: textPrimary,
                             marginBottom: 2,
                           }}
                         >
@@ -2196,7 +2207,7 @@ export default function StudentDashboard() {
                         <div
                           style={{
                             fontSize: 11,
-                            color: "#7a90a4",
+                            color: textSecondary,
                             marginBottom: 6,
                           }}
                         >
@@ -2273,7 +2284,7 @@ export default function StudentDashboard() {
                 <button
                   onClick={() => setSelectedVendor(null)}
                   style={{
-                    background: "#fff",
+                    background: cardBg,
                     border: "1.5px solid #e8ecf0",
                     borderRadius: 10,
                     width: 36,
@@ -2293,7 +2304,7 @@ export default function StudentDashboard() {
                       margin: 0,
                       fontSize: 18,
                       fontWeight: 800,
-                      color: DARK,
+                      color: textPrimary,
                     }}
                   >
                     {selectedVendor.vendor_name}
@@ -2354,7 +2365,7 @@ export default function StudentDashboard() {
                         style={{
                           margin: "4px 0 0",
                           fontSize: 12,
-                          color: "#7a90a4",
+                          color: textSecondary,
                         }}
                       >
                         {selectedVendor.location_name}
@@ -2424,13 +2435,13 @@ export default function StudentDashboard() {
               )}
               {menuLoading ? (
                 <p
-                  style={{ color: "#7a90a4", textAlign: "center", padding: 40 }}
+                  style={{ color: textSecondary, textAlign: "center", padding: 40 }}
                 >
                   Loading menu...
                 </p>
               ) : menu.length === 0 ? (
                 <p
-                  style={{ color: "#7a90a4", textAlign: "center", padding: 40 }}
+                  style={{ color: textSecondary, textAlign: "center", padding: 40 }}
                 >
                   No menu items yet.
                 </p>
@@ -2470,7 +2481,7 @@ export default function StudentDashboard() {
                       <div
                         key={item.menu_id}
                         style={{
-                          background: "#fff",
+                          background: cardBg,
                           borderRadius: 14,
                           padding: 14,
                           display: "flex",
@@ -2513,7 +2524,7 @@ export default function StudentDashboard() {
                             style={{
                               fontWeight: 700,
                               fontSize: 14,
-                              color: DARK,
+                              color: textPrimary,
                               marginBottom: 2,
                             }}
                           >
@@ -2540,7 +2551,7 @@ export default function StudentDashboard() {
                           <div
                             style={{
                               fontSize: 11,
-                              color: "#7a90a4",
+                              color: textSecondary,
                               marginBottom: 4,
                             }}
                           >
@@ -2594,7 +2605,7 @@ export default function StudentDashboard() {
                                     fontSize: 12,
                                     fontFamily: "inherit",
                                     marginBottom: 4,
-                                    color: DARK,
+                                    color: textPrimary,
                                   }}
                                 >
                                   <option value="">Select quantity...</option>
@@ -2627,7 +2638,7 @@ export default function StudentDashboard() {
                                   <div
                                     style={{
                                       fontSize: 10,
-                                      color: "#7a90a4",
+                                      color: textSecondary,
                                       marginBottom: 3,
                                     }}
                                   >
@@ -2699,7 +2710,7 @@ export default function StudentDashboard() {
                               style={{
                                 width: "100%",
                                 padding: "5px 8px",
-                                border: "1px solid #e8ecf0",
+                                border: `1px solid ${dividerColor}`,
                                 borderRadius: 8,
                                 fontSize: 11,
                                 fontFamily: "inherit",
@@ -2931,14 +2942,14 @@ export default function StudentDashboard() {
                   margin: "0 0 16px",
                   fontSize: 20,
                   fontWeight: 800,
-                  color: DARK,
+                  color: textPrimary,
                 }}
               >
                 📍 Campus Map
               </h2>
               <div
                 style={{
-                  background: "#fff",
+                  background: cardBg,
                   borderRadius: 14,
                   padding: "10px 14px",
                   marginBottom: 14,
@@ -2958,7 +2969,7 @@ export default function StudentDashboard() {
                     outline: "none",
                     fontFamily: "inherit",
                     fontSize: 14,
-                    color: DARK,
+                    color: textPrimary,
                   }}
                 />
                 <button
@@ -2995,7 +3006,7 @@ export default function StudentDashboard() {
                       alignItems: "center",
                       justifyContent: "center",
                       height: "100%",
-                      color: "#7a90a4",
+                      color: textSecondary,
                       fontSize: 14,
                       flexDirection: "column",
                       gap: 8,
@@ -3107,7 +3118,7 @@ export default function StudentDashboard() {
                   margin: "0 0 12px",
                   fontSize: 15,
                   fontWeight: 800,
-                  color: DARK,
+                  color: textPrimary,
                 }}
               >
                 Nearby Locations
@@ -3125,7 +3136,7 @@ export default function StudentDashboard() {
                       key={loc.id || loc.name}
                       onClick={() => flyToNearby(loc)}
                       style={{
-                        background: "#fff",
+                        background: cardBg,
                         borderRadius: 12,
                         padding: "12px 14px",
                         display: "flex",
@@ -3172,7 +3183,7 @@ export default function StudentDashboard() {
                           style={{
                             fontWeight: 700,
                             fontSize: 13,
-                            color: DARK,
+                            color: textPrimary,
                             whiteSpace: "nowrap",
                             overflow: "hidden",
                             textOverflow: "ellipsis",
@@ -3200,7 +3211,7 @@ export default function StudentDashboard() {
                   margin: "0 0 20px",
                   fontSize: 20,
                   fontWeight: 800,
-                  color: DARK,
+                  color: textPrimary,
                 }}
               >
                 Your Orders
@@ -3213,7 +3224,7 @@ export default function StudentDashboard() {
                   <div
                     key={activeOrder.order_id}
                     style={{
-                      background: "#fff",
+                      background: cardBg,
                       borderRadius: 16,
                       padding: 20,
                       marginBottom: 20,
@@ -3251,7 +3262,7 @@ export default function StudentDashboard() {
                             margin: 0,
                             fontSize: 15,
                             fontWeight: 800,
-                            color: DARK,
+                            color: textPrimary,
                           }}
                         >
                           Active Order
@@ -3279,7 +3290,7 @@ export default function StudentDashboard() {
                         gap: 10,
                         marginBottom: 16,
                         padding: "10px 12px",
-                        background: BG,
+                        background: bg,
                         borderRadius: 12,
                       }}
                     >
@@ -3429,7 +3440,7 @@ export default function StudentDashboard() {
                       <div style={{ marginBottom: 12 }}>
                         <div
                           style={{
-                            background: BG,
+                            background: bg,
                             borderRadius: 10,
                             padding: "10px 14px",
                             marginBottom: 10,
@@ -3440,7 +3451,7 @@ export default function StudentDashboard() {
                             style={{
                               display: "flex",
                               justifyContent: "space-between",
-                              color: "#7a90a4",
+                              color: textSecondary,
                               marginBottom: 4,
                             }}
                           >
@@ -3477,7 +3488,7 @@ export default function StudentDashboard() {
                           <div
                             style={{
                               fontSize: 11,
-                              color: "#7a90a4",
+                              color: textSecondary,
                               marginTop: 4,
                             }}
                           >
@@ -3558,7 +3569,7 @@ export default function StudentDashboard() {
                             style={{
                               fontWeight: 700,
                               fontSize: 13,
-                              color: DARK,
+                              color: textPrimary,
                             }}
                           >
                             {activeOrder.driver_name}
@@ -3624,7 +3635,7 @@ export default function StudentDashboard() {
 
                     <div
                       style={{
-                        background: BG,
+                        background: bg,
                         borderRadius: 12,
                         padding: "10px 14px",
                       }}
@@ -3634,7 +3645,7 @@ export default function StudentDashboard() {
                           margin: "0 0 8px",
                           fontSize: 11,
                           fontWeight: 700,
-                          color: "#7a90a4",
+                          color: textSecondary,
                           textTransform: "uppercase",
                           letterSpacing: 0.5,
                         }}
@@ -3674,7 +3685,7 @@ export default function StudentDashboard() {
                       margin: "0 0 12px",
                       fontSize: 13,
                       fontWeight: 700,
-                      color: "#7a90a4",
+                      color: textSecondary,
                       textTransform: "uppercase",
                       letterSpacing: 0.5,
                     }}
@@ -3702,7 +3713,7 @@ export default function StudentDashboard() {
                     <div
                       key={vendorName}
                       style={{
-                        background: "#fff",
+                        background: cardBg,
                         borderRadius: 16,
                         overflow: "hidden",
                         marginBottom: 14,
@@ -3716,7 +3727,7 @@ export default function StudentDashboard() {
                           alignItems: "center",
                           gap: 10,
                           padding: "12px 16px",
-                          borderBottom: "1px solid #f0f0f0",
+                          borderBottom: `1px solid ${dividerColor}`,
                           background: "#fafafa",
                         }}
                       >
@@ -3757,7 +3768,7 @@ export default function StudentDashboard() {
                           style={{
                             marginLeft: "auto",
                             fontSize: 11,
-                            color: "#7a90a4",
+                            color: textSecondary,
                           }}
                         >
                           {group.orders.length} order
@@ -3798,7 +3809,7 @@ export default function StudentDashboard() {
                               <div
                                 style={{
                                   fontSize: 12,
-                                  color: "#7a90a4",
+                                  color: textSecondary,
                                   marginTop: 2,
                                 }}
                               >
@@ -3907,7 +3918,7 @@ export default function StudentDashboard() {
                   style={{
                     textAlign: "center",
                     padding: "60px 20px",
-                    color: "#7a90a4",
+                    color: textSecondary,
                   }}
                 >
                   <div style={{ fontSize: 52, marginBottom: 12 }}>
@@ -3941,12 +3952,13 @@ export default function StudentDashboard() {
             <div style={{ maxWidth: 480 }}>
               <div
                 style={{
-                  background: "#fff",
+                  background: cardBg,
                   borderRadius: 20,
                   padding: 28,
                   marginBottom: 16,
                   textAlign: "center",
                   boxShadow: "0 2px 12px rgba(0,0,0,.06)",
+                  border: `1px solid ${cardBorder}`,
                 }}
               >
                 <div
@@ -3967,10 +3979,10 @@ export default function StudentDashboard() {
                 >
                   {user?.fullname?.[0]?.toUpperCase() || "S"}
                 </div>
-                <h2 style={{ margin: "0 0 4px", fontWeight: 900, color: DARK }}>
+                <h2 style={{ margin: "0 0 4px", fontWeight: 900, color: textPrimary }}>
                   {user?.fullname}
                 </h2>
-                <p style={{ margin: 0, color: "#7a90a4", fontSize: 13 }}>
+                <p style={{ margin: 0, color: textSecondary, fontSize: 13 }}>
                   {user?.email}
                 </p>
                 <span
@@ -3990,25 +4002,26 @@ export default function StudentDashboard() {
               </div>
               <div
                 style={{
-                  background: "#fff",
+                  background: cardBg,
                   borderRadius: 16,
                   overflow: "hidden",
                   boxShadow: "0 1px 4px rgba(0,0,0,.05)",
+                  border: `1px solid ${cardBorder}`,
                 }}
               >
                 {[
                   [
-                    <Package size={30} style={{ color: "#7a90a4" }} />,
+                    <Package size={30} style={{ color: textSecondary }} />,
                     "My Orders",
                     "orders",
                   ],
                   [
-                    <Map size={30} style={{ color: "#7a90a4" }} />,
+                    <Map size={30} style={{ color: textSecondary }} />,
                     "Campus Map",
                     "map",
                   ],
                   [
-                    <House size={30} style={{ color: "#7a90a4" }} />,
+                    <House size={30} style={{ color: textSecondary }} />,
                     "Home",
                     "home",
                   ],
@@ -4024,16 +4037,14 @@ export default function StudentDashboard() {
                       padding: "16px 18px",
                       border: "none",
                       borderBottom:
-                        i < arr.length - 1 ? "1px solid #f0f0f0" : "none",
-                      background: "#fff",
+                        i < arr.length - 1 ? `1px solid ${dividerColor}` : "none",
+                      background: cardBg,
                       cursor: "pointer",
                       fontFamily: "inherit",
                     }}
                   >
                     <span style={{ fontSize: 20 }}>{icon}</span>
-                    <span
-                      style={{ fontWeight: 600, fontSize: 14, color: DARK }}
-                    >
+                    <span style={{ fontWeight: 600, fontSize: 14, color: textPrimary }}>
                       {label}
                     </span>
                     <span style={{ marginLeft: "auto" }}>
@@ -4041,6 +4052,59 @@ export default function StudentDashboard() {
                     </span>
                   </button>
                 ))}
+                {/* Dark mode toggle */}
+                <button
+                  onClick={() => {
+                    const next = !darkMode;
+                    setDarkMode(next);
+                    localStorage.setItem("unimap_dark", next ? "1" : "0");
+                  }}
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 14,
+                    padding: "16px 18px",
+                    border: "none",
+                    borderTop: `1px solid ${dividerColor}`,
+                    background: cardBg,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  <span style={{ fontSize: 20, color: textSecondary }}>
+                    {darkMode ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    )}
+                  </span>
+                  <span style={{ fontWeight: 600, fontSize: 14, color: textPrimary }}>
+                    {darkMode ? "Light Mode" : "Dark Mode"}
+                  </span>
+                  <div style={{ marginLeft: "auto" }}>
+                    <div style={{
+                      width: 44,
+                      height: 24,
+                      borderRadius: 12,
+                      background: darkMode ? TEAL : "#d0d7de",
+                      position: "relative",
+                      transition: "background .25s",
+                    }}>
+                      <div style={{
+                        position: "absolute",
+                        top: 3,
+                        left: darkMode ? 23 : 3,
+                        width: 18,
+                        height: 18,
+                        borderRadius: "50%",
+                        background: cardBg,
+                        transition: "left .25s",
+                        boxShadow: "0 1px 4px rgba(0,0,0,.2)",
+                      }} />
+                    </div>
+                  </div>
+                </button>
                 <button
                   onClick={logout}
                   style={{
@@ -4050,16 +4114,14 @@ export default function StudentDashboard() {
                     gap: 14,
                     padding: "16px 18px",
                     border: "none",
-                    borderTop: "1px solid #f0f0f0",
-                    background: "#fff",
+                    borderTop: `1px solid ${dividerColor}`,
+                    background: cardBg,
                     cursor: "pointer",
                     fontFamily: "inherit",
                   }}
                 >
                   <DoorClosed size={30} style={{ color: "#5C3A21" }} />
-                  <span
-                    style={{ fontWeight: 600, fontSize: 14, color: "#dc2626" }}
-                  >
+                  <span style={{ fontWeight: 600, fontSize: 14, color: "#dc2626" }}>
                     Logout
                   </span>
                 </button>
@@ -4077,8 +4139,8 @@ export default function StudentDashboard() {
             bottom: 0,
             left: 0,
             right: 0,
-            background: "#fff",
-            borderTop: "1px solid #e8ecf0",
+            background: cardBg,
+            borderTop: `1px solid ${dividerColor}`,
             zIndex: 200,
             paddingBottom: "env(safe-area-inset-bottom,4px)",
           }}
@@ -4121,7 +4183,7 @@ export default function StudentDashboard() {
                     style={{
                       padding: "4px 16px",
                       borderRadius: 12,
-                      background: active ? "#e6fafa" : "none",
+                      background: active ? (dm ? "rgba(11,191,191,0.15)" : "#e6fafa") : "none",
                       position: "relative",
                     }}
                   >
@@ -4174,7 +4236,7 @@ export default function StudentDashboard() {
         >
           <div
             style={{
-              background: "#fff",
+              background: cardBg,
               borderRadius: "24px 24px 0 0",
               width: "100%",
               maxWidth: 520,
@@ -4198,7 +4260,7 @@ export default function StudentDashboard() {
                 margin: "0 0 4px",
                 fontSize: 18,
                 fontWeight: 800,
-                color: DARK,
+                color: textPrimary,
               }}
             >
               Your Cart
@@ -4207,7 +4269,7 @@ export default function StudentDashboard() {
               <p
                 style={{
                   textAlign: "center",
-                  color: "#7a90a4",
+                  color: textSecondary,
                   padding: "32px 0",
                 }}
               >
@@ -4324,7 +4386,7 @@ export default function StudentDashboard() {
                               style={{
                                 fontWeight: 800,
                                 fontSize: 14,
-                                color: DARK,
+                                color: textPrimary,
                               }}
                             >
                               {v.vendorName}
@@ -4361,7 +4423,7 @@ export default function StudentDashboard() {
                                 style={{
                                   fontWeight: 700,
                                   fontSize: 14,
-                                  color: DARK,
+                                  color: textPrimary,
                                 }}
                               >
                                 {item.item_name}
@@ -4369,7 +4431,7 @@ export default function StudentDashboard() {
                               <div
                                 style={{
                                   fontSize: 12,
-                                  color: "#7a90a4",
+                                  color: textSecondary,
                                   display: "flex",
                                   alignItems: "center",
                                   gap: 4,
@@ -4472,7 +4534,7 @@ export default function StudentDashboard() {
                         <div
                           style={{
                             padding: "10px 0",
-                            borderBottom: "1px solid #f0f0f0",
+                            borderBottom: `1px solid ${dividerColor}`,
                           }}
                         >
                           <div
@@ -4480,7 +4542,7 @@ export default function StudentDashboard() {
                               display: "flex",
                               justifyContent: "space-between",
                               fontSize: 13,
-                              color: "#7a90a4",
+                              color: textSecondary,
                               marginBottom: 5,
                             }}
                           >
@@ -4492,7 +4554,7 @@ export default function StudentDashboard() {
                               display: "flex",
                               justifyContent: "space-between",
                               fontSize: 13,
-                              color: "#7a90a4",
+                              color: textSecondary,
                               marginBottom: 5,
                             }}
                           >
@@ -4513,7 +4575,7 @@ export default function StudentDashboard() {
                                 display: "flex",
                                 justifyContent: "space-between",
                                 fontSize: 13,
-                                color: "#7a90a4",
+                                color: textSecondary,
                                 marginBottom: 5,
                               }}
                             >
@@ -4544,7 +4606,7 @@ export default function StudentDashboard() {
                             fontWeight: 800,
                             fontSize: 16,
                             padding: "10px 0 14px",
-                            color: DARK,
+                            color: textPrimary,
                           }}
                         >
                           <span>Total</span>
@@ -4607,7 +4669,7 @@ export default function StudentDashboard() {
         >
           <div
             style={{
-              background: "#fff",
+              background: cardBg,
               borderRadius: 20,
               width: "100%",
               maxWidth: 400,
@@ -4669,7 +4731,7 @@ export default function StudentDashboard() {
                     top: "100%",
                     left: 0,
                     right: 0,
-                    background: "#fff",
+                    background: cardBg,
                     border: "1.5px solid #e8ecf0",
                     borderRadius: 12,
                     boxShadow: "0 8px 24px rgba(0,0,0,.12)",
@@ -4757,13 +4819,13 @@ export default function StudentDashboard() {
                 style={{
                   flex: 1,
                   padding: 12,
-                  border: "1px solid #e8ecf0",
+                  border: `1px solid ${dividerColor}`,
                   borderRadius: 12,
-                  background: "#fff",
+                  background: cardBg,
                   cursor: "pointer",
                   fontFamily: "inherit",
                   fontWeight: 600,
-                  color: "#7a90a4",
+                  color: textSecondary,
                 }}
               >
                 Cancel
@@ -4812,7 +4874,7 @@ export default function StudentDashboard() {
         >
           <div
             style={{
-              background: "#fff",
+              background: cardBg,
               borderRadius: 20,
               width: "100%",
               maxWidth: 340,
@@ -4824,7 +4886,7 @@ export default function StudentDashboard() {
               style={{
                 margin: "0 0 10px",
                 fontWeight: 800,
-                color: DARK,
+                color: textPrimary,
                 fontSize: 17,
               }}
             >
@@ -4834,7 +4896,7 @@ export default function StudentDashboard() {
               style={{
                 margin: "0 0 24px",
                 fontSize: 14,
-                color: "#7a90a4",
+                color: textSecondary,
                 lineHeight: 1.6,
               }}
             >
@@ -4846,13 +4908,13 @@ export default function StudentDashboard() {
                 style={{
                   flex: 1,
                   padding: 12,
-                  border: "1px solid #e8ecf0",
+                  border: `1px solid ${dividerColor}`,
                   borderRadius: 12,
-                  background: "#fff",
+                  background: cardBg,
                   cursor: "pointer",
                   fontFamily: "inherit",
                   fontWeight: 600,
-                  color: "#7a90a4",
+                  color: textSecondary,
                   fontSize: 14,
                 }}
               >
@@ -4974,7 +5036,7 @@ function RatingModal({ order, onClose, onSubmit }) {
     >
       <div
         style={{
-          background: "#fff",
+          background: cardBg,
           borderRadius: 20,
           padding: 28,
           width: "100%",
