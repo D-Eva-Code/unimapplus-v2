@@ -1683,12 +1683,12 @@ export default function StudentDashboard() {
               {/* AI PICK - with real weather */}
               <div
                 style={{
-                  background: "rgba(255,255,255,0.6)",
+                  background: dm ? cardBg : "rgba(255,255,255,0.75)",
                   backdropFilter: "blur(12px)",
                   borderRadius: 16,
                   padding: "14px 18px",
                   marginBottom: 24,
-                  border: "1px solid rgba(0,0,0,.08)",
+                  border: `1px solid ${cardBorder}`,
                 }}
               >
                 <div
@@ -1715,8 +1715,8 @@ export default function StudentDashboard() {
                   <span
                     style={{
                       fontSize: 11,
-                      color: "rgba(0,0,0,.5)",
-                      background: "rgba(0,0,0,.06)",
+                      color: textSecondary,
+                      background: dm ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.06)",
                       padding: "4px 11px",
                       borderRadius: 20,
                     }}
@@ -1729,7 +1729,7 @@ export default function StudentDashboard() {
                 <p
                   style={{
                     fontSize: 12,
-                    color: "rgba(0,0,0,.45)",
+                    color: textSecondary,
                     margin: "0 0 6px",
                   }}
                 >
@@ -1738,7 +1738,7 @@ export default function StudentDashboard() {
                 <p
                   style={{
                     fontSize: 12,
-                    color: "rgba(0,0,0,.7)",
+                    color: textPrimary,
                     margin: "0 0 12px",
                     lineHeight: 1.5,
                   }}
