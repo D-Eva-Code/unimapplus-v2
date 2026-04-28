@@ -1458,7 +1458,7 @@ export default function StudentDashboard() {
                       fontSize: 9,
                       fontWeight: 800,
                       letterSpacing: 1,
-                      color: heroIdx === 0 ? "#000000" : heroIdx === 1 ? "rgba(255,255,255,0.95)" : slide.accent,
+                      color: heroIdx === 0 ? "rgba(13,33,55,0.7)" : heroIdx === 1 ? "rgba(255,255,255,0.95)" : slide.accent,
                       background:
                         heroIdx === 0
                           ? "#fff3e8"
@@ -1490,7 +1490,7 @@ export default function StudentDashboard() {
                       margin: "3px 0 1px",
                       color:
                         heroIdx === 0
-                          ? "#000000"
+                          ? "#0d2137"
                           : heroIdx === 2
                           ? "#0d2137"
                           : "#fff",
@@ -1516,7 +1516,7 @@ export default function StudentDashboard() {
                       lineHeight: 1.2,
                       color:
                         heroIdx === 0
-                          ? "rgba(230,126,34,0.75)"
+                          ? "rgba(13,33,55,0.7)"
                           : heroIdx === 2
                           ? "rgba(13,33,55,0.7)"
                           : "rgba(255,255,255,.85)",
