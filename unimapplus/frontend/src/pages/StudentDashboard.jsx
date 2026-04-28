@@ -73,16 +73,6 @@ const CAT_LABELS = {
 };
 
 const SLIDES = [
-
-  {
-    bg: "#ffffff",
-    accent: "#E67E22",
-    tag: "FLASH DEAL",
-    highlight: "50%",
-    headline: "OFF Wednesdays",
-    sub: "Buka 1 · Every Wednesday",
-    cta: "Claim Offer",
-  },
   {
     bg: "#0BBFBF",
     accent: "#064e4e",
@@ -97,9 +87,18 @@ const SLIDES = [
     accent: "#0a7a7a",
     tag: "NEW ON CAMPUS",
     highlight: "New on Campus 🔥",
-    headline: "",
+    headline: "Ofada Rice now available",
     sub: "Ofada Rice now available",
     cta: "Order Now",
+  },
+  {
+    bg: "#ffffff",
+    accent: "#E67E22",
+    tag: "FLASH DEAL",
+    highlight: "50%",
+    headline: "OFF Wednesdays",
+    sub: "Buka 1 · Every Wednesday",
+    cta: "Claim Offer",
   },
 ];
 
@@ -1435,7 +1434,7 @@ export default function StudentDashboard() {
                   display: "flex",
                   alignItems: "flex-start",
                   padding:
-                  heroIdx === 0 || heroIdx === 1
+                  heroIdx === 0 || heroIdx === 2
                     ? "6px 24px 16px"
                     : "10px 24px",
                   transition: "background .4s",
