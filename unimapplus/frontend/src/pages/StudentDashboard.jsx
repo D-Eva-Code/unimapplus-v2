@@ -1088,7 +1088,7 @@ export default function StudentDashboard() {
                 minWidth: 0,
               }}
             >
-              <span style={{ color: "#7a90a4" }}>
+              <span style={{ color: textSecondary }}>
                 <IcSearch />
               </span>
               <input
@@ -1135,7 +1135,7 @@ export default function StudentDashboard() {
                   flex: 1,
                 }}
               >
-                <IcSearch />
+                <span style={{ color: textSecondary }}><IcSearch /></span>
                 <input
                   value={searchQ}
                   onChange={(e) => {
