@@ -73,12 +73,13 @@ const CAT_LABELS = {
 };
 
 const SLIDES = [
- {
+
+  {
     bg: "#ffffff",
     accent: "#E67E22",
     tag: "FLASH DEAL",
-    highlight: "50% OFF",
-    headline: "Wednesdays",
+    highlight: "50%",
+    headline: "OFF Wednesdays",
     sub: "Buka 1 · Every Wednesday",
     cta: "Claim Offer",
   },
@@ -86,7 +87,8 @@ const SLIDES = [
     bg: "#0BBFBF",
     accent: "#064e4e",
     tag: "TRENDING NOW",
-    title: "Jollof Rice\nis hot right now",
+    highlight: "Jollof Rice",
+    headline: "is hot right now",
     sub: "Ordered 43× this hour · Buka 1",
     cta: "Order now",
   },
@@ -94,11 +96,13 @@ const SLIDES = [
     bg: "#c8f0ee",
     accent: "#0a7a7a",
     tag: "NEW ON CAMPUS",
-    title: "New on\nCampus 🔥",
+    highlight: "New on Campus 🔥",
+    headline: "",
     sub: "Ofada Rice now available",
     cta: "Order Now",
   },
 ];
+
 
 const VENDOR_COLORS = [
   "#E67E22",
