@@ -1244,10 +1244,10 @@ export default function StudentDashboard() {
                   >
                     {user?.fullname?.[0]?.toUpperCase() || "S"}
                   </div>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: DARK }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: textPrimary }}>
                     {user?.fullname?.split(" ")[0] || "Student"}
                   </span>
-                  <span style={{ fontSize: 10, color: "#7a90a4" }}>▾</span>
+                  <span style={{ fontSize: 10, color: textSecondary }}>▾</span>
                 </div>
                 <button
                   onClick={logout}
@@ -1373,9 +1373,9 @@ export default function StudentDashboard() {
                 )}
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 14 }}>{r.name}</div>
-                  <div style={{ fontSize: 11, color: "#7a90a4" }}>{r.sub}</div>
+                  <div style={{ fontSize: 11, color: textSecondary }}>{r.sub}</div>
                 </div>
-                <span style={{ marginLeft: "auto", color: "#7a90a4" }}>
+                <span style={{ marginLeft: "auto", color: textSecondary }}>
                   <IcChevron />
                 </span>
               </div>
@@ -2126,7 +2126,7 @@ export default function StudentDashboard() {
                   }}
                 >
                   <div style={{ fontSize: 36, marginBottom: 8 }}>
-                    <Utensils size={36} style={{ color: "#7a90a4" }} />
+                    <Utensils size={36} style={{ color: textSecondary }} />
                   </div>
                   <p style={{ fontSize: 13, margin: 0 }}>
                     No menu items yet. Vendors will add items soon!
@@ -2317,7 +2317,7 @@ export default function StudentDashboard() {
                       marginTop: 3,
                     }}
                   >
-                    <p style={{ margin: 0, fontSize: 12, color: "#7a90a4" }}>
+                    <p style={{ margin: 0, fontSize: 12, color: textSecondary }}>
                       {selectedVendor.is_open ? " Open" : " Closed"} · ⭐{" "}
                       {selectedVendor.rating
                         ? Number(selectedVendor.rating).toFixed(1)
@@ -2516,7 +2516,7 @@ export default function StudentDashboard() {
                               flexShrink: 0,
                             }}
                           >
-                            <Utensils size={30} style={{ color: "#7a90a4" }} />
+                            <Utensils size={30} style={{ color: textSecondary }} />
                           </div>
                         )}
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -2889,7 +2889,7 @@ export default function StudentDashboard() {
                                   gap: 3,
                                 }}
                               >
-                                <span style={{ fontSize: 9, color: "#7a90a4" }}>
+                                <span style={{ fontSize: 9, color: textSecondary }}>
                                   portions:
                                 </span>
                                 <select
@@ -2959,7 +2959,7 @@ export default function StudentDashboard() {
                   boxShadow: "0 1px 4px rgba(0,0,0,.05)",
                 }}
               >
-                <IcSearch />
+                <span style={{ color: textSecondary }}><IcSearch /></span>
                 <input
                   placeholder="Where to on campus?"
                   onChange={(e) => doSearch(e.target.value)}
@@ -2970,6 +2970,7 @@ export default function StudentDashboard() {
                     fontFamily: "inherit",
                     fontSize: 14,
                     color: textPrimary,
+                    background: "transparent",
                   }}
                 />
                 <button
@@ -3191,7 +3192,7 @@ export default function StudentDashboard() {
                         >
                           {loc.name}
                         </div>
-                        <div style={{ fontSize: 11, color: "#7a90a4" }}>
+                        <div style={{ fontSize: 11, color: textSecondary }}>
                           {loc.description || loc.category} · Tap to navigate
                         </div>
                       </div>
@@ -3311,11 +3312,11 @@ export default function StudentDashboard() {
                       </div>
                       <div style={{ flex: 1 }}>
                         <div
-                          style={{ fontWeight: 700, fontSize: 13, color: DARK }}
+                          style={{ fontWeight: 700, fontSize: 13, color: textPrimary }}
                         >
                           {activeOrder.vendor_name}
                         </div>
-                        <div style={{ fontSize: 11, color: "#7a90a4" }}>
+                        <div style={{ fontSize: 11, color: textSecondary }}>
                           Order #{String(activeOrder.order_id).slice(-6)} · ₦
                           {Number(
                             activeOrder.total_amount || 0,
@@ -3574,7 +3575,7 @@ export default function StudentDashboard() {
                           >
                             {activeOrder.driver_name}
                           </div>
-                          <div style={{ fontSize: 11, color: "#7a90a4" }}>
+                          <div style={{ fontSize: 11, color: textSecondary }}>
                             Your rider · On the way to you
                           </div>
                         </div>
@@ -3588,7 +3589,7 @@ export default function StudentDashboard() {
                           >
                             ~{activeOrder.estimated_delivery_time || 30}
                           </div>
-                          <div style={{ fontSize: 9, color: "#7a90a4" }}>
+                          <div style={{ fontSize: 9, color: textSecondary }}>
                             mins ETA
                           </div>
                         </div>
@@ -3663,10 +3664,10 @@ export default function StudentDashboard() {
                               i < activeOrder.items.length - 1 ? 4 : 0,
                           }}
                         >
-                          <span style={{ color: DARK }}>
+                          <span style={{ color: textPrimary }}>
                             {item.item_name} ×{item.quantity}
                           </span>
-                          <span style={{ fontWeight: 600, color: "#7a90a4" }}>
+                          <span style={{ fontWeight: 600, color: textSecondary }}>
                             ₦{(item.price * item.quantity).toLocaleString()}
                           </span>
                         </div>
@@ -3760,7 +3761,7 @@ export default function StudentDashboard() {
                           )}
                         </div>
                         <span
-                          style={{ fontWeight: 800, fontSize: 14, color: DARK }}
+                          style={{ fontWeight: 800, fontSize: 14, color: textPrimary }}
                         >
                           {vendorName}
                         </span>
@@ -3796,7 +3797,7 @@ export default function StudentDashboard() {
                             }}
                           >
                             <div>
-                              <div style={{ fontSize: 12, color: "#7a90a4" }}>
+                              <div style={{ fontSize: 12, color: textSecondary }}>
                                 {new Date(o.created_at).toLocaleDateString(
                                   "en-NG",
                                   {
@@ -3922,7 +3923,7 @@ export default function StudentDashboard() {
                   }}
                 >
                   <div style={{ fontSize: 52, marginBottom: 12 }}>
-                    <Package size={52} style={{ color: "#7a90a4" }} />
+                    <Package size={52} style={{ color: textSecondary }} />
                   </div>
                   <p style={{ fontSize: 14, marginBottom: 16 }}>
                     No orders yet. Start ordering!
@@ -4677,10 +4678,10 @@ export default function StudentDashboard() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ margin: "0 0 6px", fontWeight: 800, color: DARK }}>
+            <h3 style={{ margin: "0 0 6px", fontWeight: 800, color: textPrimary }}>
               Where should we deliver?
             </h3>
-            <p style={{ margin: "0 0 14px", fontSize: 13, color: "#7a90a4" }}>
+            <p style={{ margin: "0 0 14px", fontSize: 13, color: textSecondary }}>
               Select a campus location or type your address
             </p>
             <div style={{ position: "relative", marginBottom: 14 }}>
@@ -4782,12 +4783,12 @@ export default function StudentDashboard() {
                       </span>
                       <div>
                         <div
-                          style={{ fontWeight: 700, fontSize: 13, color: DARK }}
+                          style={{ fontWeight: 700, fontSize: 13, color: textPrimary }}
                         >
                           {loc.name}
                         </div>
                         {loc.description && (
-                          <div style={{ fontSize: 11, color: "#7a90a4" }}>
+                          <div style={{ fontSize: 11, color: textSecondary }}>
                             {loc.description}
                           </div>
                         )}
