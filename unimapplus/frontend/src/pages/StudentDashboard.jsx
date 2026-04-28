@@ -73,11 +73,12 @@ const CAT_LABELS = {
 };
 
 const SLIDES = [
-  {
+ {
     bg: "#ffffff",
     accent: "#E67E22",
     tag: "FLASH DEAL",
-    title: "50% OFF\nWednesdays",
+    highlight: "50% OFF",
+    headline: "Wednesdays",
     sub: "Buka 1 · Every Wednesday",
     cta: "Claim Offer",
   },
@@ -1464,7 +1465,7 @@ export default function StudentDashboard() {
                   >
                     {slide.tag}
                   </span>
-                  <h2
+                  {/* <h2
                     style={{
                       margin: "3px 0 1px",
                       color: heroIdx === 0 ? "#E67E22" : heroIdx === 2 ? "#0d2137" : "#fff",
@@ -1475,6 +1476,32 @@ export default function StudentDashboard() {
                     }}
                   >
                     {slide.title}
+                  </h2> */}
+
+                  <h2
+                    style={{
+                      margin: "3px 0 1px",
+                      color:
+                        heroIdx === 0
+                          ? "#E67E22"
+                          : heroIdx === 2
+                          ? "#0d2137"
+                          : "#fff",
+                      fontSize: isMobile ? 13 : 16,
+                      fontWeight: 900,
+                      lineHeight: 1.15,
+                      whiteSpace: "pre-line",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: isMobile ? 18 : 22,
+                        display: "block",
+                      }}
+                    >
+                      {slide.highlight}
+                    </span>
+                    {slide.headline}
                   </h2>
                   <p
                     style={{
