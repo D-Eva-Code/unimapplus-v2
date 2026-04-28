@@ -1672,11 +1672,12 @@ export default function StudentDashboard() {
               {/* AI PICK - with real weather */}
               <div
                 style={{
-                  background: "linear-gradient(135deg,#0d2137,#1a3a4a)",
+                  background: "rgba(255,255,255,0.75)",
+                  backdropFilter: "blur(12px)",
                   borderRadius: 16,
                   padding: "14px 18px",
                   marginBottom: 24,
-                  border: "1px solid rgba(11,191,191,.2)",
+                  border: "1px solid rgba(0,0,0,.08)",
                 }}
               >
                 <div
@@ -1703,8 +1704,8 @@ export default function StudentDashboard() {
                   <span
                     style={{
                       fontSize: 11,
-                      color: "rgba(255,255,255,.7)",
-                      background: "rgba(255,255,255,.1)",
+                      color: "rgba(0,0,0,.5)",
+                      background: "rgba(0,0,0,.06)",
                       padding: "4px 11px",
                       borderRadius: 20,
                     }}
@@ -1717,7 +1718,7 @@ export default function StudentDashboard() {
                 <p
                   style={{
                     fontSize: 12,
-                    color: "rgba(255,255,255,.6)",
+                    color: "rgba(0,0,0,.45)",
                     margin: "0 0 6px",
                   }}
                 >
@@ -1726,7 +1727,7 @@ export default function StudentDashboard() {
                 <p
                   style={{
                     fontSize: 12,
-                    color: "rgba(255,255,255,.8)",
+                    color: "rgba(0,0,0,.7)",
                     margin: "0 0 12px",
                     lineHeight: 1.5,
                   }}
@@ -1774,13 +1775,13 @@ export default function StudentDashboard() {
                             })
                           }
                           style={{
-                            background: "rgba(11,191,191,.15)",
-                            border: "1px solid rgba(11,191,191,.3)",
+                            background: "rgba(11,191,191,.1)",
+                            border: "1px solid rgba(11,191,191,.35)",
                             borderRadius: 20,
                             padding: "5px 12px",
                             fontSize: 11,
                             fontWeight: 600,
-                            color: "#7ee8e8",
+                            color: "#089898",
                             cursor: "pointer",
                             fontFamily: "inherit",
                             display: "flex",
