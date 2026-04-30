@@ -2288,7 +2288,7 @@ export default function StudentDashboard() {
                   onClick={() => setSelectedVendor(null)}
                   style={{
                     background: cardBg,
-                    border: "1.5px solid #e8ecf0",
+                    border: `1.5px solid ${dividerColor}`,
                     borderRadius: 10,
                     width: 36,
                     height: 36,
@@ -2297,6 +2297,7 @@ export default function StudentDashboard() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
+                    color: textPrimary,
                   }}
                 >
                   ←
@@ -2842,6 +2843,7 @@ export default function StudentDashboard() {
                                   minWidth: 16,
                                   textAlign: "center",
                                   fontSize: 14,
+                                  color: textPrimary,
                                 }}
                               >
                                 {qty}
