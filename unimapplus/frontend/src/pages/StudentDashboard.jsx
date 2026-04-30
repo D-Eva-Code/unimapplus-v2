@@ -165,6 +165,7 @@ export default function StudentDashboard() {
   const [nearbyLocations, setNearbyLocations] = useState([]);
   const [packingFee, setPackingFee] = useState(0);
   const [deliveryModal, setDeliveryModal] = useState(null); // { vendorId, vendorName }
+  const [paymentOption, setPaymentOption] = useState("pay_together"); // 'pay_together' | 'pay_on_delivery'
   const [confirmModal, setConfirmModal] = useState(null); // { title, message, onConfirm }
   const [deliveryAddr, setDeliveryAddr] = useState("");
   const [deliveryCoords, setDeliveryCoords] = useState(null);
@@ -484,6 +485,7 @@ export default function StudentDashboard() {
   function openDeliveryModal(vendorId, vendorName) {
     setDeliveryModal({ vendorId, vendorName });
     setDeliveryAddr("");
+    setPaymentOption("pay_together");
   }
 
   function deleteOrder(orderId) {
@@ -620,6 +622,7 @@ export default function StudentDashboard() {
           })),
           delivery_address: deliveryAddr.trim(),
           delivery_fee: computedDeliveryFee,
+          payment_option: paymentOption,
         });
 
         clearVendorCart(vendorId);
@@ -4808,9 +4811,108 @@ export default function StudentDashboard() {
                 color: "#089898",
               }}
             >
-              💡 Your location helps the rider find you. Be specific — include
+              Your location helps the rider find you. Be specific — include
               room number if possible.
             </div>
+
+            {/* Payment Option Selector */}
+            {!deliveryModal?.isFinalPayment && (
+              <div style={{ marginBottom: 18 }}>
+                <div style={{ fontWeight: 700, fontSize: 13, color: textPrimary, marginBottom: 10 }}>
+                  Payment Option
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div
+                    onClick={() => setPaymentOption("pay_together")}
+                    style={{
+                      border: `2px solid ${paymentOption === "pay_together" ? TEAL : "#e8ecf0"}`,
+                      borderRadius: 12,
+                      padding: "12px 14px",
+                      cursor: "pointer",
+                      background: paymentOption === "pay_together" ? "#e6fafa" : cardBg,
+                      transition: "all .15s",
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: textPrimary }}>
+                          Pay Together (In-App)
+                        </div>
+                        <div style={{ fontSize: 11, color: textSecondary, marginTop: 2 }}>
+                          Food fee + delivery fee paid online now
+                        </div>
+                      </div>
+                      <div style={{
+                        width: 18, height: 18, borderRadius: "50%",
+                        border: `2px solid ${paymentOption === "pay_together" ? TEAL : "#ccc"}`,
+                        background: paymentOption === "pay_together" ? TEAL : "transparent",
+                        flexShrink: 0,
+                      }} />
+                    </div>
+                  </div>
+                  {(() => {
+                    const podVendorCat = vendors.find(
+                      (v) => v.vendor_id === deliveryModal?.vendorId
+                    )?.category;
+                    const podFee = deliveryAddr.trim()
+                      ? calcDeliveryFee(podVendorCat, deliveryAddr)
+                      : null;
+                    return (
+                      <div
+                        onClick={() => setPaymentOption("pay_on_delivery")}
+                        style={{
+                          border: `2px solid ${paymentOption === "pay_on_delivery" ? TEAL : "#e8ecf0"}`,
+                          borderRadius: 12,
+                          padding: "12px 14px",
+                          cursor: "pointer",
+                          background: paymentOption === "pay_on_delivery" ? "#e6fafa" : cardBg,
+                          transition: "all .15s",
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div>
+                            <div style={{ fontWeight: 700, fontSize: 13, color: textPrimary }}>
+                              Pay on Delivery
+                            </div>
+                            <div style={{ fontSize: 11, color: textSecondary, marginTop: 2 }}>
+                              Pay food fee online now. Pay delivery fee in cash to rider on pickup.
+                            </div>
+                            {podFee !== null && (
+                              <div style={{
+                                marginTop: 6,
+                                display: "inline-block",
+                                background: "#fff8e6",
+                                border: "1px solid #f59e0b",
+                                borderRadius: 6,
+                                padding: "3px 8px",
+                                fontSize: 11,
+                                fontWeight: 700,
+                                color: "#b45309",
+                              }}>
+                                Cash to rider: ₦{podFee.toLocaleString()}
+                              </div>
+                            )}
+                            {podFee === null && (
+                              <div style={{ fontSize: 11, color: "#f59e0b", marginTop: 4, fontWeight: 600 }}>
+                                Enter your location above to see the exact cash amount
+                              </div>
+                            )}
+                          </div>
+                          <div style={{
+                            width: 18, height: 18, borderRadius: "50%",
+                            border: `2px solid ${paymentOption === "pay_on_delivery" ? TEAL : "#ccc"}`,
+                            background: paymentOption === "pay_on_delivery" ? TEAL : "transparent",
+                            flexShrink: 0,
+                            marginLeft: 10,
+                          }} />
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
+
             <div style={{ display: "flex", gap: 10 }}>
               <button
                 onClick={() => {

@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS vendors_tb (
   account_number VARCHAR(20),
   account_name VARCHAR(200),
   paystack_subaccount_code VARCHAR(100),
+  paystack_recipient_code VARCHAR(100),
   location_name VARCHAR(300),
   latitude DECIMAL(10,8),
   longitude DECIMAL(11,8),
@@ -69,6 +70,7 @@ CREATE TABLE IF NOT EXISTS drivers_tb (
   account_number VARCHAR(20),
   account_name VARCHAR(200),
   paystack_subaccount_code VARCHAR(100),
+  paystack_recipient_code VARCHAR(100),
   is_available BOOLEAN DEFAULT FALSE,
   current_latitude DECIMAL(10,8),
   current_longitude DECIMAL(11,8),
@@ -106,6 +108,7 @@ CREATE TABLE IF NOT EXISTS orders (
   delivery_fee DECIMAL(10,2) DEFAULT 300.00,
   vendor_amount DECIMAL(10,2),
   rider_amount DECIMAL(10,2),
+  payment_option ENUM('pay_together','pay_on_delivery') DEFAULT 'pay_together',
   status ENUM('pending','paid','accepted','preparing','ready','rider_assigned','picked_up','on_the_way','delivered','cancelled','refunded') DEFAULT 'pending',
   payment_reference VARCHAR(100),
   payment_status ENUM('pending','paid','failed','refunded') DEFAULT 'pending',
@@ -220,3 +223,12 @@ CREATE TABLE IF NOT EXISTS email_otps (
   INDEX idx_otp_email (email),
   INDEX idx_otp_expires (expires_at)
 );
+
+-- ============================================================
+-- MIGRATIONS — run these on existing databases
+-- ============================================================
+-- Add paystack_recipient_code to vendors and drivers (for Paystack Transfers payout)
+-- ALTER TABLE vendors_tb ADD COLUMN IF NOT EXISTS paystack_recipient_code VARCHAR(100);
+-- ALTER TABLE drivers_tb ADD COLUMN IF NOT EXISTS paystack_recipient_code VARCHAR(100);
+-- Add payment_option to orders (pay_together = full in-app, pay_on_delivery = only food+app fee paid in-app)
+-- ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_option ENUM('pay_together','pay_on_delivery') DEFAULT 'pay_together';

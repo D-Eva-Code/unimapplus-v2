@@ -163,19 +163,23 @@ export default function RiderDashboard() {
 
   async function markDelivered(orderId) {
     if (!navigator.geolocation) {
-      showToast("❌ Location not supported on this device");
+      showToast("Location not supported on this device");
       return;
     }
-    showToast("📍 Getting your location...");
+    showToast("Getting your location...");
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
-        const { latitude, longitude } = pos.coords;
+        const { latitude, longitude, accuracy } = pos.coords;
+        if (accuracy > 200) {
+          showToast(`GPS accuracy is low (${Math.round(accuracy)}m). Move to open area and try again.`);
+          return;
+        }
         try {
           await api.post(`/rider/orders/${orderId}/delivered`, {
             latitude,
             longitude,
           });
-          showToast("✅ Delivery confirmed!");
+          showToast("Delivery confirmed!");
           loadDashboard();
         } catch (e) {
           const distM = e.response?.data?.distance_meters;
@@ -189,18 +193,21 @@ export default function RiderDashboard() {
             });
           } else {
             showToast(
-              "❌ " +
-                (e.response?.data?.message || "Error confirming delivery"),
+              e.response?.data?.message || "Error confirming delivery"
             );
           }
         }
       },
-      () => {
-        showToast(
-          "❌ Location access denied. Enable location in browser settings and try again.",
-        );
+      (err) => {
+        if (err.code === 1) {
+          showToast("Location access denied. Enable GPS in browser settings and try again.");
+        } else if (err.code === 2) {
+          showToast("Could not determine your location. Move to an open area and try again.");
+        } else {
+          showToast("Location request timed out. Try again.");
+        }
       },
-      { timeout: 12000, enableHighAccuracy: true },
+      { timeout: 15000, enableHighAccuracy: true, maximumAge: 0 },
     );
   }
 
@@ -635,6 +642,20 @@ export default function RiderDashboard() {
                       your earnings
                     </div>
                   </div>
+                </div>
+                <div
+                  style={{
+                    padding: "6px 16px",
+                    background: order.payment_option === "pay_on_delivery" ? "#fff8e6" : "#e6fafa",
+                    borderBottom: `1px solid ${order.payment_option === "pay_on_delivery" ? "#fde68a" : "#ccf5f5"}`,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: order.payment_option === "pay_on_delivery" ? "#b45309" : "#089898",
+                  }}
+                >
+                  {order.payment_option === "pay_on_delivery"
+                    ? "Pay on Delivery — collect delivery fee in cash from student"
+                    : "Paid In-App — delivery fee transferred after delivery"}
                 </div>
 
                 <div style={{ padding: "14px 16px" }}>
@@ -1095,7 +1116,7 @@ export default function RiderDashboard() {
                         display: "flex",
                         alignItems: "center",
                         gap: 8,
-                        marginBottom: 14,
+                        marginBottom: 8,
                         padding: "8px 12px",
                         background: BG,
                         borderRadius: 10,
@@ -1112,6 +1133,25 @@ export default function RiderDashboard() {
                       <span style={{ fontSize: 11, color: "#7a90a4" }}>
                         · your earnings
                       </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 5,
+                        marginBottom: 14,
+                        padding: "5px 10px",
+                        borderRadius: 8,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        background: order.payment_option === "pay_on_delivery" ? "#fff8e6" : "#e6fafa",
+                        color: order.payment_option === "pay_on_delivery" ? "#b45309" : "#089898",
+                        border: `1px solid ${order.payment_option === "pay_on_delivery" ? "#f59e0b" : "#0d9488"}`,
+                      }}
+                    >
+                      {order.payment_option === "pay_on_delivery"
+                        ? "Pay on Delivery — collect delivery fee in cash"
+                        : "Paid In-App — no cash to collect"}
                     </div>
                     <div style={{ display: "flex", gap: 8 }}>
                       <button
@@ -1395,6 +1435,9 @@ function EarningsHistory() {
                 month: "short",
                 year: "numeric",
               })}
+            </div>
+            <div style={{ fontSize: 10, marginTop: 3, fontWeight: 600, color: o.payment_option === "pay_on_delivery" ? "#b45309" : "#089898" }}>
+              {o.payment_option === "pay_on_delivery" ? "Pay on Delivery" : "Paid In-App"}
             </div>
           </div>
           <div style={{ textAlign: "right" }}>

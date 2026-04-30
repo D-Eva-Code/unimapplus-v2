@@ -17,7 +17,8 @@ const NO_PACKING_CATEGORIES = ['bakery', 'foodstuff', 'drinks']; // these don't 
 async function checkout(req, res) {
   try {
     const studentId = req.user.id;
-    const { vendor_id, cart, delivery_address, delivery_latitude, delivery_longitude, special_instructions } = req.body;
+    const { vendor_id, cart, delivery_address, delivery_latitude, delivery_longitude, special_instructions, payment_option } = req.body;
+    const paymentOption = payment_option === 'pay_on_delivery' ? 'pay_on_delivery' : 'pay_together';
 
     if (!cart || cart.length === 0) return res.status(400).json({ success: false, message: 'Cart is empty' });
 
@@ -72,7 +73,11 @@ async function checkout(req, res) {
     const platformFee  = Math.round(subtotal * PLATFORM_FEE_PCT * 100) / 100;
     const vendorAmount = subtotal + packingFee; // vendor gets food + packing
     const riderAmount  = effectiveDeliveryFee;
-    const totalAmount  = subtotal + effectiveDeliveryFee + packingFee + platformFee;
+    // pay_together: student pays everything in-app (food + packing + delivery + platform fee)
+    // pay_on_delivery: student pays only food + packing + platform fee in-app; delivery fee paid cash to rider
+    const totalAmount  = paymentOption === 'pay_on_delivery'
+      ? subtotal + packingFee + platformFee
+      : subtotal + effectiveDeliveryFee + packingFee + platformFee;
 
     const [student] = await pool.query('SELECT * FROM students_tb WHERE st_id = ?', [studentId]);
     const orderId    = uuidv4();
@@ -84,34 +89,9 @@ async function checkout(req, res) {
       return res.status(500).json({ success: false, message: 'Paystack not configured. Add your PAYSTACK_SECRET_KEY to .env' });
     }
 
-    // Get rider subaccount if one is assigned to this order's school
-    const [availableRider] = await pool.query(
-      'SELECT * FROM drivers_tb WHERE is_available = TRUE AND school_id = ? AND paystack_subaccount_code IS NOT NULL LIMIT 1',
-      [vendor[0].school_id]
-    );
-
-    // Build Paystack split:
-    // - Vendor gets vendorAmount (93% of subtotal)
-    // - Rider gets riderAmount (₦300 delivery)  
-    // - Unimap keeps the rest (7% platform fee) in main Paystack account
-    // We use Paystack's "split" feature with flat amounts
-    const splits = [];
-
-    if (vendor[0].paystack_subaccount_code) {
-      splits.push({
-        subaccount: vendor[0].paystack_subaccount_code,
-        share: Math.round(vendorAmount * 100), // kobo
-      });
-    }
-
-    if (availableRider[0]?.paystack_subaccount_code) {
-      splits.push({
-        subaccount: availableRider[0].paystack_subaccount_code,
-        share: Math.round(riderAmount * 100), // kobo
-      });
-    }
-
-    let paystackBody = {
+    // Full amount goes into Unimap's main Paystack account.
+    // Vendor and rider are paid out via Paystack Transfers after delivery is confirmed.
+    const paystackBody = {
       email: student[0].email,
       amount: Math.round(totalAmount * 100), // kobo
       reference: paymentRef,
@@ -127,15 +107,6 @@ async function checkout(req, res) {
       },
     };
 
-    // Add split if we have subaccounts
-    if (splits.length > 0) {
-      paystackBody.split = {
-        type: 'flat',
-        bearer_type: 'account', // Unimap (main account) bears Paystack fees
-        subaccounts: splits,
-      };
-    }
-
     // Initialize Paystack transaction
     const paystackRes = await axios.post(`${PAYSTACK_BASE}/transaction/initialize`, paystackBody, {
       headers: { Authorization: `Bearer ${paystackKey}` },
@@ -145,10 +116,10 @@ async function checkout(req, res) {
     // Create order in DB
     await pool.query(
       `INSERT INTO orders (order_id, student_id, vendor_id, total_amount, delivery_fee, vendor_amount, rider_amount,
-       payment_reference, delivery_address, delivery_latitude, delivery_longitude, special_instructions, status, payment_status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending')`,
+       payment_reference, delivery_address, delivery_latitude, delivery_longitude, special_instructions, payment_option, status, payment_status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending')`,
       [orderId, studentId, vendor_id, totalAmount, DELIVERY_FEE + packingFee, vendorAmount, riderAmount,
-       paymentRef, delivery_address, delivery_latitude, delivery_longitude, special_instructions]
+       paymentRef, delivery_address, delivery_latitude, delivery_longitude, special_instructions, paymentOption]
     );
 
     // Save order items (with portions note in item_name)
@@ -168,7 +139,8 @@ async function checkout(req, res) {
       payment_url: paystackRes.data.data.authorization_url,
       reference: paymentRef,
       total: totalAmount,
-      breakdown: { subtotal, delivery: DELIVERY_FEE, packing: packingFee, platform: platformFee },
+      breakdown: { subtotal, delivery: paymentOption === 'pay_on_delivery' ? 0 : effectiveDeliveryFee, packing: packingFee, platform: platformFee },
+      payment_option: paymentOption,
     });
 
   } catch (err) {
@@ -278,56 +250,148 @@ async function autoAssignRider(order) {
   return null;
 }
 
+// Paystack Transfer helper — sends money from Unimap's balance to a recipient
+async function paystackTransfer(recipientCode, amountNaira, reason) {
+  try {
+    const res = await axios.post(`${PAYSTACK_BASE}/transfer`, {
+      source: 'balance',
+      amount: Math.round(amountNaira * 100), // kobo
+      recipient: recipientCode,
+      reason,
+    }, {
+      headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
+      httpsAgent: paystackAgent,
+    });
+    return { success: true, data: res.data };
+  } catch (err) {
+    console.error('Paystack transfer error:', err.response?.data || err.message);
+    return { success: false, error: err.response?.data || err.message };
+  }
+}
+
 // Rider confirms delivery with location verification
 async function confirmDelivery(req, res) {
   try {
     const driverId = req.user.id;
     const { order_id } = req.params;
-    const { rider_latitude, rider_longitude } = req.body;
+    const { latitude, longitude } = req.body;
 
     const [order] = await pool.query('SELECT * FROM orders WHERE order_id = ? AND driver_id = ?', [order_id, driverId]);
     if (!order[0]) return res.status(404).json({ success: false, message: 'Order not found' });
 
-    // GPS is optional — store for audit trail if provided
-    // Only enforce proximity check if delivery has stored coordinates
-    if (rider_latitude && rider_longitude) {
-      // Store rider location as audit trail
-      await pool.query(
-        'UPDATE orders SET rider_latitude = ?, rider_longitude = ? WHERE order_id = ?',
-        [rider_latitude, rider_longitude, order_id]
-      );
+    // GPS is required
+    if (!latitude || !longitude) {
+      return res.status(400).json({
+        success: false,
+        message: 'Location required to confirm delivery. Please enable GPS and try again.',
+      });
+    }
 
-      // If delivery also has stored coords, verify proximity
-      if (order[0].delivery_latitude && order[0].delivery_longitude) {
-        const dist = getDistanceKm(rider_latitude, rider_longitude, order[0].delivery_latitude, order[0].delivery_longitude);
-        if (dist > 0.5) {
-          return res.status(400).json({
-            success: false,
-            message: `You are ${(dist * 1000).toFixed(0)}m from the delivery location. Get closer to confirm.`,
-            distance_meters: Math.round(dist * 1000)
-          });
-        }
+    // Store rider delivery location for audit
+    await pool.query(
+      'UPDATE orders SET rider_latitude = ?, rider_longitude = ? WHERE order_id = ?',
+      [latitude, longitude, order_id]
+    );
+
+    // Enforce proximity check if delivery has stored coordinates
+    if (order[0].delivery_latitude && order[0].delivery_longitude) {
+      const dist = getDistanceKm(latitude, longitude, order[0].delivery_latitude, order[0].delivery_longitude);
+      if (dist > 0.5) {
+        return res.status(400).json({
+          success: false,
+          message: `You are ${(dist * 1000).toFixed(0)}m from the delivery location. Get within 500m to confirm.`,
+          distance_meters: Math.round(dist * 1000),
+        });
       }
     }
-    // If no GPS provided, allow delivery — rider tapped the button manually
 
+    // Mark delivered
     await pool.query(`UPDATE orders SET status = 'delivered', updated_at = NOW() WHERE order_id = ?`, [order_id]);
 
-    // Update rider stats
-    const [o] = await pool.query('SELECT rider_amount FROM orders WHERE order_id = ?', [order_id]);
+    // Update rider DB stats
     await pool.query(
       `UPDATE drivers_tb SET 
         total_earnings = total_earnings + ?,
         today_earnings = today_earnings + ?,
         total_deliveries = total_deliveries + 1
        WHERE driver_id = ?`,
-      [o[0].rider_amount, o[0].rider_amount, driverId]
+      [order[0].rider_amount, order[0].rider_amount, driverId]
     );
 
+    // Fire socket update to student
     const io = req.app.get('io');
     if (io) {
       io.to(`order_${order_id}`).emit('order_status_updated', { order_id, status: 'delivered' });
     }
+
+    // ── PAYSTACK TRANSFERS ────────────────────────────────────────────────
+    // For pay_on_delivery orders, the rider already collected the delivery fee in cash.
+    // Only transfer to vendor (and skip rider transfer entirely).
+    const isPOD = order[0].payment_option === 'pay_on_delivery';
+
+    if (!isPOD) {
+      // Transfer rider's delivery fee — only for pay_together orders
+      const [rider] = await pool.query(
+        'SELECT paystack_recipient_code, fullname FROM drivers_tb WHERE driver_id = ?',
+        [driverId]
+      );
+      if (rider[0]?.paystack_recipient_code) {
+        const riderTransfer = await paystackTransfer(
+          rider[0].paystack_recipient_code,
+          order[0].rider_amount,
+          `Delivery fee - Order ${order_id.slice(0, 8).toUpperCase()}`
+        );
+        if (!riderTransfer.success) {
+          console.error(`Rider transfer failed for order ${order_id}:`, riderTransfer.error);
+          await pool.query(
+            `INSERT INTO failed_transfers (order_id, recipient_type, recipient_id, amount, error, created_at)
+             VALUES (?, 'rider', ?, ?, ?, NOW())
+             ON DUPLICATE KEY UPDATE error = VALUES(error), created_at = NOW()`,
+            [order_id, driverId, order[0].rider_amount, JSON.stringify(riderTransfer.error)]
+          );
+        }
+      } else {
+        console.warn(`Rider ${driverId} has no paystack_recipient_code — payout skipped, log for manual transfer`);
+        await pool.query(
+          `INSERT INTO failed_transfers (order_id, recipient_type, recipient_id, amount, error, created_at)
+           VALUES (?, 'rider', ?, ?, 'No recipient code', NOW())
+           ON DUPLICATE KEY UPDATE error = VALUES(error)`,
+          [order_id, driverId, order[0].rider_amount]
+        ).catch(() => {});
+      }
+    }
+    // For pay_on_delivery: rider collected delivery fee in cash — no transfer needed
+
+    // Transfer vendor's amount to the vendor
+    const [vendor] = await pool.query(
+      'SELECT paystack_recipient_code, vendor_name FROM vendors_tb WHERE vendor_id = ?',
+      [order[0].vendor_id]
+    );
+    if (vendor[0]?.paystack_recipient_code) {
+      const vendorTransfer = await paystackTransfer(
+        vendor[0].paystack_recipient_code,
+        order[0].vendor_amount,
+        `Order payment - Order ${order_id.slice(0, 8).toUpperCase()}`
+      );
+      if (!vendorTransfer.success) {
+        console.error(`Vendor transfer failed for order ${order_id}:`, vendorTransfer.error);
+        await pool.query(
+          `INSERT INTO failed_transfers (order_id, recipient_type, recipient_id, amount, error, created_at)
+           VALUES (?, 'vendor', ?, ?, ?, NOW())
+           ON DUPLICATE KEY UPDATE error = VALUES(error), created_at = NOW()`,
+          [order_id, order[0].vendor_id, order[0].vendor_amount, JSON.stringify(vendorTransfer.error)]
+        ).catch(() => {});
+      }
+    } else {
+      console.warn(`Vendor ${order[0].vendor_id} has no paystack_recipient_code — payout skipped`);
+      await pool.query(
+        `INSERT INTO failed_transfers (order_id, recipient_type, recipient_id, amount, error, created_at)
+         VALUES (?, 'vendor', ?, ?, 'No recipient code', NOW())
+         ON DUPLICATE KEY UPDATE error = VALUES(error)`,
+        [order_id, order[0].vendor_id, order[0].vendor_amount]
+      ).catch(() => {});
+    }
+    // ─────────────────────────────────────────────────────────────────────
 
     return res.json({ success: true, message: 'Delivery confirmed!' });
   } catch (err) {
@@ -686,7 +750,8 @@ async function updatePrice(req, res) {
 async function initializePayment(req, res) {
   try {
     const studentId = req.user.id;
-    const { order_id, delivery_fee, delivery_address } = req.body;
+    const { order_id, delivery_fee, delivery_address, payment_option } = req.body;
+    const paymentOption = payment_option === 'pay_on_delivery' ? 'pay_on_delivery' : 'pay_together';
 
     if (!order_id) {
       return res.status(400).json({ success: false, message: 'order_id required' });
@@ -716,7 +781,10 @@ async function initializePayment(req, res) {
       ? Number(delivery_fee)
       : (Number(order.delivery_fee) > 0 ? Number(order.delivery_fee) : DELIVERY_FEE);
 
-    const totalAmount = vendorAmount + effectiveDeliveryFee + platformFee;
+    // pay_on_delivery: student pays only food + platform fee now; delivery fee paid cash to rider
+    const totalAmount = paymentOption === 'pay_on_delivery'
+      ? vendorAmount + platformFee
+      : vendorAmount + effectiveDeliveryFee + platformFee;
 
     const paystackKey = process.env.PAYSTACK_SECRET_KEY;
     if (!paystackKey || !paystackKey.startsWith('sk_')) {
@@ -724,20 +792,6 @@ async function initializePayment(req, res) {
     }
 
     const paymentRef = `UNIMAP-${order_id.slice(0, 8).toUpperCase()}-R`;
-
-    // Get available rider subaccount
-    const [riderRows] = await pool.query(
-      'SELECT paystack_subaccount_code FROM drivers_tb WHERE is_available = TRUE AND school_id = (SELECT school_id FROM vendors_tb WHERE vendor_id = ?) AND paystack_subaccount_code IS NOT NULL LIMIT 1',
-      [order.vendor_id]
-    );
-
-    const splits = [];
-    if (order.vendor_sub) {
-      splits.push({ subaccount: order.vendor_sub, share: Math.round(vendorAmount * 100) });
-    }
-    if (riderRows[0]?.paystack_subaccount_code) {
-      splits.push({ subaccount: riderRows[0].paystack_subaccount_code, share: Math.round(effectiveDeliveryFee * 100) });
-    }
 
     const paystackBody = {
       email: order.student_email,
@@ -754,9 +808,8 @@ async function initializePayment(req, res) {
       },
     };
 
-    if (splits.length > 0) {
-      paystackBody.split = { type: 'flat', bearer_type: 'account', subaccounts: splits };
-    }
+    // No split — full amount lands in Unimap main account.
+    // Vendor and rider are paid out via Paystack Transfers after delivery.
 
     const paystackRes = await axios.post(
       `${PAYSTACK_BASE}/transaction/initialize`,
@@ -764,14 +817,14 @@ async function initializePayment(req, res) {
       { headers: { Authorization: `Bearer ${paystackKey}` }, httpsAgent: paystackAgent }
     );
 
-    // Update order with final totals and delivery info
+    // Update order with final totals, delivery info, and payment option
     await pool.query(
-      `UPDATE orders SET total_amount = ?, delivery_fee = ?, rider_amount = ?, payment_reference = ?
+      `UPDATE orders SET total_amount = ?, delivery_fee = ?, rider_amount = ?, payment_reference = ?, payment_option = ?
        ${delivery_address ? ', delivery_address = ?' : ''}
        WHERE order_id = ?`,
       delivery_address
-        ? [totalAmount, effectiveDeliveryFee, effectiveDeliveryFee, paymentRef, delivery_address, order_id]
-        : [totalAmount, effectiveDeliveryFee, effectiveDeliveryFee, paymentRef, order_id]
+        ? [totalAmount, effectiveDeliveryFee, effectiveDeliveryFee, paymentRef, paymentOption, delivery_address, order_id]
+        : [totalAmount, effectiveDeliveryFee, effectiveDeliveryFee, paymentRef, paymentOption, order_id]
     );
 
     return res.json({

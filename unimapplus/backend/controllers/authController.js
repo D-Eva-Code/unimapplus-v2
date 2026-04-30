@@ -486,8 +486,8 @@ async function register(req, res) {
       );
       userId = result.insertId;
       if (bank_name && account_number && account_name) {
-        try { await createPaystackSubaccount(userId, 'vendor', fullName, bank_name, account_number); }
-        catch (e) { console.log('Paystack subaccount deferred:', e.message); }
+        try { await createPaystackRecipient(userId, 'vendor', account_name, bank_name, account_number); }
+        catch (e) { console.log('Paystack recipient deferred:', e.message); }
       }
 
     } else if (role === 'driver') {
@@ -499,8 +499,8 @@ async function register(req, res) {
       );
       userId = result.insertId;
       if (bank_name && account_number && account_name) {
-        try { await createPaystackSubaccount(userId, 'driver', fullName, bank_name, account_number); }
-        catch (e) { console.log('Paystack subaccount deferred:', e.message); }
+        try { await createPaystackRecipient(userId, 'driver', account_name, bank_name, account_number); }
+        catch (e) { console.log('Paystack recipient deferred:', e.message); }
       }
     }
 
@@ -556,29 +556,108 @@ async function login(req, res) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// PAYSTACK SUBACCOUNT HELPER
+// PAYSTACK RECIPIENT HELPER
+// Creates a Transfer Recipient (needed for post-delivery payouts)
+// and saves the recipient_code to the DB.
+// Called at registration when bank details are provided,
+// and from the saveBankDetails endpoint when added later.
 // ─────────────────────────────────────────────────────────────
-async function createPaystackSubaccount(userId, type, businessName, bankName, accountNumber) {
+async function createPaystackRecipient(userId, type, accountName, bankName, accountNumber) {
   const axios = require('axios');
   const key = process.env.PAYSTACK_SECRET_KEY;
-  if (!key || !key.startsWith('sk_')) return;
+  if (!key || !key.startsWith('sk_')) {
+    console.warn('PAYSTACK_SECRET_KEY not set — skipping recipient creation');
+    return null;
+  }
+
+  // Resolve bank name → bank code
   const bankListRes = await axios.get('https://api.paystack.co/bank?country=nigeria&perPage=100', {
-    headers: { Authorization: `Bearer ${key}` }, httpsAgent: paystackAgent,
+    headers: { Authorization: `Bearer ${key}` },
+    httpsAgent: paystackAgent,
   });
   const bank = bankListRes.data.data.find(b =>
     b.name.toLowerCase().includes(bankName.toLowerCase()) ||
     bankName.toLowerCase().includes(b.name.toLowerCase().split(' ')[0])
   );
-  if (!bank) { console.log('Bank not found:', bankName); return; }
-  const subRes = await axios.post('https://api.paystack.co/subaccount', {
-    business_name: businessName, bank_code: bank.code,
-    account_number: accountNumber, percentage_charge: 0,
-  }, { headers: { Authorization: `Bearer ${key}` }, httpsAgent: paystackAgent });
-  const code = subRes.data.data.subaccount_code;
+  if (!bank) {
+    console.warn('Bank not found:', bankName);
+    return null;
+  }
+
+  // Create the Transfer Recipient
+  const recipientRes = await axios.post('https://api.paystack.co/transferrecipient', {
+    type: 'nuban',
+    name: accountName,
+    account_number: accountNumber,
+    bank_code: bank.code,
+    currency: 'NGN',
+  }, {
+    headers: { Authorization: `Bearer ${key}` },
+    httpsAgent: paystackAgent,
+  });
+
+  const recipientCode = recipientRes.data.data.recipient_code;
   const table = type === 'vendor' ? 'vendors_tb' : 'drivers_tb';
-  const idCol  = type === 'vendor' ? 'vendor_id'  : 'driver_id';
-  await pool.query(`UPDATE ${table} SET paystack_subaccount_code = ? WHERE ${idCol} = ?`, [code, userId]);
-  console.log(`✅ Paystack subaccount: ${businessName} → ${code}`);
+  const idCol = type === 'vendor' ? 'vendor_id' : 'driver_id';
+
+  await pool.query(
+    `UPDATE ${table} SET paystack_recipient_code = ?, bank_name = ?, account_number = ?, account_name = ? WHERE ${idCol} = ?`,
+    [recipientCode, bankName, accountNumber, accountName, userId]
+  );
+
+  console.log(`Paystack recipient created: ${accountName} → ${recipientCode}`);
+  return recipientCode;
+}
+
+// ─────────────────────────────────────────────────────────────
+// SAVE BANK DETAILS — for existing riders/vendors
+// POST /auth/bank-details
+// Body: { bank_name, account_number, account_name }
+// ─────────────────────────────────────────────────────────────
+async function saveBankDetails(req, res) {
+  try {
+    const { bank_name, account_number, account_name } = req.body;
+    if (!bank_name || !account_number || !account_name) {
+      return res.status(400).json({ success: false, message: 'bank_name, account_number, and account_name are required' });
+    }
+
+    const { id, role } = req.user;
+    if (role !== 'vendor' && role !== 'driver') {
+      return res.status(403).json({ success: false, message: 'Only vendors and riders can save bank details' });
+    }
+
+    const type = role === 'vendor' ? 'vendor' : 'driver';
+    const recipientCode = await createPaystackRecipient(id, type, account_name, bank_name, account_number);
+
+    if (!recipientCode) {
+      return res.status(500).json({ success: false, message: 'Could not create payout recipient. Check bank name and try again.' });
+    }
+
+    return res.json({ success: true, message: 'Bank details saved. You are now set up to receive payouts.' });
+  } catch (err) {
+    console.error('saveBankDetails error:', err.response?.data || err);
+    return res.status(500).json({ success: false, message: 'Failed to save bank details' });
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// GET BANKS — returns list of Nigerian banks for frontend dropdown
+// GET /auth/banks
+// ─────────────────────────────────────────────────────────────
+async function getBanks(req, res) {
+  try {
+    const axios = require('axios');
+    const key = process.env.PAYSTACK_SECRET_KEY;
+    const bankRes = await axios.get('https://api.paystack.co/bank?country=nigeria&perPage=100', {
+      headers: { Authorization: `Bearer ${key}` },
+      httpsAgent: paystackAgent,
+    });
+    const banks = bankRes.data.data.map(b => ({ name: b.name, code: b.code }));
+    return res.json({ success: true, banks });
+  } catch (err) {
+    console.error('getBanks error:', err.response?.data || err);
+    return res.status(500).json({ success: false, message: 'Could not fetch banks' });
+  }
 }
 
 
@@ -675,4 +754,4 @@ async function resetPassword(req, res) {
   }
 }
 
-module.exports = { register, login, sendSchoolEmailOTP, verifySchoolEmailOTP, sendResetOTP, resetPassword };
+module.exports = { register, login, sendSchoolEmailOTP, verifySchoolEmailOTP, sendResetOTP, resetPassword, saveBankDetails, getBanks };
