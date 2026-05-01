@@ -2492,6 +2492,9 @@ export default function StudentDashboard() {
                           gap: 12,
                           alignItems: "flex-start",
                           boxShadow: "0 1px 4px rgba(0,0,0,.05)",
+                          opacity: item.is_available === false || item.is_available === 0 ? 0.55 : 1,
+                          pointerEvents: item.is_available === false || item.is_available === 0 ? "none" : "auto",
+                          position: "relative",
                         }}
                       >
                         {item.image_url ? (
@@ -2807,6 +2810,20 @@ export default function StudentDashboard() {
                               }}
                             >
                               Closed
+                            </span>
+                          ) : item.is_available === false || item.is_available === 0 ? (
+                            <span
+                              style={{
+                                fontSize: 10,
+                                color: "#991b1b",
+                                background: "#fee2e2",
+                                padding: "4px 8px",
+                                borderRadius: 8,
+                                fontWeight: 600,
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              Out of stock
                             </span>
                           ) : qty > 0 ? (
                             <div
