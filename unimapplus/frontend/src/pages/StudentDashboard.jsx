@@ -517,6 +517,7 @@ export default function StudentDashboard() {
     // Open delivery modal so student picks location (needed for delivery fee calculation)
     setFinalPaymentOrder(order);
     setDeliveryAddr("");
+    setPaymentOption("pay_together");
     setDeliveryModal({
       vendorId: order.vendor_id,
       vendorName: order.vendor_name,
@@ -538,6 +539,7 @@ export default function StudentDashboard() {
         order_id: finalPaymentOrder.order_id,
         delivery_fee: computedFee,
         delivery_address: deliveryAddr.trim(),
+        payment_option: paymentOption,
       });
       if (data.payment_url) {
         window.location.href = data.payment_url;
@@ -4866,7 +4868,7 @@ export default function StudentDashboard() {
             </div>
 
             {/* Payment Option Selector */}
-            {!deliveryModal?.isFinalPayment && (
+            {(true) && (
               <div style={{ marginBottom: 18 }}>
                 <div style={{ fontWeight: 700, fontSize: 13, color: textPrimary, marginBottom: 10 }}>
                   Payment Option
