@@ -2617,6 +2617,7 @@ export default function StudentDashboard() {
                                     fontFamily: "inherit",
                                     marginBottom: 4,
                                     color: textPrimary,
+                                    background: inputBg,
                                   }}
                                 >
                                   <option value="">Select quantity...</option>
@@ -2938,7 +2939,7 @@ export default function StudentDashboard() {
                                     borderRadius: 6,
                                     padding: "1px 3px",
                                     fontFamily: "inherit",
-                                    background: "#f0fafa",
+                                    background: dm ? "#21262d" : "#f0fafa",
                                     color: TEAL,
                                     fontWeight: 700,
                                     cursor: "pointer",
