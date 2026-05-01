@@ -39,9 +39,15 @@ export default function RiderDashboard() {
       loadDashboard();
       setNewRequest(data);
     });
+    socket.on("new_available_order", () => {
+      loadDashboard();
+    });
+    // Poll every 30s as fallback in case socket event is missed
+    const poll = setInterval(() => loadDashboard(), 30000);
     return () => {
       socket.off("rider_assigned");
       socket.off("new_available_order");
+      clearInterval(poll);
       stopBroadcast();
     };
   }, []);
