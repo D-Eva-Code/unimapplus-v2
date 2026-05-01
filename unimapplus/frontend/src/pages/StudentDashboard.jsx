@@ -4490,7 +4490,7 @@ export default function StudentDashboard() {
                                   height: 28,
                                   borderRadius: 7,
                                   border: "none",
-                                  background: "#f0fafa",
+                                  background: dm ? "#21262d" : "#f0fafa",
                                   cursor: "pointer",
                                   fontSize: 16,
                                   color: TEAL,
@@ -4504,6 +4504,7 @@ export default function StudentDashboard() {
                                   fontWeight: 700,
                                   minWidth: 20,
                                   textAlign: "center",
+                                  color: textPrimary,
                                 }}
                               >
                                 {item.quantity}
@@ -4738,7 +4739,7 @@ export default function StudentDashboard() {
                     left: 0,
                     right: 0,
                     background: cardBg,
-                    border: "1.5px solid #e8ecf0",
+                    border: `1.5px solid ${dividerColor}`,
                     borderRadius: 12,
                     boxShadow: "0 8px 24px rgba(0,0,0,.12)",
                     zIndex: 10,
@@ -4762,11 +4763,11 @@ export default function StudentDashboard() {
                         gap: 10,
                         borderBottom:
                           i < locationSuggestions.length - 1
-                            ? "1px solid #f5f5f5"
+                            ? `1px solid ${dividerColor}`
                             : "none",
                       }}
                       onMouseEnter={(e) =>
-                        (e.currentTarget.style.background = "#f0fafa")
+                        (e.currentTarget.style.background = dm ? "#1f2937" : "#f0fafa")
                       }
                       onMouseLeave={(e) =>
                         (e.currentTarget.style.background = "transparent")
@@ -4774,16 +4775,16 @@ export default function StudentDashboard() {
                     >
                       <span style={{ fontSize: 16 }}>
                         {loc.category === "eatery" ? (
-                          <Store size={18} style={{ color: "#0F172A" }} />
+                          <Store size={18} style={{ color: textPrimary }} />
                         ) : loc.category === "hostel" ? (
-                          <House size={18} style={{ color: "#0F172A" }} />
+                          <House size={18} style={{ color: textPrimary }} />
                         ) : loc.category === "faculty" ? (
                           <GraduationCap
                             size={18}
-                            style={{ color: "#0F172A" }}
+                            style={{ color: textPrimary }}
                           />
                         ) : (
-                          <MapPin size={18} style={{ color: "#0F172A" }} />
+                          <MapPin size={18} style={{ color: textPrimary }} />
                         )}
                       </span>
                       <div>
@@ -4827,11 +4828,11 @@ export default function StudentDashboard() {
                   <div
                     onClick={() => setPaymentOption("pay_together")}
                     style={{
-                      border: `2px solid ${paymentOption === "pay_together" ? TEAL : "#e8ecf0"}`,
+                      border: `2px solid ${paymentOption === "pay_together" ? TEAL : dividerColor}`,
                       borderRadius: 12,
                       padding: "12px 14px",
                       cursor: "pointer",
-                      background: paymentOption === "pay_together" ? "#e6fafa" : cardBg,
+                      background: paymentOption === "pay_together" ? (dm ? "rgba(13,148,136,0.15)" : "#e6fafa") : cardBg,
                       transition: "all .15s",
                     }}
                   >
@@ -4846,7 +4847,7 @@ export default function StudentDashboard() {
                       </div>
                       <div style={{
                         width: 18, height: 18, borderRadius: "50%",
-                        border: `2px solid ${paymentOption === "pay_together" ? TEAL : "#ccc"}`,
+                        border: `2px solid ${paymentOption === "pay_together" ? TEAL : textSecondary}`,
                         background: paymentOption === "pay_together" ? TEAL : "transparent",
                         flexShrink: 0,
                       }} />
@@ -4863,11 +4864,11 @@ export default function StudentDashboard() {
                       <div
                         onClick={() => setPaymentOption("pay_on_delivery")}
                         style={{
-                          border: `2px solid ${paymentOption === "pay_on_delivery" ? TEAL : "#e8ecf0"}`,
+                          border: `2px solid ${paymentOption === "pay_on_delivery" ? TEAL : dividerColor}`,
                           borderRadius: 12,
                           padding: "12px 14px",
                           cursor: "pointer",
-                          background: paymentOption === "pay_on_delivery" ? "#e6fafa" : cardBg,
+                          background: paymentOption === "pay_on_delivery" ? (dm ? "rgba(13,148,136,0.15)" : "#e6fafa") : cardBg,
                           transition: "all .15s",
                         }}
                       >
@@ -4902,7 +4903,7 @@ export default function StudentDashboard() {
                           </div>
                           <div style={{
                             width: 18, height: 18, borderRadius: "50%",
-                            border: `2px solid ${paymentOption === "pay_on_delivery" ? TEAL : "#ccc"}`,
+                            border: `2px solid ${paymentOption === "pay_on_delivery" ? TEAL : textSecondary}`,
                             background: paymentOption === "pay_on_delivery" ? TEAL : "transparent",
                             flexShrink: 0,
                             marginLeft: 10,
