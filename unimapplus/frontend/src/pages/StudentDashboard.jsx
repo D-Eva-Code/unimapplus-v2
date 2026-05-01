@@ -2903,6 +2903,7 @@ export default function StudentDashboard() {
                           )}
                           {qty > 0 &&
                             item.item_type !== "drink" &&
+                            item.item_type !== "snacks_pastries" &&
                             !hasCustomizations && (
                               <div
                                 style={{
@@ -3694,6 +3695,35 @@ export default function StudentDashboard() {
                           </span>
                         </div>
                       ))}
+                      {activeOrder.payment_option === "pay_on_delivery" && (
+                        <div
+                          style={{
+                            marginTop: 10,
+                            borderTop: `1px solid ${dividerColor}`,
+                            paddingTop: 10,
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <span style={{ fontSize: 12, fontWeight: 700, color: "#b45309" }}>
+                            Cash to give rider on delivery
+                          </span>
+                          <span
+                            style={{
+                              fontSize: 13,
+                              fontWeight: 800,
+                              color: "#b45309",
+                              background: "#fff8e6",
+                              border: "1px solid #f59e0b",
+                              borderRadius: 8,
+                              padding: "3px 10px",
+                            }}
+                          >
+                            ₦{Number(activeOrder.rider_amount || activeOrder.delivery_fee || 0).toLocaleString()}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -4370,9 +4400,9 @@ export default function StudentDashboard() {
                       (vn) => vn.vendor_id === v.vendorId,
                     )?.category;
                     // No packing if: vendor is drinks/bakery/foodstuff category
-                    // OR if ALL items in cart are drinks
+                    // OR if ALL items in cart are drinks or snacks/pastries
                     const allDrinks = v.items.every(
-                      (i) => i.item_type === "drink",
+                      (i) => i.item_type === "drink" || i.item_type === "snacks_pastries",
                     );
                     const vPacking =
                       noPackCats.includes(vendorCat) || allDrinks ? 0 : 200;

@@ -1771,6 +1771,7 @@ export default function VendorDashboard() {
                     {[
                       ["food", <Utensils size={16} />, "Packing fee applies"],
                       ["drink", <Coffee size={16} />, "No packing fee"],
+                      ["snacks_pastries", <span style={{ fontSize: 14 }}>🥐</span>, "No packing fee"],
                     ].map(([type, label, hint]) => (
                       <div
                         key={type}
@@ -1789,8 +1790,11 @@ export default function VendorDashboard() {
                         }}
                       >
                         <div>{label}</div>
-                        <div style={{ fontSize: 10, color: "#7a90a4" }}>
-                          {hint}
+                        <div style={{ fontSize: 10, color: "#7a90a4", marginTop: 2 }}>
+                          {type === "snacks_pastries" ? "Snacks / Pastries" : hint}
+                        </div>
+                        <div style={{ fontSize: 9, color: "#7a90a4" }}>
+                          {type === "snacks_pastries" ? hint : ""}
                         </div>
                       </div>
                     ))}

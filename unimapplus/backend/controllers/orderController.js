@@ -53,10 +53,10 @@ async function checkout(req, res) {
       verifiedItems.push({ ...item, price: unitPrice, quantity: cartItem.quantity, portions, design_note: cartItem.design_note || '' });
     }
 
-    // If not already exempt and all items are drinks, waive packing fee
+    // If not already exempt and all items are drinks or snacks/pastries, waive packing fee
     if (!vendorPackingExempt) {
-      const allItemsDrinks = verifiedItems.every(i => i.item_type === 'drink');
-      if (allItemsDrinks) packingFee = 0;
+      const allNoPackItems = verifiedItems.every(i => i.item_type === 'drink' || i.item_type === 'snacks_pastries');
+      if (allNoPackItems) packingFee = 0;
     }
 
     // Use dynamic delivery fee sent from frontend (location-based), fallback to constant
