@@ -246,21 +246,22 @@ export default function StudentDashboard() {
   }
 
   useOrderTracking(
-    trackedOrder?.order_id,
+    orders
+      .filter((o) => !["delivered", "cancelled", "refunded"].includes(o.status))
+      .map((o) => o.order_id),
     ({ status, order_id }) => {
-      // Update both trackedOrder and the orders[] array so all cards re-render
-      setTrackedOrder((o) => (o ? { ...o, status } : null));
+      // Update the orders[] array so all cards re-render
       setOrders((prev) =>
-        prev.map((o) =>
-          o.order_id === (order_id || trackedOrder?.order_id)
-            ? { ...o, status }
-            : o,
-        ),
+        prev.map((o) => (o.order_id === order_id ? { ...o, status } : o)),
       );
+      // Also update trackedOrder if it matches
+      setTrackedOrder((o) => (o?.order_id === order_id ? { ...o, status } : o));
     },
-    ({ latitude, longitude }) =>
+    ({ order_id, latitude, longitude }) =>
       setTrackedOrder((o) =>
-        o ? { ...o, rider_lat: latitude, rider_lng: longitude } : null,
+        o?.order_id === order_id
+          ? { ...o, rider_lat: latitude, rider_lng: longitude }
+          : o,
       ),
   );
 
@@ -862,6 +863,7 @@ export default function StudentDashboard() {
     paid: "#3b82f6",
     accepted: "#8b5cf6",
     preparing: "#f97316",
+    ready: "#10b981",
     rider_assigned: "#06b6d4",
     picked_up: "#10b981",
     on_the_way: TEAL,

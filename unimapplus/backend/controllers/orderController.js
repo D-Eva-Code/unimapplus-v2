@@ -174,10 +174,10 @@ async function verifyPayment(req, res) {
       const [order] = await pool.query('SELECT * FROM orders WHERE order_id = ?', [order_id]);
       // Don't auto-assign rider - vendor must accept first, then mark ready, then riders are notified
 
-      // Notify vendor via socket
       const io = req.app.get('io');
       if (io) {
         io.to(`vendor_${order[0]?.vendor_id}`).emit('new_order', { order_id });
+        io.to(`order_${order_id}`).emit('order_status_updated', { order_id, status: 'paid' });
       }
 
       return res.json({ success: true, message: 'Payment verified', order_id });
@@ -217,7 +217,10 @@ async function paystackWebhook(req, res) {
         // Don't auto-assign rider - vendor must accept first, then mark ready, then riders are notified
 
         const io = req._io;
-        if (io) io.to(`vendor_${order[0]?.vendor_id}`).emit('new_order', { order_id });
+        if (io) {
+          io.to(`vendor_${order[0]?.vendor_id}`).emit('new_order', { order_id });
+          io.to(`order_${order_id}`).emit('order_status_updated', { order_id, status: 'paid' });
+        }
       }
     }
 

@@ -18,24 +18,33 @@ export function useSocket() {
   return socketRef.current;
 }
 
-export function useOrderTracking(orderId, onStatusUpdate, onRiderLocation) {
+// Tracks one or more orders. Pass an array of order IDs.
+export function useOrderTracking(orderIds, onStatusUpdate, onRiderLocation) {
   const socket = useSocket();
+  const ids = Array.isArray(orderIds)
+    ? orderIds.filter(Boolean)
+    : orderIds ? [orderIds] : [];
 
   useEffect(() => {
-    if (!orderId) return;
-    socket.emit('join_order', orderId);
+    if (ids.length === 0) return;
 
-    socket.on('order_status_updated', (data) => {
-      if (data.order_id === orderId) onStatusUpdate?.(data);
-    });
+    // Join a room for every active order
+    ids.forEach((id) => socket.emit('join_order', id));
 
-    socket.on('rider_location', (data) => {
-      if (data.order_id === orderId) onRiderLocation?.(data);
-    });
+    const handleStatus = (data) => {
+      if (ids.includes(data.order_id)) onStatusUpdate?.(data);
+    };
+
+    const handleLocation = (data) => {
+      if (ids.includes(data.order_id)) onRiderLocation?.(data);
+    };
+
+    socket.on('order_status_updated', handleStatus);
+    socket.on('rider_location', handleLocation);
 
     return () => {
-      socket.off('order_status_updated');
-      socket.off('rider_location');
+      socket.off('order_status_updated', handleStatus);
+      socket.off('rider_location', handleLocation);
     };
-  }, [orderId]);
+  }, [ids.join(',')]);
 }

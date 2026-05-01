@@ -944,7 +944,14 @@ export default function VendorDashboard() {
                             }}
                           >
                             {order.student_name} ·{" "}
-                            {new Date(order.created_at).toLocaleTimeString()}
+                            {new Date(order.created_at).toLocaleDateString("en-NG", {
+                              day: "numeric",
+                              month: "short",
+                            })}{" "}
+                            {new Date(order.created_at).toLocaleTimeString("en-NG", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </div>
                           {order.delivery_address && (
                             <div

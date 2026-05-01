@@ -655,7 +655,7 @@ export default function RiderDashboard() {
                 >
                   {order.payment_option === "pay_on_delivery"
                     ? "Pay on Delivery — collect delivery fee in cash from student"
-                    : "Paid In-App — delivery fee transferred after delivery"}
+                    : "Paid In-App — no cash to collect"}
                 </div>
 
                 <div style={{ padding: "14px 16px" }}>
