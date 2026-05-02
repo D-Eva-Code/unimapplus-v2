@@ -29,13 +29,13 @@ const WEATHER_EXCLUDED = {
   rainy: ['ice cream', 'cold drink', 'smoothie', 'chilled', 'frozen', 'ice'],
 };
 
-// Vendor category → item type mapping for weather scoring
-// Items whose vendor_category matches these get weather bonus
+// Vendor category → weather fit (must match exact values from vendors_tb.category)
+// african_food, fast_food, snacks, drinks, bakery, foodstuff
 const CATEGORY_WEATHER_FIT = {
-  hot:   ['drinks', 'smoothies', 'snacks_pastries'],
-  warm:  ['snacks_pastries', 'fast_food'],
-  cool:  ['local_cuisine', 'african_food', 'bukas', 'restaurant'],
-  rainy: ['local_cuisine', 'african_food', 'bukas', 'restaurant'],
+  hot:   ['drinks', 'snacks'],
+  warm:  ['snacks', 'fast_food', 'bakery'],
+  cool:  ['african_food', 'fast_food'],
+  rainy: ['african_food'],
 };
 
 const TIME_PREFERRED = {
@@ -54,7 +54,11 @@ function getTimeSlot(hour) {
 
 function getWeatherContext(temp, weatherDesc = '') {
   const desc = weatherDesc.toLowerCase();
-  if (desc.includes('rain') || desc.includes('storm') || desc.includes('shower') || desc.includes('drizzle')) return 'rainy';
+  // Thunderstorm at high temp is still hot weather for food purposes
+  // Only treat as rainy if it's actually raining AND not very hot
+  const isRaining = desc.includes('rain') || desc.includes('shower') || desc.includes('drizzle');
+  const isThunderstorm = desc.includes('thunderstorm');
+  if (isRaining && !isThunderstorm && temp < 32) return 'rainy';
   if (temp >= 33) return 'hot';
   if (temp >= 28) return 'warm';
   return 'cool';
@@ -209,7 +213,8 @@ async function getRecommendations(req, res) {
       const d = (weather_desc || '').toLowerCase();
       const t = tempNum;
       const h = hour;
-      if (d.includes('rain') || d.includes('storm') || d.includes('shower') || d.includes('drizzle'))
+      const isActuallyRainy = (d.includes('rain') || d.includes('shower') || d.includes('drizzle')) && !d.includes('thunderstorm') && t < 32;
+      if (isActuallyRainy)
         return 'Rainy day on campus 🌧️ — perfect for something hot and filling. Soups, stews, or a warm plate hit different right now.';
       if (t >= 34)
         return h < 12

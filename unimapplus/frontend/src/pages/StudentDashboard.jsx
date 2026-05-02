@@ -279,6 +279,9 @@ export default function StudentDashboard() {
           const d = await r.json();
           const temp = Math.round(d.current.temperature_2m);
           const code = d.current.weathercode;
+          // WMO weather code mapping
+          // 0=clear, 1-3=partly cloudy, 45-48=fog, 51-67=drizzle/rain,
+          // 71-77=snow, 80-82=showers, 95-99=thunderstorm
           const desc =
             code === 0
               ? "Clear"
@@ -288,7 +291,9 @@ export default function StudentDashboard() {
                   ? "Foggy"
                   : code <= 67
                     ? "Rainy"
-                    : "Stormy";
+                    : code <= 82
+                      ? "Showers"
+                      : "Thunderstorm";
           const icon =
             code === 0
               ? "☀️"
@@ -298,7 +303,9 @@ export default function StudentDashboard() {
                   ? "🌫️"
                   : code <= 67
                     ? "🌧️"
-                    : "⛈️";
+                    : code <= 82
+                      ? "🌦️"
+                      : "⛈️";
           setWeather({ temp, desc, icon });
           // Fetch ML recommendations with weather context
           loadRecommendations(temp, desc);
