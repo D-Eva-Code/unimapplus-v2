@@ -151,6 +151,7 @@ export default function Signup() {
     school_id: "",
     phone: "",
     bank_name: "",
+    bank_code: "",
     account_number: "",
     account_name: "",
     category: "",
@@ -182,6 +183,11 @@ export default function Signup() {
   const [verifying, setVerifying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [banks, setBanks] = useState([]);
+  const [bankSearch, setBankSearch] = useState("");
+  const [bankDropdownOpen, setBankDropdownOpen] = useState(false);
+  const [resolvingAccount, setResolvingAccount] = useState(false);
+  const [resolveError, setResolveError] = useState("");
 
   useEffect(() => {
     api
@@ -189,6 +195,34 @@ export default function Signup() {
       .then((r) => setSchools(r.data.schools || []))
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    api.get("/auth/banks").then((r) => setBanks(r.data.banks || [])).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const acct = form.account_number?.trim();
+    const bankCode = form.bank_code?.trim();
+    if (!acct || acct.length !== 10 || !bankCode) return;
+    const timer = setTimeout(async () => {
+      setResolvingAccount(true);
+      setResolveError("");
+      try {
+        const { data } = await api.get(`/auth/resolve-account?account_number=${acct}&bank_code=${bankCode}`);
+        if (data.success) {
+          setForm((p) => ({ ...p, account_name: data.account_name }));
+        } else {
+          setResolveError(data.message || "Could not verify account");
+          setForm((p) => ({ ...p, account_name: "" }));
+        }
+      } catch {
+        setResolveError("Could not verify account number");
+        setForm((p) => ({ ...p, account_name: "" }));
+      }
+      setResolvingAccount(false);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [form.account_number, form.bank_code]);
 
   // OTP countdown
   useEffect(() => {
@@ -292,6 +326,7 @@ export default function Signup() {
       if (form.school_id) fd.append("school_id", form.school_id);
       if (form.phone) fd.append("phone", form.phone);
       if (form.bank_name) fd.append("bank_name", form.bank_name);
+      if (form.bank_code) fd.append("bank_code", form.bank_code);
       if (form.account_number) fd.append("account_number", form.account_number);
       if (form.account_name) fd.append("account_name", form.account_name);
       if (form.category) fd.append("category", form.category);
@@ -1286,36 +1321,109 @@ export default function Signup() {
               >
                 Banking Details (for payments)
               </p>
-              {[
-                {
-                  label: "Bank Name",
-                  key: "bank_name",
-                  placeholder: "e.g. GTBank, Access, Zenith",
-                },
-                {
-                  label: "Account Number",
-                  key: "account_number",
-                  placeholder: "10-digit account number",
-                },
-                {
-                  label: "Account Name",
-                  key: "account_name",
-                  placeholder: "Name on account",
-                },
-              ].map((f) => (
-                <div key={f.key} style={{ marginBottom: 10 }}>
-                  <label style={lbl}>{f.label}</label>
+
+              {/* Bank selector */}
+              <div style={{ marginBottom: 10, position: "relative" }}>
+                <label style={lbl}>Bank Name</label>
+                <input
+                  type="text"
+                  placeholder="Search bank..."
+                  value={bankSearch}
+                  onFocus={() => setBankDropdownOpen(true)}
+                  onChange={(e) => {
+                    setBankSearch(e.target.value);
+                    setBankDropdownOpen(true);
+                  }}
+                  style={inp}
+                  autoComplete="off"
+                />
+                {form.bank_name ? (
+                  <div style={{ fontSize: 11, color: "#089898", marginTop: 3 }}>
+                    Selected: {form.bank_name}
+                  </div>
+                ) : null}
+                {bankDropdownOpen && bankSearch.length > 0 && (
+                  <div style={{
+                    position: "absolute", top: "100%", left: 0, right: 0,
+                    background: "#fff", border: "1px solid #e0f7f7", borderRadius: 8,
+                    maxHeight: 180, overflowY: "auto", zIndex: 100,
+                    boxShadow: "0 4px 12px rgba(0,0,0,.1)"
+                  }}>
+                    {banks
+                      .filter(b => b.name.toLowerCase().includes(bankSearch.toLowerCase()))
+                      .slice(0, 20)
+                      .map(b => (
+                        <div
+                          key={b.code}
+                          onMouseDown={() => {
+                            setForm(p => ({ ...p, bank_name: b.name, bank_code: b.code, account_name: "", account_number: "" }));
+                            setBankSearch(b.name);
+                            setBankDropdownOpen(false);
+                            setResolveError("");
+                          }}
+                          style={{
+                            padding: "9px 12px", fontSize: 13, cursor: "pointer",
+                            borderBottom: "1px solid #f5f5f5"
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = "#f0fdfd"}
+                          onMouseLeave={e => e.currentTarget.style.background = "#fff"}
+                        >
+                          {b.name}
+                        </div>
+                      ))}
+                    {banks.filter(b => b.name.toLowerCase().includes(bankSearch.toLowerCase())).length === 0 && (
+                      <div style={{ padding: "9px 12px", fontSize: 12, color: "#999" }}>No banks found</div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Account number */}
+              <div style={{ marginBottom: 10 }}>
+                <label style={lbl}>Account Number</label>
+                <input
+                  type="text"
+                  placeholder="10-digit account number"
+                  value={form.account_number}
+                  maxLength={10}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, "");
+                    setForm(p => ({ ...p, account_number: val, account_name: "" }));
+                    setResolveError("");
+                  }}
+                  style={inp}
+                />
+              </div>
+
+              {/* Account name — auto-filled */}
+              <div style={{ marginBottom: 10 }}>
+                <label style={lbl}>Account Name</label>
+                <div style={{ position: "relative" }}>
                   <input
                     type="text"
-                    placeholder={f.placeholder}
-                    value={form[f.key]}
-                    onChange={(e) =>
-                      setForm((p) => ({ ...p, [f.key]: e.target.value }))
-                    }
-                    style={inp}
+                    placeholder={resolvingAccount ? "Verifying..." : "Auto-filled after account number"}
+                    value={form.account_name}
+                    readOnly
+                    style={{
+                      ...inp,
+                      background: form.account_name ? "#f0fdfd" : inp.background,
+                      color: form.account_name ? "#089898" : "#999",
+                      fontWeight: form.account_name ? 700 : 400,
+                      cursor: "default",
+                    }}
                   />
+                  {resolvingAccount && (
+                    <span style={{
+                      position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
+                      fontSize: 11, color: "#089898"
+                    }}>checking...</span>
+                  )}
                 </div>
-              ))}
+                {resolveError && (
+                  <div style={{ fontSize: 11, color: "#e53e3e", marginTop: 3 }}>{resolveError}</div>
+                )}
+              </div>
+
             </div>
           )}
 

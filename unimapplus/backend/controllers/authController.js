@@ -662,8 +662,30 @@ async function getBanks(req, res) {
 
 
 // ─────────────────────────────────────────────────────────────
-// FORGOT PASSWORD — Send OTP to any registered email
+// GET /auth/resolve-account?account_number=&bank_code=
 // ─────────────────────────────────────────────────────────────
+async function resolveAccount(req, res) {
+  try {
+    const axios = require('axios');
+    const key = process.env.PAYSTACK_SECRET_KEY;
+    const { account_number, bank_code } = req.query;
+    if (!account_number || !bank_code) {
+      return res.status(400).json({ success: false, message: 'account_number and bank_code are required' });
+    }
+    const result = await axios.get(
+      `https://api.paystack.co/bank/resolve?account_number=${account_number}&bank_code=${bank_code}`,
+      { headers: { Authorization: `Bearer ${key}` }, httpsAgent: paystackAgent }
+    );
+    return res.json({ success: true, account_name: result.data.data.account_name });
+  } catch (err) {
+    const msg = err.response?.data?.message || 'Could not resolve account';
+    return res.status(400).json({ success: false, message: msg });
+  }
+}
+
+
+// forgot password 
+
 async function sendResetOTP(req, res) {
   try {
     const { email, role } = req.body;
@@ -688,7 +710,7 @@ async function sendResetOTP(req, res) {
 
     await sendEmail({
       to: email,
-      subject: 'UnimapPlus — Password reset code',
+      subject: 'UnimapPlus: Password reset code',
       html: `
         <div style="font-family: sans-serif; max-width: 400px; margin: 0 auto; padding: 24px;">
           <h2 style="color: #0BBFBF; margin-bottom: 8px;">UnimapPlus Password Reset</h2>
@@ -708,9 +730,9 @@ async function sendResetOTP(req, res) {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
+
 // FORGOT PASSWORD — Verify OTP and reset password
-// ─────────────────────────────────────────────────────────────
+
 async function resetPassword(req, res) {
   try {
     const { email, role, otp, new_password } = req.body;
@@ -754,4 +776,4 @@ async function resetPassword(req, res) {
   }
 }
 
-module.exports = { register, login, sendSchoolEmailOTP, verifySchoolEmailOTP, sendResetOTP, resetPassword, saveBankDetails, getBanks };
+module.exports = { register, login, sendSchoolEmailOTP, verifySchoolEmailOTP, sendResetOTP, resetPassword, saveBankDetails, getBanks, resolveAccount };

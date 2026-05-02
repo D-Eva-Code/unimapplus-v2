@@ -3786,7 +3786,7 @@ export default function StudentDashboard() {
                           gap: 10,
                           padding: "12px 16px",
                           borderBottom: `1px solid ${dividerColor}`,
-                          background: "#fafafa",
+                          background: dm ? "#1c2128" : "#fafafa",
                         }}
                       >
                         <div
@@ -3841,7 +3841,7 @@ export default function StudentDashboard() {
                             padding: "14px 16px",
                             borderBottom:
                               i < group.orders.length - 1
-                                ? "1px solid #f5f5f5"
+                                ? `1px solid ${dividerColor}`
                                 : "none",
                           }}
                         >
@@ -3919,8 +3919,8 @@ export default function StudentDashboard() {
                                 <button
                                   onClick={() => setRatingModal(o)}
                                   style={{
-                                    background: "#fff8e1",
-                                    color: "#92400e",
+                                    background: dm ? "#2d2a1e" : "#fff8e1",
+                                    color: dm ? "#fbbf24" : "#92400e",
                                     border: "none",
                                     borderRadius: 8,
                                     padding: "6px 10px",
