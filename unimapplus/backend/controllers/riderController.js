@@ -11,9 +11,9 @@ async function getRiderDashboard(req, res) {
     const [stats] = await pool.query(`
       SELECT 
         COUNT(*) as total_deliveries,
-        SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as today_deliveries,
+        SUM(CASE WHEN DATE(updated_at) = CURDATE() THEN 1 ELSE 0 END) as today_deliveries,
         SUM(CASE WHEN status = 'delivered' THEN rider_amount ELSE 0 END) as total_earnings,
-        SUM(CASE WHEN status = 'delivered' AND DATE(created_at) = CURDATE() THEN rider_amount ELSE 0 END) as today_earnings
+        SUM(CASE WHEN status = 'delivered' AND DATE(updated_at) = CURDATE() THEN rider_amount ELSE 0 END) as today_earnings
       FROM orders WHERE driver_id = ? AND status = 'delivered'
     `, [driverId]);
 
