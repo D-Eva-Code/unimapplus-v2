@@ -171,6 +171,7 @@ export default function StudentDashboard() {
   const [deliveryCoords, setDeliveryCoords] = useState(null);
   const [deliverySearch, setDeliverySearch] = useState("");
   const [locationSuggestions, setLocationSuggestions] = useState([]);
+  const [mapSearchQ, setMapSearchQ] = useState("");
   const [showLocSuggestions, setShowLocSuggestions] = useState(false);
   const [allCampusLocations, setAllCampusLocations] = useState([]);
   const [itemCustomizations, setItemCustomizations] = useState({}); // {menu_id: {variant, toppings[], designNote}}
@@ -2995,7 +2996,16 @@ export default function StudentDashboard() {
                 <span style={{ color: textSecondary }}><IcSearch /></span>
                 <input
                   placeholder="Where to on campus?"
-                  onChange={(e) => doSearch(e.target.value)}
+                  value={mapSearchQ}
+                  onChange={(e) => setMapSearchQ(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const match = allCampusLocations.find(l =>
+                        l.name.toLowerCase().includes(mapSearchQ.toLowerCase())
+                      );
+                      if (match) flyToNearby(match);
+                    }
+                  }}
                   style={{
                     flex: 1,
                     border: "none",
@@ -3007,6 +3017,25 @@ export default function StudentDashboard() {
                   }}
                 />
                 <button
+                  onClick={() => {
+                    if (!mapSearchQ.trim()) return;
+                    const match = allCampusLocations.find(l =>
+                      l.name.toLowerCase().includes(mapSearchQ.toLowerCase())
+                    );
+                    if (match) {
+                      flyToNearby(match);
+                    } else {
+                      // Try Nominatim for locations not in DB
+                      fetch(
+                        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(mapSearchQ + " University of Benin")}&format=json&limit=1&countrycodes=ng`,
+                        { headers: { "Accept-Language": "en" } }
+                      ).then(r => r.json()).then(results => {
+                        if (results[0]) {
+                          flyToNearby({ latitude: results[0].lat, longitude: results[0].lon, name: results[0].display_name });
+                        }
+                      }).catch(() => {});
+                    }
+                  }}
                   style={{
                     background: TEAL,
                     color: "#fff",
@@ -3578,7 +3607,7 @@ export default function StudentDashboard() {
                           alignItems: "center",
                           gap: 10,
                           padding: "10px 12px",
-                          background: "#f0fafa",
+                          background: dm ? "#1a2632" : "#f0fafa",
                           borderRadius: 12,
                           marginBottom: 12,
                         }}
