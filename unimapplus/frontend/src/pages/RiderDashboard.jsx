@@ -31,6 +31,7 @@ export default function RiderDashboard() {
   const [riderToast, setRiderToast] = useState("");
   const [proximityError, setProximityError] = useState(null); // { orderId, message, distM }
   const locationInterval = useRef(null);
+  const driverIdRef = useRef(null);
 
   useEffect(() => {
     loadDashboard();
@@ -42,11 +43,20 @@ export default function RiderDashboard() {
     socket.on("new_available_order", () => {
       loadDashboard();
     });
+    // Re-join rider room after a socket reconnect so the backend can still
+    // reach this rider with new_available_order and rider_assigned events.
+    const handleReconnect = () => {
+      if (driverIdRef.current) {
+        socket.emit("join_rider", driverIdRef.current);
+      }
+    };
+    socket.on("connect", handleReconnect);
     // Poll every 30s as fallback in case socket event is missed
     const poll = setInterval(() => loadDashboard(), 30000);
     return () => {
       socket.off("rider_assigned");
       socket.off("new_available_order");
+      socket.off("connect", handleReconnect);
       clearInterval(poll);
       stopBroadcast();
     };
@@ -63,7 +73,10 @@ export default function RiderDashboard() {
       setDashboard(data);
       // Join socket room with real rider id
       const socket = getSocket();
-      socket.emit("join_rider", data.rider?.driver_id);
+      if (data.rider?.driver_id) {
+        driverIdRef.current = data.rider.driver_id;
+        socket.emit("join_rider", data.rider.driver_id);
+      }
       // Auto-start broadcast if already available
       if (data.rider?.is_available && !locationInterval.current)
         startBroadcast();

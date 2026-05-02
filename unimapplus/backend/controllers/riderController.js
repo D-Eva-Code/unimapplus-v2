@@ -43,10 +43,9 @@ async function getRiderDashboard(req, res) {
       FROM orders o
       JOIN vendors_tb v ON o.vendor_id = v.vendor_id
       JOIN students_tb s ON o.student_id = s.st_id
-      WHERE o.driver_id IS NULL AND o.status IN ('ready','paid')
+      WHERE o.driver_id IS NULL AND o.status = 'ready'
         AND v.school_id = ?
       ORDER BY o.created_at ASC
-      LIMIT 10
     `, [rider[0].school_id]);
 
     for (const order of availableOrders) {
@@ -91,7 +90,7 @@ async function acceptOrder(req, res) {
 
     // Check order is still unassigned and in acceptable state (ready or paid)
     const [order] = await pool.query(
-      "SELECT * FROM orders WHERE order_id = ? AND driver_id IS NULL AND status IN ('ready','paid','preparing')",
+      "SELECT * FROM orders WHERE order_id = ? AND driver_id IS NULL AND status = 'ready'",
       [order_id]
     );
     if (!order[0]) return res.status(400).json({ success: false, message: 'Order no longer available' });

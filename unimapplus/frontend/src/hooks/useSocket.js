@@ -6,7 +6,7 @@ let socketInstance = null;
 export function getSocket() {
   if (!socketInstance) {
     socketInstance = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000', {
-      transports: ['websocket'],
+      transports: ['polling', 'websocket'],
       autoConnect: true,
     });
   }
