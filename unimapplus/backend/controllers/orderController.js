@@ -296,16 +296,20 @@ async function confirmDelivery(req, res) {
       [latitude, longitude, order_id]
     );
 
-    // Enforce proximity check if delivery has stored coordinates
-    if (order[0].delivery_latitude && order[0].delivery_longitude) {
-      const dist = getDistanceKm(latitude, longitude, order[0].delivery_latitude, order[0].delivery_longitude);
-      if (dist > 0.5) {
-        return res.status(400).json({
-          success: false,
-          message: `You are ${(dist * 1000).toFixed(0)}m from the delivery location. Get within 500m to confirm.`,
-          distance_meters: Math.round(dist * 1000),
-        });
-      }
+    // Enforce proximity check — delivery coordinates are required
+    if (!order[0].delivery_latitude || !order[0].delivery_longitude) {
+      return res.status(400).json({
+        success: false,
+        message: 'This order has no delivery coordinates on record. Cannot confirm delivery location.',
+      });
+    }
+    const dist = getDistanceKm(latitude, longitude, order[0].delivery_latitude, order[0].delivery_longitude);
+    if (dist > 0.5) {
+      return res.status(400).json({
+        success: false,
+        message: `You are ${(dist * 1000).toFixed(0)}m from the delivery location. Get within 500m to confirm.`,
+        distance_meters: Math.round(dist * 1000),
+      });
     }
 
     // Mark delivered
@@ -753,7 +757,7 @@ async function updatePrice(req, res) {
 async function initializePayment(req, res) {
   try {
     const studentId = req.user.id;
-    const { order_id, delivery_fee, delivery_address, payment_option } = req.body;
+    const { order_id, delivery_fee, delivery_address, delivery_latitude, delivery_longitude, payment_option } = req.body;
     const paymentOption = payment_option === 'pay_on_delivery' ? 'pay_on_delivery' : 'pay_together';
 
     if (!order_id) {
@@ -821,14 +825,15 @@ async function initializePayment(req, res) {
     );
 
     // Update order with final totals, delivery info, and payment option
-    await pool.query(
-      `UPDATE orders SET total_amount = ?, delivery_fee = ?, rider_amount = ?, payment_reference = ?, payment_option = ?
-       ${delivery_address ? ', delivery_address = ?' : ''}
-       WHERE order_id = ?`,
-      delivery_address
-        ? [totalAmount, effectiveDeliveryFee, effectiveDeliveryFee, paymentRef, paymentOption, delivery_address, order_id]
-        : [totalAmount, effectiveDeliveryFee, effectiveDeliveryFee, paymentRef, paymentOption, order_id]
-    );
+    const ipExtras = [];
+    const ipValues = [totalAmount, effectiveDeliveryFee, effectiveDeliveryFee, paymentRef, paymentOption];
+    let ipSql = 'UPDATE orders SET total_amount = ?, delivery_fee = ?, rider_amount = ?, payment_reference = ?, payment_option = ?';
+    if (delivery_address) { ipSql += ', delivery_address = ?'; ipValues.push(delivery_address); }
+    if (delivery_latitude) { ipSql += ', delivery_latitude = ?'; ipValues.push(delivery_latitude); }
+    if (delivery_longitude) { ipSql += ', delivery_longitude = ?'; ipValues.push(delivery_longitude); }
+    ipSql += ' WHERE order_id = ?';
+    ipValues.push(order_id);
+    await pool.query(ipSql, ipValues);
 
     return res.json({
       success: true,

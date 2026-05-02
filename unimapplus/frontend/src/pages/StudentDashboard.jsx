@@ -540,6 +540,8 @@ export default function StudentDashboard() {
         order_id: finalPaymentOrder.order_id,
         delivery_fee: computedFee,
         delivery_address: deliveryAddr.trim(),
+        delivery_latitude: deliveryCoords?.lat ?? null,
+        delivery_longitude: deliveryCoords?.lng ?? null,
         payment_option: paymentOption,
       });
       if (data.payment_url) {
@@ -624,6 +626,8 @@ export default function StudentDashboard() {
             design_note: i.design_note || "",
           })),
           delivery_address: deliveryAddr.trim(),
+          delivery_latitude: deliveryCoords?.lat ?? null,
+          delivery_longitude: deliveryCoords?.lng ?? null,
           delivery_fee: computedDeliveryFee,
           payment_option: paymentOption,
         });
@@ -4750,20 +4754,46 @@ export default function StudentDashboard() {
                 onChange={(e) => {
                   const val = e.target.value;
                   setDeliveryAddr(val);
-                  if (val.trim().length > 0) {
-                    const filtered = allCampusLocations.filter(
-                      (loc) =>
-                        loc.name.toLowerCase().includes(val.toLowerCase()) ||
-                        (loc.description || "")
-                          .toLowerCase()
-                          .includes(val.toLowerCase()),
-                    );
-                    setLocationSuggestions(filtered.slice(0, 8));
-                    setShowLocSuggestions(true);
-                  } else {
+                  setDeliveryCoords(null);
+                  if (val.trim().length === 0) {
                     setShowLocSuggestions(false);
                     setLocationSuggestions([]);
+                    return;
                   }
+                  // Always show DB matches instantly
+                  const dbMatches = allCampusLocations.filter(
+                    (loc) =>
+                      loc.name.toLowerCase().includes(val.toLowerCase()) ||
+                      (loc.description || "").toLowerCase().includes(val.toLowerCase()),
+                  );
+                  setLocationSuggestions(dbMatches.slice(0, 8));
+                  setShowLocSuggestions(true);
+                  // After 400ms with no further typing, also query Nominatim for Benin City
+                  if (window._nomTimer) clearTimeout(window._nomTimer);
+                  window._nomTimer = setTimeout(async () => {
+                    try {
+                      const res = await fetch(
+                        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val + " Benin City")}&format=json&limit=6&countrycodes=ng&viewbox=5.55,6.45,5.75,6.30&bounded=1`,
+                        { headers: { "Accept-Language": "en" } }
+                      );
+                      const results = await res.json();
+                      const nomSuggestions = results.map((r) => ({
+                        id: "nom_" + r.place_id,
+                        name: r.display_name.split(",").slice(0, 2).join(", "),
+                        latitude: r.lat,
+                        longitude: r.lon,
+                        description: r.display_name,
+                        isNominatim: true,
+                      }));
+                      // Merge: DB results first, then Nominatim results not already covered
+                      const dbNames = dbMatches.map((l) => l.name.toLowerCase());
+                      const filtered = nomSuggestions.filter(
+                        (n) => !dbNames.some((d) => n.name.toLowerCase().includes(d) || d.includes(n.name.toLowerCase()))
+                      );
+                      setLocationSuggestions([...dbMatches.slice(0, 4), ...filtered.slice(0, 5)]);
+                      setShowLocSuggestions(true);
+                    } catch {}
+                  }, 400);
                 }}
                 onFocus={() => {
                   if (allCampusLocations.length > 0 && !deliveryAddr.trim()) {
@@ -4805,7 +4835,13 @@ export default function StudentDashboard() {
                       key={loc.id || i}
                       onClick={() => {
                         setDeliveryAddr(loc.name);
+                        const lat = Number(loc.latitude ?? loc.lat);
+                        const lng = Number(loc.longitude ?? loc.lng ?? loc.lon);
+                        if (lat && lng) {
+                          setDeliveryCoords({ lat, lng });
+                        }
                         setShowLocSuggestions(false);
+                        if (window._nomTimer) clearTimeout(window._nomTimer);
                       }}
                       style={{
                         padding: "10px 14px",
