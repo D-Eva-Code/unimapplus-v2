@@ -1305,7 +1305,7 @@ export default function StudentDashboard() {
                 marginBottom: 12,
               }}
             >
-              <span style={{ fontSize: 13, fontWeight: 700 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: textPrimary }}>
                 Results for "{searchQ}"
               </span>
               <button
@@ -1362,7 +1362,7 @@ export default function StudentDashboard() {
                   marginBottom: 4,
                 }}
                 onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = "#f5f6fa")
+                  (e.currentTarget.style.background = dm ? "#21262d" : "#f5f6fa")
                 }
                 onMouseLeave={(e) =>
                   (e.currentTarget.style.background = "transparent")
@@ -1383,7 +1383,7 @@ export default function StudentDashboard() {
                   <span style={{ fontSize: 22 }}>{r.emoji}</span>
                 )}
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>{r.name}</div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: textPrimary }}>{r.name}</div>
                   <div style={{ fontSize: 11, color: textSecondary }}>{r.sub}</div>
                 </div>
                 <span style={{ marginLeft: "auto", color: textSecondary }}>
@@ -2913,6 +2913,7 @@ export default function StudentDashboard() {
                           {qty > 0 &&
                             item.item_type !== "drink" &&
                             item.item_type !== "snacks_pastries" &&
+                            selectedVendor?.category !== "bakery" &&
                             !hasCustomizations && (
                               <div
                                 style={{
@@ -4773,7 +4774,7 @@ export default function StudentDashboard() {
                   window._nomTimer = setTimeout(async () => {
                     try {
                       const res = await fetch(
-                        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val + " Benin City")}&format=json&limit=6&countrycodes=ng&viewbox=5.55,6.45,5.75,6.30&bounded=1`,
+                        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val + " Benin City")}&format=json&limit=6&countrycodes=ng&viewbox=5.50,6.50,5.85,6.25`,
                         { headers: { "Accept-Language": "en" } }
                       );
                       const results = await res.json();
