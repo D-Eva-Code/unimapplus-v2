@@ -9,15 +9,14 @@ const app = express();
 const server = http.createServer(app);
 
 
-// ── Temporary CORS ORIGIN FUNCTION ──────────────────────────────────────────────────────
-const allowedOrigin = (origin, callback) => {
-  const production = process.env.FRONTEND_URL;
+// ── CORS ORIGIN FUNCTION ──────────────────────────────────────────────────────
+const allowedOrigins = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
 
-  if (
-    !origin ||
-    origin === production ||
-    origin === 'http://localhost:3000')
- {
+const allowedOrigin = (origin, callback) => {
+  if (!origin || allowedOrigins.includes(origin) || origin === 'http://localhost:3000') {
     callback(null, true);
   } else {
     callback(new Error('Not allowed by CORS'));
@@ -32,25 +31,10 @@ const io = new Server(server, {
   }
 });
 
-// ── Temporary CORS ──────────────────────────────────────────────────────────────────────
 app.use(cors({
   origin: allowedOrigin,
   credentials: true,
 }));
-
-// const io = new Server(server, {
-//   cors: {
-//     origin: process.env.FRONTEND_URL || '*',
-//     methods: ['GET', 'POST'],
-//     credentials: true,
-//   }
-// });
-
-//  ── CORS ──────────────────────────────────────────────────────────────────────
-// app.use(cors({
-//   origin: process.env.FRONTEND_URL || '*',
-//   credentials: true,
-// }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
